@@ -24,15 +24,15 @@ export default function JoinModal({
       role="dialog"
       aria-modal="true"
       aria-label="Choisir un pseudo"
-      className="fixed inset-0 z-40 flex items-center justify-center bg-neutral-950/95 backdrop-blur px-4"
+      className="fixed inset-0 z-40 flex items-center justify-center bg-bg/95 backdrop-blur px-4"
     >
-      <div className="w-full max-w-md space-y-6 rounded-xl border border-neutral-800 bg-neutral-950 p-6 shadow-2xl">
+      <div className="w-full max-w-md space-y-6 rounded-xl border border-token bg-elevated p-6 shadow-2xl">
         <header className="space-y-2">
-          <p className="text-xs uppercase tracking-wider text-neutral-400">
-            Salle <span className="font-mono text-neutral-200">{roomId}</span>
+          <p className="text-xs uppercase tracking-wider text-muted">
+            Salle <span className="font-mono text-fg">{roomId}</span>
           </p>
-          <h2 className="text-2xl font-bold tracking-tight">Ton pseudo</h2>
-          <p className="text-sm text-neutral-400">
+          <h2 className="text-2xl font-bold tracking-tight text-fg">Ton pseudo</h2>
+          <p className="text-sm text-muted">
             Affiché aux autres voters. Aucune autre information n&apos;est demandée.
           </p>
         </header>
@@ -54,7 +54,7 @@ export default function JoinModal({
             onChange={(e) => setName(e.target.value)}
             maxLength={24}
             placeholder="Ex. Guillaume"
-            className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-3 text-base outline-none transition focus:border-indigo-500"
+            className="w-full rounded-lg border border-token-strong bg-surface px-4 py-3 text-base text-fg outline-none transition focus:border-indigo-500"
           />
           <button
             type="submit"

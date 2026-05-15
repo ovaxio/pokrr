@@ -35,7 +35,7 @@ export default function StoryHeader({
           onChange={(e) => setDraft(e.target.value)}
           maxLength={200}
           placeholder="Titre de la story…"
-          className="flex-1 rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-lg outline-none focus:border-indigo-500"
+          className="flex-1 rounded-lg border border-token-strong bg-surface px-3 py-2 text-lg text-fg outline-none focus:border-indigo-500"
         />
         <div className="flex gap-2">
           <button
@@ -50,7 +50,7 @@ export default function StoryHeader({
               setDraft(story);
               setEditing(false);
             }}
-            className="rounded-lg border border-neutral-700 px-4 py-2 text-sm text-neutral-400 hover:bg-neutral-800"
+            className="rounded-lg border border-token-strong px-4 py-2 text-sm text-muted hover:bg-surface-2"
           >
             Annuler
           </button>
@@ -61,16 +61,14 @@ export default function StoryHeader({
 
   return (
     <div className="flex items-start gap-3">
-      <h2 className="flex-1 text-2xl font-semibold tracking-tight">
-        {story || (
-          <span className="text-neutral-500 italic">Aucune story définie</span>
-        )}
+      <h2 className="flex-1 text-2xl font-semibold tracking-tight text-fg">
+        {story || <span className="italic text-faint">Aucune story définie</span>}
       </h2>
       {isAdmin && (
         <button
           type="button"
           onClick={startEdit}
-          className="rounded-md border border-neutral-700 px-3 py-1.5 text-xs text-neutral-400 hover:bg-neutral-800"
+          className="rounded-md border border-token px-3 py-1.5 text-xs text-muted hover:bg-surface-2"
         >
           {story ? "Modifier" : "Définir"}
         </button>

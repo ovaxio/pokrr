@@ -21,7 +21,7 @@ export default function AdminBar({
   const [nextStory, setNextStory] = useState("");
 
   return (
-    <div className="space-y-3 rounded-lg border border-neutral-800 bg-neutral-900/40 p-4">
+    <div className="space-y-3 rounded-lg border border-token bg-surface/40 p-4">
       <div className="flex flex-wrap gap-2">
         {phase === "voting" ? (
           <button
@@ -35,7 +35,7 @@ export default function AdminBar({
           <button
             type="button"
             onClick={onReset}
-            className="rounded-lg border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm font-medium hover:bg-neutral-700"
+            className="rounded-lg border border-token-strong bg-surface-2 px-4 py-2 text-sm font-medium text-fg hover:bg-surface"
           >
             Re-voter cette story
           </button>
@@ -55,18 +55,18 @@ export default function AdminBar({
             onChange={(e) => setNextStory(e.target.value)}
             placeholder="Story suivante (titre)…"
             maxLength={200}
-            className="flex-1 rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+            className="flex-1 rounded-lg border border-token-strong bg-surface px-3 py-2 text-sm text-fg outline-none focus:border-indigo-500"
           />
           <button
             type="submit"
-            className="rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm font-medium hover:bg-neutral-700"
+            className="rounded-lg border border-token-strong bg-surface-2 px-3 py-2 text-sm font-medium text-fg hover:bg-surface"
           >
             Story suivante →
           </button>
         </form>
       </div>
 
-      <label className="flex cursor-pointer items-center gap-2 text-xs text-neutral-400">
+      <label className="flex cursor-pointer items-center gap-2 text-xs text-muted">
         <input
           type="checkbox"
           checked={autoReveal}

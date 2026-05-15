@@ -74,15 +74,15 @@ export default function ShareDialog({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-sm space-y-5 rounded-xl border border-neutral-800 bg-neutral-950 p-6 shadow-2xl"
+        className="w-full max-w-sm space-y-5 rounded-xl border border-token bg-elevated p-6 shadow-2xl"
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Partager la salle</h2>
+          <h2 className="text-lg font-semibold text-fg">Partager la salle</h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Fermer"
-            className="text-neutral-400 hover:text-neutral-100"
+            className="text-muted hover:text-fg"
           >
             ×
           </button>
@@ -93,10 +93,10 @@ export default function ShareDialog({
         </div>
 
         <div className="space-y-2">
-          <div className="text-xs uppercase tracking-wider text-neutral-500">
+          <div className="text-xs uppercase tracking-wider text-muted">
             Code de la salle
           </div>
-          <div className="rounded-md border border-neutral-800 bg-neutral-900 px-3 py-2 text-center font-mono text-2xl tracking-widest text-neutral-100">
+          <div className="rounded-md border border-token bg-surface px-3 py-2 text-center font-mono text-2xl tracking-widest text-fg">
             {roomId}
           </div>
         </div>
@@ -107,7 +107,7 @@ export default function ShareDialog({
           className={
             "w-full rounded-lg px-4 py-2.5 text-sm font-semibold transition " +
             (copied
-              ? "border border-emerald-700 bg-emerald-950/40 text-emerald-300"
+              ? "border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300"
               : "bg-indigo-600 text-white hover:bg-indigo-500")
           }
         >

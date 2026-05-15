@@ -75,7 +75,7 @@ export default function StatusClient() {
         checking={partyKitCheck === "checking"}
         detail={health?.partyKitHost ?? "—"}
       />
-      <p className="text-xs text-neutral-400">
+      <p className="text-xs text-muted">
         Dernière vérification :{" "}
         {lastCheck ? new Date(lastCheck).toLocaleTimeString("fr-FR") : "—"}
       </p>
@@ -95,21 +95,21 @@ function Card({
   detail: string;
 }) {
   const dotColor = checking
-    ? "bg-amber-400 animate-pulse"
+    ? "bg-amber-500 animate-pulse"
     : up
-      ? "bg-emerald-400"
+      ? "bg-emerald-500"
       : "bg-red-500";
   const badgeColor = checking
-    ? "bg-amber-950/40 text-amber-300"
+    ? "bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300"
     : up
-      ? "bg-emerald-950/40 text-emerald-300"
-      : "bg-red-950/40 text-red-300";
+      ? "bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300"
+      : "bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300";
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-neutral-800 bg-neutral-900/40 px-4 py-3">
+    <div className="flex items-center gap-3 rounded-lg border border-token bg-surface/40 px-4 py-3">
       <span className={`inline-block h-2.5 w-2.5 rounded-full ${dotColor}`} />
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-medium">{label}</div>
-        <div className="truncate text-xs text-neutral-500">{detail}</div>
+        <div className="text-sm font-medium text-fg">{label}</div>
+        <div className="truncate text-xs text-muted">{detail}</div>
       </div>
       <span
         className={

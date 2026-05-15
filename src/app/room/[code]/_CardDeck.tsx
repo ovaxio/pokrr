@@ -17,13 +17,13 @@ export default function CardDeck({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between text-xs text-neutral-400">
+      <div className="flex items-center justify-between text-xs text-muted">
         <span>{disabled ? "Cartes verrouillées" : "Choisis une carte"}</span>
         {selected && !disabled && (
           <button
             type="button"
             onClick={onUnselect}
-            className="text-neutral-400 hover:text-neutral-200"
+            className="text-fg-soft hover:text-fg"
           >
             Effacer
           </button>
@@ -49,7 +49,7 @@ export default function CardDeck({
                 "flex h-16 items-center justify-center rounded-lg border text-xl font-semibold transition active:scale-95 " +
                 (isSelected
                   ? "border-indigo-400 bg-indigo-600 text-white shadow-md shadow-indigo-900/40"
-                  : "border-neutral-700 bg-neutral-900 text-neutral-100 hover:border-neutral-500 hover:bg-neutral-800") +
+                  : "border-token-strong bg-surface text-fg hover:border-token-strong hover:bg-surface-2") +
                 (disabled ? " cursor-not-allowed opacity-40" : "")
               }
             >

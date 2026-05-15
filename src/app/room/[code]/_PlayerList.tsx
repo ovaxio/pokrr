@@ -19,7 +19,7 @@ export default function PlayerList({
 }) {
   if (players.length === 0) {
     return (
-      <p className="text-center text-sm text-neutral-400 py-6">
+      <p className="text-center text-sm text-muted py-6">
         Personne dans la salle pour le moment.
       </p>
     );
@@ -68,39 +68,39 @@ function PlayerCard({
             className={
               "flip-face border-2 " +
               (player.hasVoted
-                ? "border-indigo-600 bg-indigo-900/60"
-                : "border-dashed border-neutral-700 bg-neutral-900/40")
+                ? "border-indigo-500 bg-indigo-600/20"
+                : "border-dashed border-token-strong bg-surface/40")
             }
           >
             {player.hasVoted ? (
-              <span className="text-2xl text-indigo-300">✓</span>
+              <span className="text-2xl text-indigo-500">✓</span>
             ) : (
-              <span className="text-3xl text-neutral-700">·</span>
+              <span className="text-3xl text-faint">·</span>
             )}
           </div>
           {/* Back : face de carte (révélée) */}
-          <div className="flip-face flip-face-back border-2 border-indigo-400 bg-neutral-100 text-neutral-900">
+          <div className="flip-face flip-face-back border-2 border-indigo-500 bg-neutral-50 dark:bg-neutral-100 text-neutral-900">
             <span className="text-2xl font-bold">{player.vote ?? "—"}</span>
           </div>
         </div>
         {/* Online dot */}
         <span
           className={
-            "absolute top-1 right-1 h-2 w-2 rounded-full ring-2 ring-neutral-950 " +
-            (player.online ? "bg-emerald-400" : "bg-neutral-600")
+            "absolute top-1 right-1 h-2 w-2 rounded-full ring-2 ring-bg " +
+            (player.online ? "bg-emerald-500" : "bg-neutral-400 dark:bg-neutral-600")
           }
           aria-label={player.online ? "en ligne" : "hors ligne"}
         />
       </div>
 
       <div className="flex w-full flex-col items-center gap-0.5 text-center">
-        <span className="max-w-full truncate text-xs font-medium text-neutral-200">
+        <span className="max-w-full truncate text-xs font-medium text-fg">
           {player.name}
-          {isMe && <span className="text-neutral-500"> (toi)</span>}
+          {isMe && <span className="text-muted"> (toi)</span>}
         </span>
         <div className="flex items-center gap-1 text-[10px]">
           {player.isAdmin && (
-            <span className="rounded bg-indigo-500/20 px-1 py-0.5 uppercase tracking-wider text-indigo-300">
+            <span className="rounded bg-indigo-500/20 px-1 py-0.5 uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
               admin
             </span>
           )}
@@ -111,7 +111,7 @@ function PlayerCard({
                 onClick={onTransfer}
                 title="Transférer admin"
                 aria-label={`Transférer le rôle admin à ${player.name}`}
-                className="flex h-6 w-6 items-center justify-center rounded border border-neutral-800 text-neutral-400 hover:bg-neutral-800"
+                className="flex h-6 w-6 items-center justify-center rounded border border-token text-muted hover:bg-surface-2"
               >
                 ★
               </button>
@@ -122,7 +122,7 @@ function PlayerCard({
                 }}
                 title="Kick"
                 aria-label={`Retirer ${player.name} de la salle`}
-                className="flex h-6 w-6 items-center justify-center rounded border border-neutral-800 text-neutral-400 hover:bg-red-900/40 hover:text-red-300"
+                className="flex h-6 w-6 items-center justify-center rounded border border-token text-muted hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-700 dark:hover:text-red-300"
               >
                 ×
               </button>

@@ -31,15 +31,15 @@ export default function HelpDialog({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md space-y-4 rounded-xl border border-neutral-800 bg-neutral-950 p-6 shadow-2xl"
+        className="w-full max-w-md space-y-4 rounded-xl border border-token bg-elevated p-6 shadow-2xl"
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Raccourcis clavier</h2>
+          <h2 className="text-lg font-semibold text-fg">Raccourcis clavier</h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Fermer l'aide"
-            className="text-neutral-400 hover:text-neutral-100"
+            className="text-muted hover:text-fg"
           >
             ×
           </button>
@@ -47,7 +47,7 @@ export default function HelpDialog({
 
         <section className="space-y-3 text-sm">
           <div>
-            <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+            <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">
               Voter
             </div>
             <div className="grid grid-cols-2 gap-y-1 gap-x-4">
@@ -56,13 +56,13 @@ export default function HelpDialog({
               ))}
               <ShortcutRow keys="?" label="Carte ?" />
             </div>
-            <p className="mt-2 text-xs text-neutral-500">
+            <p className="mt-2 text-xs text-muted">
               Cartes 89, ∞ et ☕ : clic uniquement.
             </p>
           </div>
 
           <div>
-            <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+            <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">
               Admin
             </div>
             <div className="space-y-1">
@@ -71,7 +71,7 @@ export default function HelpDialog({
             </div>
           </div>
 
-          <div className="rounded-md border border-neutral-800 bg-neutral-900/60 px-3 py-2 text-xs text-neutral-400">
+          <div className="rounded-md border border-token bg-surface px-3 py-2 text-xs text-muted">
             Désactivé quand un champ texte est focus.
           </div>
         </section>
@@ -83,10 +83,10 @@ export default function HelpDialog({
 function ShortcutRow({ keys, label }: { keys: string; label: string }) {
   return (
     <div className="flex items-center gap-3">
-      <kbd className="inline-flex min-w-[2rem] items-center justify-center rounded border border-neutral-700 bg-neutral-900 px-2 py-0.5 font-mono text-xs text-neutral-200">
+      <kbd className="inline-flex min-w-[2rem] items-center justify-center rounded border border-token bg-surface px-2 py-0.5 font-mono text-xs text-fg">
         {keys}
       </kbd>
-      <span className="text-neutral-300">{label}</span>
+      <span className="text-fg-soft">{label}</span>
     </div>
   );
 }
