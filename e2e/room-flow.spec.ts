@@ -33,7 +33,7 @@ test.describe("Room flow — 3 voters happy path", () => {
     await expect(alice.page.getByText("Carol", { exact: false })).toBeVisible();
 
     // 5. Alice (admin) définit la story.
-    await alice.page.getByRole("button", { name: /définir|modifier/i }).click();
+    await alice.page.getByRole("button", { name: /^(Définir|Modifier)$/ }).click();
     await alice.page.getByPlaceholder(/titre de la story/i).fill("Refacto auth middleware");
     await alice.page.getByRole("button", { name: /enregistrer/i }).click();
     await expect(alice.page.getByRole("heading", { name: /refacto auth middleware/i })).toBeVisible();

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { Phase, PlayerView } from "../../../../party/types";
 
 export default function PlayerList({
@@ -9,6 +10,7 @@ export default function PlayerList({
   amIAdmin,
   onKick,
   onTransfer,
+  onRename,
 }: {
   players: PlayerView[];
   phase: Phase;
@@ -16,6 +18,7 @@ export default function PlayerList({
   amIAdmin: boolean;
   onKick: (voterId: string) => void;
   onTransfer: (voterId: string) => void;
+  onRename: (name: string) => void;
 }) {
   if (players.length === 0) {
     return (
@@ -36,6 +39,7 @@ export default function PlayerList({
           amIAdmin={amIAdmin}
           onKick={() => onKick(p.voterId)}
           onTransfer={() => onTransfer(p.voterId)}
+          onRename={onRename}
         />
       ))}
     </div>
@@ -49,6 +53,7 @@ function PlayerCard({
   amIAdmin,
   onKick,
   onTransfer,
+  onRename,
 }: {
   player: PlayerView;
   phase: Phase;
@@ -56,8 +61,22 @@ function PlayerCard({
   amIAdmin: boolean;
   onKick: () => void;
   onTransfer: () => void;
+  onRename: (name: string) => void;
 }) {
   const revealed = phase === "revealed";
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(player.name);
+
+  const startEdit = () => {
+    setDraft(player.name);
+    setEditing(true);
+  };
+
+  const commit = () => {
+    const next = draft.trim().slice(0, 24);
+    if (next && next !== player.name) onRename(next);
+    setEditing(false);
+  };
 
   return (
     <div className="flex w-20 flex-col items-center gap-1.5">
@@ -94,10 +113,48 @@ function PlayerCard({
       </div>
 
       <div className="flex w-full flex-col items-center gap-0.5 text-center">
-        <span className="max-w-full truncate text-xs font-medium text-fg">
-          {player.name}
-          {isMe && <span className="text-muted"> (toi)</span>}
-        </span>
+        {isMe && editing ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              commit();
+            }}
+            className="flex w-full flex-col gap-1"
+          >
+            <input
+              autoFocus
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onBlur={commit}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  setDraft(player.name);
+                  setEditing(false);
+                }
+              }}
+              maxLength={24}
+              aria-label="Modifier ton pseudo"
+              className="w-full rounded border border-indigo-500 bg-surface px-1 py-0.5 text-center text-xs font-medium text-fg outline-none"
+            />
+          </form>
+        ) : (
+          <button
+            type="button"
+            onClick={isMe ? startEdit : undefined}
+            disabled={!isMe}
+            title={isMe ? "Cliquer pour renommer" : undefined}
+            aria-label={isMe ? "Modifier ton pseudo" : undefined}
+            className={
+              "max-w-full truncate text-xs font-medium text-fg " +
+              (isMe
+                ? "cursor-pointer rounded px-1 hover:bg-surface-2"
+                : "cursor-default")
+            }
+          >
+            {player.name}
+            {isMe && <span className="text-muted"> (toi)</span>}
+          </button>
+        )}
         <div className="flex items-center gap-1 text-[10px]">
           {player.isAdmin && (
             <span className="rounded bg-indigo-500/20 px-1 py-0.5 uppercase tracking-wider text-indigo-700 dark:text-indigo-300">

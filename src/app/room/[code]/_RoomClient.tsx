@@ -121,6 +121,11 @@ export default function RoomClient({ roomId }: { roomId: string }) {
             amIAdmin={isAdmin}
             onKick={(voterId) => room.send({ type: "kick", voterId })}
             onTransfer={(voterId) => room.send({ type: "transfer_admin", voterId })}
+            onRename={(newName) => {
+              room.send({ type: "set_name", name: newName });
+              storeName(newName);
+              setName(newName);
+            }}
           />
         </section>
 
