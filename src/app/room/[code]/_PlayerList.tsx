@@ -138,22 +138,26 @@ function PlayerCard({
             />
           </form>
         ) : (
-          <button
-            type="button"
-            onClick={isMe ? startEdit : undefined}
-            disabled={!isMe}
-            title={isMe ? "Cliquer pour renommer" : undefined}
-            aria-label={isMe ? "Modifier ton pseudo" : undefined}
-            className={
-              "max-w-full truncate text-xs font-medium text-fg " +
-              (isMe
-                ? "cursor-pointer rounded px-1 hover:bg-surface-2"
-                : "cursor-default")
-            }
-          >
-            {player.name}
-            {isMe && <span className="text-muted"> (toi)</span>}
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={isMe ? startEdit : undefined}
+              disabled={!isMe}
+              title={isMe ? "Cliquer pour renommer" : undefined}
+              aria-label={isMe ? "Modifier ton pseudo" : undefined}
+              className={
+                "max-w-full truncate text-xs font-medium text-fg " +
+                (isMe
+                  ? "cursor-pointer rounded px-1 hover:bg-surface-2"
+                  : "cursor-default")
+              }
+            >
+              {player.name}
+            </button>
+            {isMe && (
+              <span className="text-[10px] text-muted leading-none">(toi)</span>
+            )}
+          </>
         )}
         <div className="flex items-center gap-1 text-[10px]">
           {player.isAdmin && (
