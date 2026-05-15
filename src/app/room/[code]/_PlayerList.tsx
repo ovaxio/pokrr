@@ -19,7 +19,7 @@ export default function PlayerList({
 }) {
   if (players.length === 0) {
     return (
-      <p className="text-center text-sm text-neutral-500 py-6">
+      <p className="text-center text-sm text-neutral-400 py-6">
         Personne dans la salle pour le moment.
       </p>
     );
@@ -110,7 +110,8 @@ function PlayerCard({
                 type="button"
                 onClick={onTransfer}
                 title="Transférer admin"
-                className="rounded border border-neutral-800 px-1 text-neutral-400 hover:bg-neutral-800"
+                aria-label={`Transférer le rôle admin à ${player.name}`}
+                className="flex h-6 w-6 items-center justify-center rounded border border-neutral-800 text-neutral-400 hover:bg-neutral-800"
               >
                 ★
               </button>
@@ -120,7 +121,8 @@ function PlayerCard({
                   if (confirm(`Retirer ${player.name} de la salle ?`)) onKick();
                 }}
                 title="Kick"
-                className="rounded border border-neutral-800 px-1 text-neutral-400 hover:bg-red-900/40 hover:text-red-300"
+                aria-label={`Retirer ${player.name} de la salle`}
+                className="flex h-6 w-6 items-center justify-center rounded border border-neutral-800 text-neutral-400 hover:bg-red-900/40 hover:text-red-300"
               >
                 ×
               </button>

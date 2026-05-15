@@ -75,7 +75,7 @@ export default function StatusClient() {
         checking={partyKitCheck === "checking"}
         detail={health?.partyKitHost ?? "—"}
       />
-      <p className="text-xs text-neutral-600">
+      <p className="text-xs text-neutral-400">
         Dernière vérification :{" "}
         {lastCheck ? new Date(lastCheck).toLocaleTimeString("fr-FR") : "—"}
       </p>

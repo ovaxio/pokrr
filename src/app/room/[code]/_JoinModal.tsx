@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function JoinModal({
   roomId,
@@ -12,17 +12,27 @@ export default function JoinModal({
   onSubmit: (name: string) => void;
 }) {
   const [name, setName] = useState(defaultName);
+  const inputRef = useRef<HTMLInputElement>(null);
   const trimmed = name.trim();
 
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100">
-      <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 px-6 py-16">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Choisir un pseudo"
+      className="fixed inset-0 z-40 flex items-center justify-center bg-neutral-950/95 backdrop-blur px-4"
+    >
+      <div className="w-full max-w-md space-y-6 rounded-xl border border-neutral-800 bg-neutral-950 p-6 shadow-2xl">
         <header className="space-y-2">
-          <p className="text-xs uppercase tracking-wider text-neutral-500">
-            Salle <span className="font-mono text-neutral-300">{roomId}</span>
+          <p className="text-xs uppercase tracking-wider text-neutral-400">
+            Salle <span className="font-mono text-neutral-200">{roomId}</span>
           </p>
-          <h1 className="text-3xl font-bold tracking-tight">Ton pseudo</h1>
-          <p className="text-neutral-400 text-sm">
+          <h2 className="text-2xl font-bold tracking-tight">Ton pseudo</h2>
+          <p className="text-sm text-neutral-400">
             Affiché aux autres voters. Aucune autre information n&apos;est demandée.
           </p>
         </header>
@@ -33,8 +43,13 @@ export default function JoinModal({
           }}
           className="space-y-3"
         >
+          <label htmlFor="join-name" className="sr-only">
+            Pseudo
+          </label>
           <input
-            autoFocus
+            id="join-name"
+            ref={inputRef}
+            autoComplete="username"
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={24}
@@ -49,7 +64,7 @@ export default function JoinModal({
             Entrer dans la salle
           </button>
         </form>
-      </main>
+      </div>
     </div>
   );
 }

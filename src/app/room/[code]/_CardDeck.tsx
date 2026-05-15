@@ -17,7 +17,7 @@ export default function CardDeck({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between text-xs text-neutral-500">
+      <div className="flex items-center justify-between text-xs text-neutral-400">
         <span>{disabled ? "Cartes verrouillées" : "Choisis une carte"}</span>
         {selected && !disabled && (
           <button

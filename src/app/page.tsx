@@ -13,14 +13,14 @@ export default function Home() {
         </header>
         <section className="space-y-6">
           <NewRoomButton />
-          <div className="flex items-center gap-3 text-xs uppercase tracking-wider text-neutral-500">
+          <div className="flex items-center gap-3 text-xs uppercase tracking-wider text-neutral-400">
             <span className="h-px flex-1 bg-neutral-800" />
             <span>ou</span>
             <span className="h-px flex-1 bg-neutral-800" />
           </div>
           <JoinRoomForm />
         </section>
-        <footer className="text-xs text-neutral-600">
+        <footer className="text-xs text-neutral-400">
           Aucune donnée stockée côté serveur. Les salles expirent après 4h d&apos;inactivité.
         </footer>
       </main>
