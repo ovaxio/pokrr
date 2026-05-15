@@ -4,9 +4,10 @@
 
 import { setTimeout as sleep } from "node:timers/promises";
 
-const HOST = process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "localhost:1999";
+const HOST = process.env.POKRR_HOST ?? process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "localhost:1999";
+const PROTO = HOST.startsWith("localhost") || HOST.startsWith("127.") ? "ws" : "wss";
 const ROOM_ID = `smoke-elect-${Date.now()}`;
-const URL = `ws://${HOST}/parties/main/${ROOM_ID}`;
+const URL = `${PROTO}://${HOST}/parties/main/${ROOM_ID}`;
 const GRACE = Number(process.env.POKRR_ADMIN_GRACE_MS ?? 2000);
 
 function log(label, payload) {

@@ -12,7 +12,8 @@
 
 import { setTimeout as sleep } from "node:timers/promises";
 
-const HOST = "localhost:1999";
+const HOST = process.env.POKRR_HOST ?? "localhost:1999";
+const PROTO = HOST.startsWith("localhost") || HOST.startsWith("127.") ? "ws" : "wss";
 
 let pass = 0;
 let fail = 0;
@@ -29,7 +30,7 @@ function expect(cond, label) {
 
 function connect(roomId) {
   return new Promise((resolve, reject) => {
-    const ws = new WebSocket(`ws://${HOST}/parties/main/${roomId}`);
+    const ws = new WebSocket(`${PROTO}://${HOST}/parties/main/${roomId}`);
     ws.addEventListener("open", () => resolve(ws));
     ws.addEventListener("error", (e) => reject(e));
     ws.addEventListener("message", (event) => {
@@ -163,7 +164,7 @@ console.log("\n→ Test 6 : Origin browser non-autorisé");
   const room = `sec-origin-${Date.now()}`;
   let rejected = false;
   await new Promise((resolve) => {
-    const ws = new WebSocket(`ws://${HOST}/parties/main/${room}`, {
+    const ws = new WebSocket(`${PROTO}://${HOST}/parties/main/${room}`, {
       headers: { Origin: "https://attacker.example.com" },
     });
     ws.addEventListener("open", () => resolve(null));
@@ -178,7 +179,7 @@ console.log("\n→ Test 6 : Origin browser non-autorisé");
 
   // Origin browser autorisé : localhost passe
   const allowed = await new Promise((resolve) => {
-    const ws = new WebSocket(`ws://${HOST}/parties/main/${room}`, {
+    const ws = new WebSocket(`${PROTO}://${HOST}/parties/main/${room}`, {
       headers: { Origin: "http://localhost:3000" },
     });
     ws.addEventListener("open", () => { ws.close(); resolve(true); });
