@@ -18,7 +18,7 @@ export default function CardDeck({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-xs text-neutral-500">
-        <span>Ta carte</span>
+        <span>{disabled ? "Cartes verrouillées" : "Choisis une carte"}</span>
         {selected && !disabled && (
           <button
             type="button"
@@ -29,18 +29,24 @@ export default function CardDeck({
           </button>
         )}
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div
+        role="radiogroup"
+        aria-label="Deck de cartes Fibonacci"
+        className="grid grid-cols-4 gap-2 sm:grid-cols-7"
+      >
         {DECK.map((card) => {
           const isSelected = selected === card;
           return (
             <button
               key={card}
               type="button"
+              role="radio"
+              aria-checked={isSelected}
+              aria-label={`Vote ${card}`}
               disabled={disabled}
               onClick={() => onSelect(card)}
-              aria-pressed={isSelected}
               className={
-                "h-16 min-w-[3rem] flex-1 basis-[calc(25%-0.5rem)] rounded-lg border text-lg font-semibold transition active:scale-95 sm:basis-auto sm:px-4 " +
+                "flex h-16 items-center justify-center rounded-lg border text-xl font-semibold transition active:scale-95 " +
                 (isSelected
                   ? "border-indigo-400 bg-indigo-600 text-white shadow-md shadow-indigo-900/40"
                   : "border-neutral-700 bg-neutral-900 text-neutral-100 hover:border-neutral-500 hover:bg-neutral-800") +

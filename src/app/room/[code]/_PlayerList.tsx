@@ -1,6 +1,6 @@
 "use client";
 
-import type { PlayerView, Phase } from "../../../../party/types";
+import type { Phase, PlayerView } from "../../../../party/types";
 
 export default function PlayerList({
   players,
@@ -17,62 +17,117 @@ export default function PlayerList({
   onKick: (voterId: string) => void;
   onTransfer: (voterId: string) => void;
 }) {
+  if (players.length === 0) {
+    return (
+      <p className="text-center text-sm text-neutral-500 py-6">
+        Personne dans la salle pour le moment.
+      </p>
+    );
+  }
+
   return (
-    <ul className="space-y-2">
+    <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
       {players.map((p) => (
-        <li
+        <PlayerCard
           key={p.voterId}
-          className="flex items-center gap-3 rounded-lg border border-neutral-800 bg-neutral-900/50 px-3 py-2"
-        >
-          <span
+          player={p}
+          phase={phase}
+          isMe={p.voterId === meVoterId}
+          amIAdmin={amIAdmin}
+          onKick={() => onKick(p.voterId)}
+          onTransfer={() => onTransfer(p.voterId)}
+        />
+      ))}
+    </div>
+  );
+}
+
+function PlayerCard({
+  player,
+  phase,
+  isMe,
+  amIAdmin,
+  onKick,
+  onTransfer,
+}: {
+  player: PlayerView;
+  phase: Phase;
+  isMe: boolean;
+  amIAdmin: boolean;
+  onKick: () => void;
+  onTransfer: () => void;
+}) {
+  const revealed = phase === "revealed";
+
+  return (
+    <div className="flex w-20 flex-col items-center gap-1.5">
+      <div className="relative h-24 w-16">
+        <div className={`flip-card ${revealed && player.vote ? "flipped" : ""}`}>
+          {/* Front : dos de carte (votant) */}
+          <div
             className={
-              "inline-block h-2 w-2 rounded-full " +
-              (p.online ? "bg-emerald-400" : "bg-neutral-600")
+              "flip-face border-2 " +
+              (player.hasVoted
+                ? "border-indigo-600 bg-indigo-900/60"
+                : "border-dashed border-neutral-700 bg-neutral-900/40")
             }
-            aria-label={p.online ? "en ligne" : "hors ligne"}
-          />
-          <span className="flex-1 truncate text-sm">
-            {p.name}
-            {p.voterId === meVoterId && <span className="text-neutral-500"> (toi)</span>}
-            {p.isAdmin && (
-              <span className="ml-2 inline-block rounded bg-indigo-500/20 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-indigo-300">
-                admin
-              </span>
-            )}
-          </span>
-          <span className="text-sm font-mono">
-            {phase === "revealed" ? (
-              p.vote ?? <span className="text-neutral-600">—</span>
-            ) : p.hasVoted ? (
-              <span className="text-emerald-400">✓</span>
+          >
+            {player.hasVoted ? (
+              <span className="text-2xl text-indigo-300">✓</span>
             ) : (
-              <span className="text-neutral-600">—</span>
+              <span className="text-3xl text-neutral-700">·</span>
             )}
-          </span>
-          {amIAdmin && p.voterId !== meVoterId && (
-            <div className="flex gap-1">
+          </div>
+          {/* Back : face de carte (révélée) */}
+          <div className="flip-face flip-face-back border-2 border-indigo-400 bg-neutral-100 text-neutral-900">
+            <span className="text-2xl font-bold">{player.vote ?? "—"}</span>
+          </div>
+        </div>
+        {/* Online dot */}
+        <span
+          className={
+            "absolute top-1 right-1 h-2 w-2 rounded-full ring-2 ring-neutral-950 " +
+            (player.online ? "bg-emerald-400" : "bg-neutral-600")
+          }
+          aria-label={player.online ? "en ligne" : "hors ligne"}
+        />
+      </div>
+
+      <div className="flex w-full flex-col items-center gap-0.5 text-center">
+        <span className="max-w-full truncate text-xs font-medium text-neutral-200">
+          {player.name}
+          {isMe && <span className="text-neutral-500"> (toi)</span>}
+        </span>
+        <div className="flex items-center gap-1 text-[10px]">
+          {player.isAdmin && (
+            <span className="rounded bg-indigo-500/20 px-1 py-0.5 uppercase tracking-wider text-indigo-300">
+              admin
+            </span>
+          )}
+          {amIAdmin && !isMe && (
+            <>
               <button
                 type="button"
-                onClick={() => onTransfer(p.voterId)}
-                title="Transférer le rôle admin"
-                className="rounded border border-neutral-800 px-1.5 py-0.5 text-[10px] text-neutral-400 hover:bg-neutral-800"
+                onClick={onTransfer}
+                title="Transférer admin"
+                className="rounded border border-neutral-800 px-1 text-neutral-400 hover:bg-neutral-800"
               >
                 ★
               </button>
               <button
                 type="button"
                 onClick={() => {
-                  if (confirm(`Retirer ${p.name} de la salle ?`)) onKick(p.voterId);
+                  if (confirm(`Retirer ${player.name} de la salle ?`)) onKick();
                 }}
                 title="Kick"
-                className="rounded border border-neutral-800 px-1.5 py-0.5 text-[10px] text-neutral-400 hover:bg-red-900/40 hover:text-red-300"
+                className="rounded border border-neutral-800 px-1 text-neutral-400 hover:bg-red-900/40 hover:text-red-300"
               >
                 ×
               </button>
-            </div>
+            </>
           )}
-        </li>
-      ))}
-    </ul>
+        </div>
+      </div>
+    </div>
   );
 }

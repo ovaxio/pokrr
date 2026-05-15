@@ -1,0 +1,119 @@
+"use client";
+
+import { QRCodeSVG } from "qrcode.react";
+import { useEffect, useState } from "react";
+
+export default function ShareDialog({
+  roomId,
+  open,
+  onClose,
+}: {
+  roomId: string;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const [url, setUrl] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (open && typeof window !== "undefined") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setUrl(window.location.href);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  const copy = async () => {
+    let ok = false;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        ok = true;
+      }
+    } catch {
+      ok = false;
+    }
+    if (!ok) {
+      const ta = document.createElement("textarea");
+      ta.value = url;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        ok = document.execCommand("copy");
+      } catch {
+        ok = false;
+      }
+      document.body.removeChild(ta);
+    }
+    if (ok) {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    }
+  };
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Partager la salle"
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-sm space-y-5 rounded-xl border border-neutral-800 bg-neutral-950 p-6 shadow-2xl"
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Partager la salle</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fermer"
+            className="text-neutral-400 hover:text-neutral-100"
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="flex justify-center rounded-lg bg-white p-4">
+          {url && <QRCodeSVG value={url} size={180} marginSize={1} level="M" />}
+        </div>
+
+        <div className="space-y-2">
+          <div className="text-xs uppercase tracking-wider text-neutral-500">
+            Code de la salle
+          </div>
+          <div className="rounded-md border border-neutral-800 bg-neutral-900 px-3 py-2 text-center font-mono text-2xl tracking-widest text-neutral-100">
+            {roomId}
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={copy}
+          className={
+            "w-full rounded-lg px-4 py-2.5 text-sm font-semibold transition " +
+            (copied
+              ? "border border-emerald-700 bg-emerald-950/40 text-emerald-300"
+              : "bg-indigo-600 text-white hover:bg-indigo-500")
+          }
+        >
+          {copied ? "Lien copié ✓" : "Copier le lien"}
+        </button>
+      </div>
+    </div>
+  );
+}

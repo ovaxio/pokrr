@@ -8,14 +8,17 @@ import AdminBar from "./_AdminBar";
 import CardDeck from "./_CardDeck";
 import JoinModal from "./_JoinModal";
 import PlayerList from "./_PlayerList";
+import ResultsPanel from "./_ResultsPanel";
+import ShareDialog from "./_ShareDialog";
 import StoryHeader from "./_StoryHeader";
+import StoryHistory from "./_StoryHistory";
 
 export default function RoomClient({ roomId }: { roomId: string }) {
   const [name, setName] = useState<string | null>(null);
   const [nameHydrated, setNameHydrated] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
-  // Lecture localStorage post-hydration : pas accessible côté SSR. Le linter recommande
-  // useSyncExternalStore mais ici on lit une fois au mount, pas besoin d'abonnement.
+  // Lecture localStorage post-hydration : pas accessible côté SSR.
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setName(getStoredName() || null);
@@ -48,20 +51,27 @@ export default function RoomClient({ roomId }: { roomId: string }) {
   const players = room.state.players;
   const totalCount = players.length;
   const votedCount = players.filter((p) => p.hasVoted).length;
+  const isRevealed = room.state.phase === "revealed";
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100">
-      <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-4 py-6 sm:px-6">
+      <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-5 px-4 py-5 sm:px-6 sm:gap-6 sm:py-6">
         <header className="flex items-center justify-between gap-3 text-sm">
           <Link href="/" className="font-bold tracking-tight text-lg hover:text-indigo-400">
             pokrr
           </Link>
           <div className="flex items-center gap-2 text-xs text-neutral-500">
-            <span>Salle</span>
+            <span className="hidden sm:inline">Salle</span>
             <code className="rounded bg-neutral-900 px-2 py-1 font-mono text-neutral-300">
               {roomId}
             </code>
-            <CopyLinkButton />
+            <button
+              type="button"
+              onClick={() => setShareOpen(true)}
+              className="rounded border border-neutral-800 px-2 py-1 text-neutral-400 transition hover:bg-neutral-800"
+            >
+              Partager
+            </button>
           </div>
         </header>
 
@@ -85,12 +95,12 @@ export default function RoomClient({ roomId }: { roomId: string }) {
         />
 
         <div className="text-sm text-neutral-400" role="status" aria-live="polite">
-          {room.state.phase === "voting"
-            ? `${votedCount}/${totalCount} a voté`
-            : `Résultats — ${totalCount} voter${totalCount > 1 ? "s" : ""}`}
+          {isRevealed
+            ? `Résultats — ${votedCount}/${totalCount} ont voté`
+            : `${votedCount}/${totalCount} a voté`}
         </div>
 
-        <section className="space-y-4">
+        <section>
           <PlayerList
             players={players}
             phase={room.state.phase}
@@ -100,6 +110,8 @@ export default function RoomClient({ roomId }: { roomId: string }) {
             onTransfer={(voterId) => room.send({ type: "transfer_admin", voterId })}
           />
         </section>
+
+        {isRevealed && <ResultsPanel players={players} />}
 
         {isAdmin && (
           <AdminBar
@@ -112,7 +124,9 @@ export default function RoomClient({ roomId }: { roomId: string }) {
           />
         )}
 
-        <div className="mt-auto pt-4">
+        <StoryHistory entries={room.history} onClear={room.clearHistory} />
+
+        <div className="mt-auto pt-2">
           <CardDeck
             selected={room.mySelectedVote}
             phase={room.state.phase}
@@ -121,6 +135,8 @@ export default function RoomClient({ roomId }: { roomId: string }) {
           />
         </div>
       </main>
+
+      <ShareDialog roomId={roomId} open={shareOpen} onClose={() => setShareOpen(false)} />
     </div>
   );
 }
@@ -130,58 +146,5 @@ function FullScreen({ text, tone }: { text: string; tone?: "danger" }) {
     <div className="flex min-h-screen items-center justify-center bg-neutral-950 px-6 text-center text-neutral-100">
       <p className={tone === "danger" ? "text-red-300" : "text-neutral-400"}>{text}</p>
     </div>
-  );
-}
-
-function CopyLinkButton() {
-  const [copied, setCopied] = useState(false);
-
-  const copy = async () => {
-    const url = window.location.href;
-    let ok = false;
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(url);
-        ok = true;
-      }
-    } catch {
-      ok = false;
-    }
-    if (!ok) {
-      // Fallback : sélection cachée + execCommand (legacy mais marche en HTTP non-sécurisé).
-      const ta = document.createElement("textarea");
-      ta.value = url;
-      ta.setAttribute("readonly", "");
-      ta.style.position = "fixed";
-      ta.style.opacity = "0";
-      document.body.appendChild(ta);
-      ta.select();
-      try {
-        ok = document.execCommand("copy");
-      } catch {
-        ok = false;
-      }
-      document.body.removeChild(ta);
-    }
-    if (ok) {
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1500);
-    }
-  };
-
-  return (
-    <button
-      type="button"
-      onClick={copy}
-      title="Copier le lien"
-      className={
-        "rounded border px-2 py-1 transition " +
-        (copied
-          ? "border-emerald-700 bg-emerald-950/40 text-emerald-300"
-          : "border-neutral-800 text-neutral-400 hover:bg-neutral-800")
-      }
-    >
-      {copied ? "Copié ✓" : "Copier"}
-    </button>
   );
 }
