@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# pokrr
 
-## Getting Started
+Planning poker minimaliste : gratuit, sans pub, sans inscription. Stack Next.js 16 + PartyKit (Cloudflare Workers + Durable Objects).
 
-First, run the development server:
+## Lancer en local
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Front Next.js : http://localhost:3000
+- PartyKit server : ws://localhost:1999
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`npm run dev` lance les deux en parallèle via `concurrently`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Variables d'environnement
 
-## Learn More
+Voir `.env.example`. En local, `NEXT_PUBLIC_PARTYKIT_HOST=localhost:1999`.
 
-To learn more about Next.js, take a look at the following resources:
+## Déploiement
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Front : Vercel (auto sur push si connecté).
+- PartyKit : `npm run party:deploy` → déploie sur ton compte Cloudflare (free tier).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Structure
 
-## Deploy on Vercel
+```
+src/app/            # Next.js App Router
+party/              # PartyKit server (Durable Object par room)
+partykit.json       # Config PartyKit
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## État (étape 0 — squelette)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Next.js 16 App Router + TypeScript + Tailwind v4.
+- PartyKit server hello world (`party/index.ts`) qui broadcast les messages.
+- Smoke test sur la home : indicateur de connexion WebSocket en bas de page.
