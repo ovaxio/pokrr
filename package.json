@@ -9,7 +9,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "party:deploy": "partykit deploy"
+    "party:deploy": "partykit deploy",
+    "smoke": "node scripts/smoke-room.mjs"
   },
   "dependencies": {
     "nanoid": "^5.1.11",
