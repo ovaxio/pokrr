@@ -50,6 +50,19 @@ function isRateLimited(ip: string | null): boolean {
   return false;
 }
 
+// ---------- Structured logs ----------
+// Émet une ligne JSON par événement. Récupérable via `wrangler tail` en prod CF ou
+// dans la console partykit en dev.
+function log(event: string, data: Record<string, unknown> = {}): void {
+  const line = JSON.stringify({ ts: new Date().toISOString(), event, ...data });
+  console.log(line);
+}
+
+// voterId tronqué pour logs : suffisant pour la corrélation, non-exfiltrant le credential.
+function truncId(id: string | null | undefined): string {
+  return id ? id.slice(0, 8) : "—";
+}
+
 function clientIp(req: Party.Request): string | null {
   const cfIp = req.headers.get("cf-connecting-ip");
   if (cfIp) return cfIp;
@@ -102,6 +115,7 @@ export default class PokrrRoom implements Party.Server {
   static onBeforeConnect(req: Party.Request): Party.Request | Response {
     const ip = clientIp(req);
     if (isRateLimited(ip)) {
+      log("rate_limited", { ip: ip ? ip.slice(0, 8) : "—" });
       return new Response("Too Many Requests", { status: 429 });
     }
     return req;
@@ -196,6 +210,7 @@ export default class PokrrRoom implements Party.Server {
     if (isReconnect) {
       // Reconnect : on garde le pseudo existant côté serveur (l'utilisateur peut le
       // re-changer via set_name).
+      log("player_rejoined", { room: this.room.id, voter: truncId(voterId) });
     } else {
       const finalName = this.dedupeName(name, voterId);
       this.players.set(voterId, {
@@ -204,9 +219,16 @@ export default class PokrrRoom implements Party.Server {
         vote: null,
         joinedAt: Date.now(),
       });
-      if (!this.adminVoterId) {
+      const wasFirst = !this.adminVoterId;
+      if (wasFirst) {
         this.adminVoterId = voterId;
       }
+      log("player_joined", {
+        room: this.room.id,
+        voter: truncId(voterId),
+        is_admin: wasFirst,
+        players: this.players.size,
+      });
     }
 
     conn.setState({ voterId });
@@ -245,6 +267,7 @@ export default class PokrrRoom implements Party.Server {
       return this.sendError(conn, "invalid", "Carte hors deck");
     }
     player.vote = value;
+    log("vote_cast", { room: this.room.id, voter: truncId(player.voterId), value });
     this.bumpAndBroadcast();
     this.maybeAutoReveal();
   }
@@ -264,6 +287,8 @@ export default class PokrrRoom implements Party.Server {
     if (!this.requireAdmin(conn)) return;
     if (this.phase === "revealed") return;
     this.phase = "revealed";
+    const voted = [...this.players.values()].filter((p) => p.vote !== null).length;
+    log("revealed_manual", { room: this.room.id, voted, total: this.players.size });
     this.bumpAndBroadcast();
   }
 
@@ -271,6 +296,7 @@ export default class PokrrRoom implements Party.Server {
     if (!this.requireAdmin(conn)) return;
     this.clearVotes();
     this.phase = "voting";
+    log("round_reset", { room: this.room.id });
     this.bumpAndBroadcast();
   }
 
@@ -281,6 +307,7 @@ export default class PokrrRoom implements Party.Server {
     this.story = story;
     this.clearVotes();
     this.phase = "voting";
+    log("next_story", { room: this.room.id, len: story.length });
     this.bumpAndBroadcast();
   }
 
@@ -314,6 +341,7 @@ export default class PokrrRoom implements Party.Server {
     this.players.delete(target);
     this.kickConnections(target, "Vous avez été retiré de la salle par l'admin");
     this.connsByVoter.delete(target);
+    log("player_kicked", { room: this.room.id, target: truncId(target) });
     this.bumpAndBroadcast();
     this.maybeAutoReveal();
   }
@@ -326,6 +354,11 @@ export default class PokrrRoom implements Party.Server {
       return this.sendError(conn, "invalid", "Joueur cible introuvable");
     }
     if (target === this.adminVoterId) return;
+    log("admin_transferred", {
+      room: this.room.id,
+      from: truncId(this.adminVoterId),
+      to: truncId(target),
+    });
     this.adminVoterId = target;
     this.bumpAndBroadcast();
   }
@@ -391,6 +424,12 @@ export default class PokrrRoom implements Party.Server {
         .sort((a, b) => a.joinedAt - b.joinedAt);
       const next = candidates[0];
       if (!next) return; // plus personne en ligne, on attendra
+      log("admin_elected", {
+        room: this.room.id,
+        from: truncId(this.adminVoterId),
+        to: truncId(next.voterId),
+        grace_ms: graceMs,
+      });
       this.adminVoterId = next.voterId;
       this.bumpAndBroadcast();
     }, graceMs);
@@ -403,6 +442,11 @@ export default class PokrrRoom implements Party.Server {
     if (onlinePlayers.length === 0) return;
     if (onlinePlayers.every((p) => p.vote !== null)) {
       this.phase = "revealed";
+      log("revealed_auto", {
+        room: this.room.id,
+        voted: onlinePlayers.length,
+        total: this.players.size,
+      });
       this.bumpAndBroadcast();
     }
   }
