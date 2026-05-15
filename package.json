@@ -11,7 +11,9 @@
     "lint": "eslint",
     "party:deploy": "partykit deploy",
     "smoke": "node scripts/smoke-room.mjs",
-    "smoke:election": "POKRR_ADMIN_GRACE_MS=2000 node scripts/smoke-admin-election.mjs"
+    "smoke:election": "POKRR_ADMIN_GRACE_MS=2000 node scripts/smoke-admin-election.mjs",
+    "smoke:security": "node scripts/smoke-security.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "nanoid": "^5.1.11",
@@ -22,6 +24,7 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

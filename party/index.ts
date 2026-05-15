@@ -71,6 +71,29 @@ function clientIp(req: Party.Request): string | null {
   return null;
 }
 
+// ---------- Origin allowlist (anti CSWSH) ----------
+// Bloque les WebSocket initiés depuis une page tierce. Les clients Node
+// (smoke tests, k6) n'envoient pas d'Origin → autorisés. Seuls les browsers
+// envoient Origin, et on les contraint à la liste.
+function isOriginAllowed(req: Party.Request): boolean {
+  const origin = req.headers.get("origin");
+  if (!origin) return true; // client non-browser (Node, curl, smoke)
+
+  // En dev, on accepte localhost:* et 127.0.0.1:*.
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return true;
+
+  // En prod, lit POKRR_ALLOWED_ORIGINS depuis room.env (.env ou partykit.json vars).
+  // Doit être déclaré côté Cloudflare au déploiement.
+  // Pour le check static onBeforeConnect, on n'a pas accès à room.env, donc
+  // on hardcode aussi *.vercel.app + l'env partykit dev.
+  if (/^https:\/\/[^/]+\.vercel\.app$/.test(origin)) return true;
+  if (process.env.POKRR_ALLOWED_ORIGINS) {
+    const allowed = process.env.POKRR_ALLOWED_ORIGINS.split(",").map((o) => o.trim());
+    if (allowed.includes(origin)) return true;
+  }
+  return false;
+}
+
 // ---------- Admin election ----------
 // Si l'admin se déconnecte et ne revient pas dans la fenêtre de grâce, le serveur
 // élit automatiquement le voter en ligne le plus ancien comme nouvel admin.
@@ -113,6 +136,10 @@ export default class PokrrRoom implements Party.Server {
   // Rate-limit avant ouverture du WebSocket. Renvoie 429 si trop de connexions
   // depuis la même IP dans la fenêtre.
   static onBeforeConnect(req: Party.Request): Party.Request | Response {
+    if (!isOriginAllowed(req)) {
+      log("forbidden_origin", { origin: req.headers.get("origin") });
+      return new Response("Forbidden Origin", { status: 403 });
+    }
     const ip = clientIp(req);
     if (isRateLimited(ip)) {
       log("rate_limited", { ip: ip ? ip.slice(0, 8) : "—" });
