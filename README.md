@@ -23,10 +23,16 @@ Les deux serveurs tournent en parallèle via `concurrently`.
 
 ### Tests
 
+Prérequis : `npm run dev` doit tourner dans un autre terminal (port 3000 + 1999).
+
 ```bash
-npm run smoke           # 17 assertions backend (happy path + refus + offline)
-npm run smoke:election  # 7 assertions sur l'élection admin auto (POKRR_ADMIN_GRACE_MS=2000)
+npm run smoke           # 17 assertions backend (happy path)
+npm run smoke:election  # 7 assertions élection admin auto (POKRR_ADMIN_GRACE_MS=2000)
+npm run smoke:security  # 18 assertions sécurité (CSWSH, XSS, admin usurp, voterId, JSON)
+npm run test:e2e        # 1 test Playwright (3 voters, happy path complet)
 ```
+
+Total : **42 assertions backend + 1 E2E**. CI GitHub Actions (`.github/workflows/ci.yml`) joue automatiquement static checks + smokes sur chaque push.
 
 ## Déploiement
 
