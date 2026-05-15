@@ -22,6 +22,42 @@ type ConnState = { voterId: string | null };
 
 const DECK_SET: ReadonlySet<string> = new Set<string>(DECK);
 
+// ---------- Rate limit (par IP, in-memory, par isolate Worker) ----------
+// Pas de garantie cross-instance. Au-delà : passer par une rate-limiter DO
+// dédiée ou par Cloudflare Rate Limiting Rules.
+const RATE_WINDOW_MS = 60_000; // 1 minute
+const RATE_MAX_CONNECTIONS = 30; // 30 connexions/min/IP
+const ipConnections = new Map<string, number[]>();
+
+function isRateLimited(ip: string | null): boolean {
+  if (!ip) return false;
+  const now = Date.now();
+  const recent = (ipConnections.get(ip) ?? []).filter((t) => now - t < RATE_WINDOW_MS);
+  if (recent.length >= RATE_MAX_CONNECTIONS) {
+    ipConnections.set(ip, recent);
+    return true;
+  }
+  recent.push(now);
+  ipConnections.set(ip, recent);
+  // GC opportuniste : si la map dépasse 10k entrées, on purge les IPs sans hit récent.
+  if (ipConnections.size > 10_000) {
+    for (const [key, ts] of ipConnections) {
+      if (ts.length === 0 || now - ts[ts.length - 1] > RATE_WINDOW_MS) {
+        ipConnections.delete(key);
+      }
+    }
+  }
+  return false;
+}
+
+function clientIp(req: Party.Request): string | null {
+  const cfIp = req.headers.get("cf-connecting-ip");
+  if (cfIp) return cfIp;
+  const xff = req.headers.get("x-forwarded-for");
+  if (xff) return xff.split(",")[0]?.trim() ?? null;
+  return null;
+}
+
 function isCard(value: unknown): value is Card {
   return typeof value === "string" && DECK_SET.has(value);
 }
@@ -47,6 +83,16 @@ function sanitizeVoterId(raw: unknown): string | null {
 
 export default class PokrrRoom implements Party.Server {
   options: Party.ServerOptions = { hibernate: false };
+
+  // Rate-limit avant ouverture du WebSocket. Renvoie 429 si trop de connexions
+  // depuis la même IP dans la fenêtre.
+  static onBeforeConnect(req: Party.Request): Party.Request | Response {
+    const ip = clientIp(req);
+    if (isRateLimited(ip)) {
+      return new Response("Too Many Requests", { status: 429 });
+    }
+    return req;
+  }
 
   private story = "";
   private phase: Phase = "voting";
