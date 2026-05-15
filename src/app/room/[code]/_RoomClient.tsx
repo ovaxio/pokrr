@@ -52,6 +52,8 @@ export default function RoomClient({ roomId }: { roomId: string }) {
   const totalCount = players.length;
   const votedCount = players.filter((p) => p.hasVoted).length;
   const isRevealed = room.state.phase === "revealed";
+  const adminPlayer = players.find((p) => p.isAdmin);
+  const adminOffline = adminPlayer ? !adminPlayer.online : players.length > 0;
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100">
@@ -85,6 +87,14 @@ export default function RoomClient({ roomId }: { roomId: string }) {
             >
               ×
             </button>
+          </div>
+        )}
+
+        {adminOffline && !isAdmin && (
+          <div className="rounded-lg border border-amber-900/60 bg-amber-950/30 px-3 py-2 text-sm text-amber-200">
+            L&apos;admin {adminPlayer ? <strong>{adminPlayer.name}</strong> : null} est hors ligne.
+            Le rôle sera transféré automatiquement au plus ancien voter en ligne après 15 min sans
+            retour.
           </div>
         )}
 

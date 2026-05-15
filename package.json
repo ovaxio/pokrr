@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "eslint",
     "party:deploy": "partykit deploy",
-    "smoke": "node scripts/smoke-room.mjs"
+    "smoke": "node scripts/smoke-room.mjs",
+    "smoke:election": "POKRR_ADMIN_GRACE_MS=2000 node scripts/smoke-admin-election.mjs"
   },
   "dependencies": {
     "nanoid": "^5.1.11",

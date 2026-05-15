@@ -58,6 +58,19 @@ function clientIp(req: Party.Request): string | null {
   return null;
 }
 
+// ---------- Admin election ----------
+// Si l'admin se déconnecte et ne revient pas dans la fenêtre de grâce, le serveur
+// élit automatiquement le voter en ligne le plus ancien comme nouvel admin.
+// Override via la variable d'env POKRR_ADMIN_GRACE_MS (chargée par PartyKit
+// depuis .env ou partykit.json vars).
+const DEFAULT_ADMIN_GRACE_MS = 15 * 60 * 1000;
+
+function readAdminGraceMs(env: unknown): number {
+  if (!env || typeof env !== "object") return DEFAULT_ADMIN_GRACE_MS;
+  const raw = Number((env as Record<string, unknown>).POKRR_ADMIN_GRACE_MS);
+  return Number.isFinite(raw) && raw > 0 ? raw : DEFAULT_ADMIN_GRACE_MS;
+}
+
 function isCard(value: unknown): value is Card {
   return typeof value === "string" && DECK_SET.has(value);
 }
@@ -101,6 +114,7 @@ export default class PokrrRoom implements Party.Server {
   private adminVoterId: string | null = null;
   private players = new Map<string, ServerPlayer>();
   private connsByVoter = new Map<string, Set<string>>();
+  private adminElectionTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(readonly room: Party.Room) {}
 
@@ -157,6 +171,10 @@ export default class PokrrRoom implements Party.Server {
         this.connsByVoter.delete(voterId);
       }
     }
+    // Si l'admin vient de passer offline, programmer l'élection auto.
+    if (voterId === this.adminVoterId && !this.isOnline(voterId)) {
+      this.scheduleAdminElection();
+    }
     this.bumpAndBroadcast();
     this.maybeAutoReveal();
   }
@@ -195,6 +213,12 @@ export default class PokrrRoom implements Party.Server {
     const conns = this.connsByVoter.get(voterId) ?? new Set<string>();
     conns.add(conn.id);
     this.connsByVoter.set(voterId, conns);
+
+    // L'admin est revenu → annuler l'élection programmée.
+    if (voterId === this.adminVoterId && this.adminElectionTimer) {
+      clearTimeout(this.adminElectionTimer);
+      this.adminElectionTimer = null;
+    }
 
     this.bumpAndBroadcast();
   }
@@ -352,6 +376,24 @@ export default class PokrrRoom implements Party.Server {
   private isOnline(voterId: string): boolean {
     const conns = this.connsByVoter.get(voterId);
     return conns ? conns.size > 0 : false;
+  }
+
+  private scheduleAdminElection() {
+    if (this.adminElectionTimer) clearTimeout(this.adminElectionTimer);
+    const graceMs = readAdminGraceMs(this.room.env);
+    this.adminElectionTimer = setTimeout(() => {
+      this.adminElectionTimer = null;
+      // Si l'admin est revenu entre-temps, ne rien faire.
+      if (this.adminVoterId && this.isOnline(this.adminVoterId)) return;
+      // Élire le plus ancien joueur en ligne (parmi ceux qui ne sont pas l'admin actuel).
+      const candidates = [...this.players.values()]
+        .filter((p) => this.isOnline(p.voterId) && p.voterId !== this.adminVoterId)
+        .sort((a, b) => a.joinedAt - b.joinedAt);
+      const next = candidates[0];
+      if (!next) return; // plus personne en ligne, on attendra
+      this.adminVoterId = next.voterId;
+      this.bumpAndBroadcast();
+    }, graceMs);
   }
 
   private maybeAutoReveal() {
