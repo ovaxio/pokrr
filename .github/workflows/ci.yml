@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static:
+    name: Lint / Typecheck / Build / Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: TypeScript
+        run: npx tsc --noEmit
+
+      - name: Build production
+        run: npm run build
+
+      - name: npm audit (prod deps, high+)
+        run: npm audit --omit=dev --audit-level=high
+
+  smoke:
+    name: Backend smokes (room / election / security)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Setup PartyKit env (short admin grace)
+        run: echo "POKRR_ADMIN_GRACE_MS=2000" > .env
+
+      - name: Start PartyKit dev in background
+        run: |
+          npm run dev:party > /tmp/partykit.log 2>&1 &
+          echo $! > /tmp/partykit.pid
+          for i in $(seq 1 30); do
+            if nc -z localhost 1999 2>/dev/null; then
+              echo "partykit up after ${i}s"
+              sleep 2
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Smoke — happy path
+        run: npm run smoke
+
+      - name: Smoke — security
+        run: npm run smoke:security
+
+      - name: Smoke — admin election
+        run: npm run smoke:election
+
+      - name: Dump PartyKit logs on failure
+        if: failure()
+        run: tail -100 /tmp/partykit.log || true
+
+      - name: Cleanup
+        if: always()
+        run: kill $(cat /tmp/partykit.pid) 2>/dev/null || true
