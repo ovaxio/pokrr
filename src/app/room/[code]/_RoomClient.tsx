@@ -6,6 +6,7 @@ import ThemeToggle from "../../_ThemeToggle";
 import { usePokrrRoom } from "../../../lib/usePokrrRoom";
 import { useRoomShortcuts } from "../../../lib/useRoomShortcuts";
 import { getStoredName, storeName } from "../../../lib/voterId";
+import { DEFAULT_DECK_ID } from "../../../../party/types";
 import AdminBar from "./_AdminBar";
 import CardDeck from "./_CardDeck";
 import HelpDialog from "./_HelpDialog";
@@ -14,6 +15,7 @@ import PlayerList from "./_PlayerList";
 import ResultsPanel from "./_ResultsPanel";
 import ShareDialog from "./_ShareDialog";
 import StoryHeader from "./_StoryHeader";
+import TimerDisplay from "./_TimerDisplay";
 
 export default function RoomClient({ roomId }: { roomId: string }) {
   const [name, setName] = useState<string | null>(null);
@@ -38,6 +40,8 @@ export default function RoomClient({ roomId }: { roomId: string }) {
   const isRevealed = room.state?.phase === "revealed";
   const phase = room.state?.phase ?? "voting";
   const story = room.state?.story ?? "";
+  const deckId = room.state?.deckId ?? DEFAULT_DECK_ID;
+  const timer = room.state?.timer ?? null;
   const adminPlayer = players.find((p) => p.isAdmin);
   const adminOffline = adminPlayer ? !adminPlayer.online : players.length > 0;
   const isConnecting = !room.state;
@@ -129,16 +133,23 @@ export default function RoomClient({ roomId }: { roomId: string }) {
           />
         </section>
 
-        {isRevealed && <ResultsPanel players={players} />}
+        {timer && <TimerDisplay timer={timer} />}
+
+        {isRevealed && <ResultsPanel players={players} deckId={deckId} story={story} />}
 
         {isAdmin && room.state && (
           <AdminBar
             phase={room.state.phase}
             autoReveal={room.state.autoReveal}
+            deckId={deckId}
+            timerActive={timer !== null}
             onReveal={() => room.send({ type: "reveal" })}
             onReset={() => room.send({ type: "reset" })}
             onNextStory={(story) => room.send({ type: "next_story", story })}
             onToggleAutoReveal={(enabled) => room.send({ type: "set_auto_reveal", enabled })}
+            onSetDeck={(deckId) => room.send({ type: "set_deck", deckId })}
+            onStartTimer={(durationSec) => room.send({ type: "start_timer", durationSec })}
+            onStopTimer={() => room.send({ type: "stop_timer" })}
           />
         )}
 
@@ -146,6 +157,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
           <CardDeck
             selected={room.mySelectedVote}
             phase={phase}
+            deckId={deckId}
             onSelect={(value) => room.send({ type: "vote", value })}
             onUnselect={() => room.send({ type: "unvote" })}
           />
@@ -173,7 +185,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
       )}
 
       <ShareDialog roomId={roomId} open={shareOpen} onClose={() => setShareOpen(false)} />
-      <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} />
+      <HelpDialog open={helpOpen} deckId={deckId} onClose={() => setHelpOpen(false)} />
     </div>
   );
 }

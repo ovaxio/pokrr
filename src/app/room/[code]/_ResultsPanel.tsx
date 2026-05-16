@@ -1,10 +1,52 @@
 "use client";
 
+import { useState } from "react";
 import type { PlayerView } from "../../../../party/types";
 import { computeStats, isWideSpread } from "../../../lib/stats";
 
-export default function ResultsPanel({ players }: { players: PlayerView[] }) {
-  const stats = computeStats(players);
+export default function ResultsPanel({
+  players,
+  deckId,
+  story,
+}: {
+  players: PlayerView[];
+  deckId: string;
+  story: string;
+}) {
+  const stats = computeStats(players, deckId);
+  const [copied, setCopied] = useState(false);
+
+  const copyMarkdown = async () => {
+    const md = buildMarkdown(players, stats, story);
+    let ok = false;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(md);
+        ok = true;
+      }
+    } catch {
+      ok = false;
+    }
+    if (!ok) {
+      const ta = document.createElement("textarea");
+      ta.value = md;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        ok = document.execCommand("copy");
+      } catch {
+        ok = false;
+      }
+      document.body.removeChild(ta);
+    }
+    if (ok) {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    }
+  };
 
   if (stats.voteCount === 0) {
     return (
@@ -16,18 +58,39 @@ export default function ResultsPanel({ players }: { players: PlayerView[] }) {
 
   const maxCount = stats.distribution.reduce((m, d) => Math.max(m, d.count), 1);
   const wideSpread =
-    stats.lowest && stats.highest && isWideSpread(stats.lowest.value, stats.highest.value);
+    stats.lowest && stats.highest && isWideSpread(stats.lowest.value, stats.highest.value, deckId);
 
   return (
     <section className="space-y-4 rounded-lg border border-token bg-surface/40 p-4">
-      <div className="grid grid-cols-3 gap-3">
-        <Stat label="Moyenne" value={fmt(stats.mean)} subdued={stats.numericCount === 0} />
-        <Stat label="Médiane" value={fmt(stats.median)} subdued={stats.numericCount === 0} />
-        <Stat
-          label="Suggestion"
-          value={stats.consensusSuggestion ?? "—"}
-          accent={stats.consensusSuggestion !== null}
-        />
+      <div className="flex items-start justify-between gap-3">
+        {stats.numericDeck ? (
+          <div className="grid flex-1 grid-cols-3 gap-3">
+            <Stat label="Moyenne" value={fmt(stats.mean)} subdued={stats.numericCount === 0} />
+            <Stat label="Médiane" value={fmt(stats.median)} subdued={stats.numericCount === 0} />
+            <Stat
+              label="Suggestion"
+              value={stats.consensusSuggestion ?? "—"}
+              accent={stats.consensusSuggestion !== null}
+            />
+          </div>
+        ) : (
+          <div className="flex-1 rounded-md border border-token bg-bg px-3 py-2 text-sm text-muted">
+            Deck non-numérique → distribution uniquement.
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={copyMarkdown}
+          title="Copier les résultats en Markdown"
+          className={
+            "shrink-0 rounded-lg border px-3 py-2 text-xs font-medium transition " +
+            (copied
+              ? "border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300"
+              : "border-token bg-surface text-fg-soft hover:bg-surface-2")
+          }
+        >
+          {copied ? "Copié ✓" : "Copier MD"}
+        </button>
       </div>
 
       {stats.consensus && (
@@ -66,6 +129,33 @@ export default function ResultsPanel({ players }: { players: PlayerView[] }) {
       )}
     </section>
   );
+}
+
+function buildMarkdown(
+  players: PlayerView[],
+  stats: ReturnType<typeof computeStats>,
+  story: string,
+): string {
+  const lines: string[] = [];
+  if (story) lines.push(`## ${story}`, "");
+  lines.push("| Voter | Vote |", "|---|---|");
+  for (const p of players) {
+    if (p.vote) lines.push(`| ${escapeMd(p.name)} | ${escapeMd(p.vote)} |`);
+  }
+  lines.push("");
+  if (stats.numericDeck) {
+    lines.push(
+      `**Moyenne** : ${fmt(stats.mean)} · **Médiane** : ${fmt(stats.median)} · **Suggestion** : ${stats.consensusSuggestion ?? "—"}`,
+    );
+  }
+  if (stats.consensus) {
+    lines.push(`**Consensus** sur ${stats.distribution[0].card}.`);
+  }
+  return lines.join("\n");
+}
+
+function escapeMd(s: string): string {
+  return s.replace(/\|/g, "\\|").replace(/\n/g, " ");
 }
 
 function Stat({

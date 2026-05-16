@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { DECK, type ClientMessage, type RoomState } from "../../party/types";
+import { DECKS, DEFAULT_DECK_ID, type ClientMessage, type RoomState } from "../../party/types";
 
 export type RoomShortcutsConfig = {
   state: RoomState | null;
@@ -10,10 +10,10 @@ export type RoomShortcutsConfig = {
 };
 
 // Raccourcis clavier disponibles dans une salle :
-// - 0..9 : sélectionne la carte à la position correspondante du deck (0, 1, 2, 3, 5, 8, 13, 21, 34, 55).
-// - ?    : sélectionne la carte "?".
-// - Space (admin, phase voting) : reveal.
-// - R    (admin, phase revealed) : re-voter cette story.
+// - 0..9 : sélectionne la carte à la position correspondante du deck courant
+// - ?    : sélectionne la carte "?" (si présente dans le deck)
+// - Space (admin, phase voting) : reveal
+// - R    (admin, phase revealed) : re-voter cette story
 // Inactif si focus dans un input/textarea/contenteditable.
 export function useRoomShortcuts({ state, isAdmin, send }: RoomShortcutsConfig) {
   useEffect(() => {
@@ -30,10 +30,12 @@ export function useRoomShortcuts({ state, isAdmin, send }: RoomShortcutsConfig) 
       }
       if (e.altKey || e.ctrlKey || e.metaKey) return;
 
-      // 0..9 → carte à la position correspondante du deck.
+      const deck = DECKS[state.deckId] ?? DECKS[DEFAULT_DECK_ID];
+
+      // 0..9 → carte à la position correspondante du deck courant.
       if (/^\d$/.test(e.key) && state.phase === "voting") {
         const idx = parseInt(e.key, 10);
-        const card = DECK[idx];
+        const card = deck.cards[idx];
         if (card) {
           e.preventDefault();
           send({ type: "vote", value: card });
@@ -43,8 +45,10 @@ export function useRoomShortcuts({ state, isAdmin, send }: RoomShortcutsConfig) 
 
       // ? → carte "?"
       if (e.key === "?" && state.phase === "voting") {
-        e.preventDefault();
-        send({ type: "vote", value: "?" });
+        if ((deck.cards as readonly string[]).includes("?")) {
+          e.preventDefault();
+          send({ type: "vote", value: "?" });
+        }
         return;
       }
 

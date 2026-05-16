@@ -1,6 +1,7 @@
 import type * as Party from "partykit/server";
 import {
-  DECK,
+  DECKS,
+  DEFAULT_DECK_ID,
   LIMITS,
   type Card,
   type ClientMessage,
@@ -9,6 +10,7 @@ import {
   type PlayerView,
   type RoomState,
   type ServerMessage,
+  type TimerInfo,
 } from "./types";
 
 type ServerPlayer = {
@@ -19,8 +21,6 @@ type ServerPlayer = {
 };
 
 type ConnState = { voterId: string | null };
-
-const DECK_SET: ReadonlySet<string> = new Set<string>(DECK);
 
 // ---------- Rate limit (par IP, in-memory, par isolate Worker) ----------
 // Pas de garantie cross-instance. Au-delà : passer par une rate-limiter DO
@@ -107,10 +107,6 @@ function readAdminGraceMs(env: unknown): number {
   return Number.isFinite(raw) && raw > 0 ? raw : DEFAULT_ADMIN_GRACE_MS;
 }
 
-function isCard(value: unknown): value is Card {
-  return typeof value === "string" && DECK_SET.has(value);
-}
-
 function sanitizeName(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
   const trimmed = raw.trim().replace(/[<>]/g, "");
@@ -156,6 +152,14 @@ export default class PokrrRoom implements Party.Server {
   private players = new Map<string, ServerPlayer>();
   private connsByVoter = new Map<string, Set<string>>();
   private adminElectionTimer: ReturnType<typeof setTimeout> | null = null;
+  private deckId: string = DEFAULT_DECK_ID;
+  private timer: TimerInfo | null = null;
+
+  private isCardInCurrentDeck(value: unknown): value is Card {
+    if (typeof value !== "string") return false;
+    const deck = DECKS[this.deckId] ?? DECKS[DEFAULT_DECK_ID];
+    return (deck.cards as readonly string[]).includes(value);
+  }
 
   constructor(readonly room: Party.Room) {}
 
@@ -197,6 +201,12 @@ export default class PokrrRoom implements Party.Server {
         return this.handleKick(sender, msg.voterId);
       case "transfer_admin":
         return this.handleTransferAdmin(sender, msg.voterId);
+      case "set_deck":
+        return this.handleSetDeck(sender, msg.deckId);
+      case "start_timer":
+        return this.handleStartTimer(sender, msg.durationSec);
+      case "stop_timer":
+        return this.handleStopTimer(sender);
       default:
         return this.sendError(sender, "invalid", "Type de message inconnu");
     }
@@ -290,7 +300,7 @@ export default class PokrrRoom implements Party.Server {
     if (this.phase !== "voting") {
       return this.sendError(conn, "forbidden", "Vote impossible après reveal");
     }
-    if (!isCard(value)) {
+    if (!this.isCardInCurrentDeck(value)) {
       return this.sendError(conn, "invalid", "Carte hors deck");
     }
     player.vote = value;
@@ -323,7 +333,55 @@ export default class PokrrRoom implements Party.Server {
     if (!this.requireAdmin(conn)) return;
     this.clearVotes();
     this.phase = "voting";
+    this.timer = null;
     log("round_reset", { room: this.room.id });
+    this.bumpAndBroadcast();
+  }
+
+  private handleSetDeck(conn: Party.Connection<ConnState>, deckIdRaw: unknown) {
+    if (!this.requireAdmin(conn)) return;
+    if (typeof deckIdRaw !== "string" || !(deckIdRaw in DECKS)) {
+      return this.sendError(conn, "invalid", "deckId inconnu");
+    }
+    if (deckIdRaw === this.deckId) return;
+    // Refuse de changer le deck si au moins un vote a été posé pour la story courante.
+    const hasVote = [...this.players.values()].some((p) => p.vote !== null);
+    if (hasVote) {
+      return this.sendError(
+        conn,
+        "forbidden",
+        "Impossible de changer le deck après le premier vote — reset ou story suivante d'abord",
+      );
+    }
+    this.deckId = deckIdRaw;
+    log("deck_changed", { room: this.room.id, deck: this.deckId });
+    this.bumpAndBroadcast();
+  }
+
+  private handleStartTimer(conn: Party.Connection<ConnState>, durationRaw: unknown) {
+    if (!this.requireAdmin(conn)) return;
+    const duration = typeof durationRaw === "number" ? Math.floor(durationRaw) : NaN;
+    if (
+      !Number.isFinite(duration) ||
+      duration < LIMITS.minTimerSec ||
+      duration > LIMITS.maxTimerSec
+    ) {
+      return this.sendError(
+        conn,
+        "invalid",
+        `Durée invalide (entre ${LIMITS.minTimerSec}s et ${LIMITS.maxTimerSec}s)`,
+      );
+    }
+    this.timer = { startedAt: Date.now(), durationSec: duration };
+    log("timer_started", { room: this.room.id, duration });
+    this.bumpAndBroadcast();
+  }
+
+  private handleStopTimer(conn: Party.Connection<ConnState>) {
+    if (!this.requireAdmin(conn)) return;
+    if (!this.timer) return;
+    this.timer = null;
+    log("timer_stopped", { room: this.room.id });
     this.bumpAndBroadcast();
   }
 
@@ -334,6 +392,7 @@ export default class PokrrRoom implements Party.Server {
     this.story = story;
     this.clearVotes();
     this.phase = "voting";
+    this.timer = null; // reset timer entre stories
     log("next_story", { room: this.room.id, len: story.length });
     this.bumpAndBroadcast();
   }
@@ -496,6 +555,8 @@ export default class PokrrRoom implements Party.Server {
       phase: this.phase,
       autoReveal: this.autoReveal,
       players,
+      deckId: this.deckId,
+      timer: this.timer,
       version: this.version,
     };
   }

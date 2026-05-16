@@ -1,19 +1,22 @@
 "use client";
 
-import { DECK, type Card, type Phase } from "../../../../party/types";
+import { DECKS, DEFAULT_DECK_ID, type Card, type Phase } from "../../../../party/types";
 
 export default function CardDeck({
   selected,
   phase,
+  deckId,
   onSelect,
   onUnselect,
 }: {
   selected: Card | null;
   phase: Phase;
+  deckId: string;
   onSelect: (card: Card) => void;
   onUnselect: () => void;
 }) {
   const disabled = phase === "revealed";
+  const deck = DECKS[deckId] ?? DECKS[DEFAULT_DECK_ID];
 
   return (
     <div className="space-y-2">
@@ -31,10 +34,10 @@ export default function CardDeck({
       </div>
       <div
         role="radiogroup"
-        aria-label="Deck de cartes Fibonacci"
+        aria-label={`Deck ${deck.label}`}
         className="grid grid-cols-4 gap-2 sm:grid-cols-7"
       >
-        {DECK.map((card) => {
+        {deck.cards.map((card) => {
           const isSelected = selected === card;
           return (
             <button

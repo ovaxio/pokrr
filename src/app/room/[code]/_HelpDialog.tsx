@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect } from "react";
-import { DECK } from "../../../../party/types";
+import { DECKS, DEFAULT_DECK_ID } from "../../../../party/types";
 
 export default function HelpDialog({
   open,
+  deckId,
   onClose,
 }: {
   open: boolean;
+  deckId: string;
   onClose: () => void;
 }) {
   useEffect(() => {
@@ -20,6 +22,11 @@ export default function HelpDialog({
   }, [open, onClose]);
 
   if (!open) return null;
+
+  const deck = DECKS[deckId] ?? DECKS[DEFAULT_DECK_ID];
+  const reachableByKey = deck.cards.slice(0, 10);
+  const clickOnly = deck.cards.slice(10).filter((c) => c !== "?");
+  const hasQuestion = (deck.cards as readonly string[]).includes("?");
 
   return (
     <div
@@ -48,17 +55,19 @@ export default function HelpDialog({
         <section className="space-y-3 text-sm">
           <div>
             <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">
-              Voter
+              Voter (deck {deck.label})
             </div>
             <div className="grid grid-cols-2 gap-y-1 gap-x-4">
-              {DECK.slice(0, 10).map((card, i) => (
+              {reachableByKey.map((card, i) => (
                 <ShortcutRow key={card} keys={String(i)} label={`Carte ${card}`} />
               ))}
-              <ShortcutRow keys="?" label="Carte ?" />
+              {hasQuestion && <ShortcutRow keys="?" label="Carte ?" />}
             </div>
-            <p className="mt-2 text-xs text-muted">
-              Cartes 89, ∞ et ☕ : clic uniquement.
-            </p>
+            {clickOnly.length > 0 && (
+              <p className="mt-2 text-xs text-muted">
+                Cartes {clickOnly.join(", ")} : clic uniquement.
+              </p>
+            )}
           </div>
 
           <div>

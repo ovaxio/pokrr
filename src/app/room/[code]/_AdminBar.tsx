@@ -1,22 +1,38 @@
 "use client";
 
 import { useState } from "react";
-import type { Phase } from "../../../../party/types";
+import { DECKS, type Phase } from "../../../../party/types";
+
+const TIMER_PRESETS = [
+  { sec: 60, label: "1 min" },
+  { sec: 5 * 60, label: "5 min" },
+  { sec: 10 * 60, label: "10 min" },
+];
 
 export default function AdminBar({
   phase,
   autoReveal,
+  deckId,
+  timerActive,
   onReveal,
   onReset,
   onNextStory,
   onToggleAutoReveal,
+  onSetDeck,
+  onStartTimer,
+  onStopTimer,
 }: {
   phase: Phase;
   autoReveal: boolean;
+  deckId: string;
+  timerActive: boolean;
   onReveal: () => void;
   onReset: () => void;
   onNextStory: (story: string) => void;
   onToggleAutoReveal: (enabled: boolean) => void;
+  onSetDeck: (deckId: string) => void;
+  onStartTimer: (sec: number) => void;
+  onStopTimer: () => void;
 }) {
   const [nextStory, setNextStory] = useState("");
 
@@ -66,15 +82,55 @@ export default function AdminBar({
         </form>
       </div>
 
-      <label className="flex cursor-pointer items-center gap-2 text-xs text-muted">
-        <input
-          type="checkbox"
-          checked={autoReveal}
-          onChange={(e) => onToggleAutoReveal(e.target.checked)}
-          className="accent-indigo-500"
-        />
-        Auto-révéler dès que tout le monde a voté
-      </label>
+      <div className="flex flex-wrap items-center gap-3 text-xs">
+        <label className="flex cursor-pointer items-center gap-2 text-muted">
+          <input
+            type="checkbox"
+            checked={autoReveal}
+            onChange={(e) => onToggleAutoReveal(e.target.checked)}
+            className="accent-indigo-500"
+          />
+          Auto-révéler
+        </label>
+
+        <label className="flex items-center gap-2 text-muted">
+          Deck :
+          <select
+            value={deckId}
+            onChange={(e) => onSetDeck(e.target.value)}
+            className="rounded border border-token bg-surface px-2 py-1 text-xs text-fg focus:border-indigo-500 outline-none"
+          >
+            {Object.values(DECKS).map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="flex items-center gap-1 text-muted">
+          <span>Timer :</span>
+          {TIMER_PRESETS.map((p) => (
+            <button
+              key={p.sec}
+              type="button"
+              onClick={() => onStartTimer(p.sec)}
+              className="rounded border border-token bg-surface px-2 py-1 text-xs text-fg hover:bg-surface-2"
+            >
+              {p.label}
+            </button>
+          ))}
+          {timerActive && (
+            <button
+              type="button"
+              onClick={onStopTimer}
+              className="rounded border border-red-300 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 px-2 py-1 text-xs text-red-900 dark:text-red-200 hover:bg-red-100 dark:hover:bg-red-950/60"
+            >
+              Stop
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

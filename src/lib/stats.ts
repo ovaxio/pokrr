@@ -1,24 +1,31 @@
-import { NUMERIC_CARDS, type Card, type PlayerView } from "../../party/types";
-
-const NUMERIC_VALUES = new Map<Card, number>(NUMERIC_CARDS.map((c) => [c, Number(c)]));
-const FIBO_NUMBERS: number[] = NUMERIC_CARDS.map((c) => Number(c));
+import {
+  cardToNumber,
+  DECKS,
+  DEFAULT_DECK_ID,
+  type Card,
+  type PlayerView,
+} from "../../party/types";
 
 export type DistributionEntry = { card: Card; count: number };
 
 export type Stats = {
   voteCount: number; // votes effectifs (toutes cartes confondues, sauf null)
-  numericCount: number; // votes numériques seulement
+  numericCount: number; // votes numériques seulement (selon deck)
   mean: number | null;
   median: number | null;
   consensusSuggestion: Card | null;
-  consensus: boolean; // tous les voters numériques ont voté la même carte
+  consensus: boolean; // tous les voters ont voté la même carte (effective)
   distribution: DistributionEntry[]; // triée par count desc, ordre deck si égalité
   highest: { player: PlayerView; value: number } | null;
   lowest: { player: PlayerView; value: number } | null;
   spread: number | null; // highest - lowest
+  numericDeck: boolean; // false = deck non-numérique (T-shirt) → mean/median/suggestion sans sens
 };
 
-export function computeStats(players: PlayerView[]): Stats {
+export function computeStats(players: PlayerView[], deckId: string = DEFAULT_DECK_ID): Stats {
+  const deck = DECKS[deckId] ?? DECKS[DEFAULT_DECK_ID];
+  const numericDeck = deck.numericCards.length > 0;
+
   const numericPlayers: Array<{ p: PlayerView; v: number }> = [];
   const countByCard = new Map<Card, number>();
 
@@ -27,8 +34,8 @@ export function computeStats(players: PlayerView[]): Stats {
     if (!p.vote) continue;
     voteCount++;
     countByCard.set(p.vote, (countByCard.get(p.vote) ?? 0) + 1);
-    const numeric = NUMERIC_VALUES.get(p.vote);
-    if (numeric !== undefined) numericPlayers.push({ p, v: numeric });
+    const numeric = cardToNumber(deck, p.vote);
+    if (numeric !== null) numericPlayers.push({ p, v: numeric });
   }
 
   const numericValues = numericPlayers.map((np) => np.v);
@@ -45,32 +52,38 @@ export function computeStats(players: PlayerView[]): Stats {
   }
 
   let consensusSuggestion: Card | null = null;
-  if (mean !== null) {
-    let best = FIBO_NUMBERS[0];
-    for (const v of FIBO_NUMBERS) {
-      if (Math.abs(v - mean) < Math.abs(best - mean)) best = v;
+  if (mean !== null && numericDeck) {
+    // Snap au card numérique le plus proche dans le deck courant
+    const numericValuesInDeck = deck.numericCards
+      .map((c) => ({ card: c, n: cardToNumber(deck, c) }))
+      .filter((x): x is { card: string; n: number } => x.n !== null);
+    if (numericValuesInDeck.length > 0) {
+      let best = numericValuesInDeck[0];
+      for (const v of numericValuesInDeck) {
+        if (Math.abs(v.n - mean) < Math.abs(best.n - mean)) best = v;
+      }
+      consensusSuggestion = best.card;
     }
-    consensusSuggestion = String(best) as Card;
   }
 
   const consensus =
-    numericPlayers.length > 0 &&
-    numericPlayers.every((np) => np.p.vote === numericPlayers[0].p.vote);
+    voteCount > 0 && countByCard.size === 1;
 
   const sortedByValue = [...numericPlayers].sort((a, b) => a.v - b.v);
   const lowest = sortedByValue.length
     ? { player: sortedByValue[0].p, value: sortedByValue[0].v }
     : null;
   const highest = sortedByValue.length
-    ? { player: sortedByValue[sortedByValue.length - 1].p, value: sortedByValue[sortedByValue.length - 1].v }
+    ? {
+        player: sortedByValue[sortedByValue.length - 1].p,
+        value: sortedByValue[sortedByValue.length - 1].v,
+      }
     : null;
   const spread = highest && lowest ? highest.value - lowest.value : null;
 
   // Ordonne distribution par count desc, puis par ordre deck.
   const deckOrder = new Map<Card, number>();
-  ([
-    "0", "1", "2", "3", "5", "8", "13", "21", "34", "55", "89", "∞", "?", "☕",
-  ] as Card[]).forEach((c, i) => deckOrder.set(c, i));
+  deck.cards.forEach((c, i) => deckOrder.set(c, i));
 
   const distribution: DistributionEntry[] = [...countByCard.entries()]
     .map(([card, count]) => ({ card, count }))
@@ -90,6 +103,7 @@ export function computeStats(players: PlayerView[]): Stats {
     highest,
     lowest,
     spread,
+    numericDeck,
   };
 }
 
@@ -98,10 +112,18 @@ function round1(n: number) {
 }
 
 // Détecte un écart suffisamment large pour mériter une discussion canonique (Mike Cohn).
-// Heuristique : au moins 2 paliers Fibonacci d'écart.
-export function isWideSpread(lowest: number, highest: number): boolean {
-  const lowIdx = FIBO_NUMBERS.indexOf(lowest);
-  const highIdx = FIBO_NUMBERS.indexOf(highest);
+// Heuristique : au moins 2 paliers dans l'ordre du deck numérique.
+export function isWideSpread(
+  lowest: number,
+  highest: number,
+  deckId: string = DEFAULT_DECK_ID,
+): boolean {
+  const deck = DECKS[deckId] ?? DECKS[DEFAULT_DECK_ID];
+  const values = deck.numericCards
+    .map((c) => cardToNumber(deck, c))
+    .filter((n): n is number => n !== null);
+  const lowIdx = values.indexOf(lowest);
+  const highIdx = values.indexOf(highest);
   if (lowIdx === -1 || highIdx === -1) return false;
   return highIdx - lowIdx >= 2;
 }
