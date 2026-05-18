@@ -1,11 +1,11 @@
 import type * as Party from "partykit/server";
 import {
-  DECKS,
-  DEFAULT_DECK_ID,
-  LIMITS,
   type Card,
   type ClientMessage,
+  DECKS,
+  DEFAULT_DECK_ID,
   type ErrorCode,
+  LIMITS,
   type Phase,
   type PlayerView,
   type RoomState,
@@ -87,6 +87,7 @@ function isOriginAllowed(req: Party.Request): boolean {
   // Pour le check static onBeforeConnect, on n'a pas accès à room.env, donc
   // on hardcode aussi *.vercel.app + l'env partykit dev.
   if (/^https:\/\/[^/]+\.vercel\.app$/.test(origin)) return true;
+  if (/^https:\/\/(www\.)?pokrr\.app$/.test(origin)) return true;
   if (process.env.POKRR_ALLOWED_ORIGINS) {
     const allowed = process.env.POKRR_ALLOWED_ORIGINS.split(",").map((o) => o.trim());
     if (allowed.includes(origin)) return true;
@@ -116,8 +117,7 @@ function sanitizeName(raw: unknown): string | null {
 
 function sanitizeStory(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
-  const trimmed = raw.replace(/[<>]/g, "").slice(0, LIMITS.maxStoryLength);
-  return trimmed;
+  return raw.replace(/[<>]/g, "").slice(0, LIMITS.maxStoryLength);
 }
 
 function sanitizeVoterId(raw: unknown): string | null {
