@@ -89,6 +89,7 @@ export type PlayerView = {
   hasVoted: boolean;
   vote: Card | null;
   isAdmin: boolean;
+  isViewer: boolean;
   online: boolean;
 };
 
@@ -128,7 +129,7 @@ export type ServerMessage = RoomState | ErrorMessage | KickedMessage;
 // Messages client → serveur. Tous nécessitent que le client ait fait `join` au préalable
 // (sauf `join` lui-même).
 export type ClientMessage =
-  | { type: "join"; voterId: string; name: string }
+  | { type: "join"; voterId: string; name: string; asViewer?: boolean }
   | { type: "set_name"; name: string }
   | { type: "vote"; value: Card }
   | { type: "unvote" }
@@ -138,7 +139,10 @@ export type ClientMessage =
   | { type: "set_story"; story: string } // admin — édition titre sans reset
   | { type: "set_auto_reveal"; enabled: boolean } // admin
   | { type: "kick"; voterId: string } // admin
-  | { type: "transfer_admin"; voterId: string } // admin
+  | { type: "transfer_admin"; voterId: string } // admin — alias de grant_admin (compat)
+  | { type: "grant_admin"; voterId: string } // admin — promouvoit un voter co-admin
+  | { type: "revoke_admin"; voterId: string } // admin — retire le rôle admin (pas de kick)
+  | { type: "set_viewer"; isViewer: boolean } // self — toggle spectateur/voter
   | { type: "set_deck"; deckId: string } // admin — change le deck (refusé si vote en cours)
   | { type: "start_timer"; durationSec: number } // admin — démarre / redémarre le timer
   | { type: "stop_timer" }; // admin — arrête le timer

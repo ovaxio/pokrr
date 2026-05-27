@@ -9,7 +9,8 @@ export default function PlayerList({
   meVoterId,
   amIAdmin,
   onKick,
-  onTransfer,
+  onGrantAdmin,
+  onRevokeAdmin,
   onRename,
 }: {
   players: PlayerView[];
@@ -17,7 +18,8 @@ export default function PlayerList({
   meVoterId: string;
   amIAdmin: boolean;
   onKick: (voterId: string) => void;
-  onTransfer: (voterId: string) => void;
+  onGrantAdmin: (voterId: string) => void;
+  onRevokeAdmin: (voterId: string) => void;
   onRename: (name: string) => void;
 }) {
   if (players.length === 0) {
@@ -38,7 +40,8 @@ export default function PlayerList({
           isMe={p.voterId === meVoterId}
           amIAdmin={amIAdmin}
           onKick={() => onKick(p.voterId)}
-          onTransfer={() => onTransfer(p.voterId)}
+          onGrantAdmin={() => onGrantAdmin(p.voterId)}
+          onRevokeAdmin={() => onRevokeAdmin(p.voterId)}
           onRename={onRename}
         />
       ))}
@@ -52,7 +55,8 @@ function PlayerCard({
   isMe,
   amIAdmin,
   onKick,
-  onTransfer,
+  onGrantAdmin,
+  onRevokeAdmin,
   onRename,
 }: {
   player: PlayerView;
@@ -60,7 +64,8 @@ function PlayerCard({
   isMe: boolean;
   amIAdmin: boolean;
   onKick: () => void;
-  onTransfer: () => void;
+  onGrantAdmin: () => void;
+  onRevokeAdmin: () => void;
   onRename: (name: string) => void;
 }) {
   const revealed = phase === "revealed";
@@ -81,27 +86,35 @@ function PlayerCard({
   return (
     <div className="flex w-20 flex-col items-center gap-1.5">
       <div className="relative h-24 w-16">
-        <div className={`flip-card ${revealed && player.vote ? "flipped" : ""}`}>
-          {/* Front : dos de carte (votant) */}
-          <div
-            className={
-              "flip-face border-2 " +
-              (player.hasVoted
-                ? "border-indigo-500 bg-indigo-600/20"
-                : "border-dashed border-token-strong bg-surface/40")
-            }
-          >
-            {player.hasVoted ? (
-              <span className="text-2xl text-indigo-500">✓</span>
-            ) : (
-              <span className="text-3xl text-faint">·</span>
-            )}
+        {player.isViewer ? (
+          <div className="h-24 w-16 flex items-center justify-center rounded-xl border-2 border-dashed border-token-strong bg-surface/20">
+            <span className="text-2xl text-faint" aria-label="spectateur">
+              👁
+            </span>
           </div>
-          {/* Back : face de carte (révélée) */}
-          <div className="flip-face flip-face-back border-2 border-indigo-500 bg-neutral-50 dark:bg-neutral-100 text-neutral-900">
-            <span className="text-2xl font-bold">{player.vote ?? "—"}</span>
+        ) : (
+          <div className={`flip-card ${revealed && player.vote ? "flipped" : ""}`}>
+            {/* Front : dos de carte */}
+            <div
+              className={
+                "flip-face border-2 " +
+                (player.hasVoted
+                  ? "border-indigo-500 bg-indigo-600/20"
+                  : "border-dashed border-token-strong bg-surface/40")
+              }
+            >
+              {player.hasVoted ? (
+                <span className="text-2xl text-indigo-500">✓</span>
+              ) : (
+                <span className="text-3xl text-faint">·</span>
+              )}
+            </div>
+            {/* Back : face de carte révélée */}
+            <div className="flip-face flip-face-back border-2 border-indigo-500 bg-neutral-50 dark:bg-neutral-100 text-neutral-900">
+              <span className="text-2xl font-bold">{player.vote ?? "—"}</span>
+            </div>
           </div>
-        </div>
+        )}
         {/* Online dot */}
         <span
           className={
@@ -147,9 +160,7 @@ function PlayerCard({
               aria-label={isMe ? "Modifier ton pseudo" : undefined}
               className={
                 "max-w-full truncate text-xs font-medium text-fg " +
-                (isMe
-                  ? "cursor-pointer rounded px-1 hover:bg-surface-2"
-                  : "cursor-default")
+                (isMe ? "cursor-pointer rounded px-1 hover:bg-surface-2" : "cursor-default")
               }
             >
               {player.name}
@@ -165,17 +176,36 @@ function PlayerCard({
               admin
             </span>
           )}
+          {player.isViewer && !player.isAdmin && (
+            <span className="rounded bg-neutral-500/10 px-1 py-0.5 uppercase tracking-wider text-muted">
+              vue
+            </span>
+          )}
           {amIAdmin && !isMe && (
             <>
-              <button
-                type="button"
-                onClick={onTransfer}
-                title="Transférer admin"
-                aria-label={`Transférer le rôle admin à ${player.name}`}
-                className="flex h-6 w-6 items-center justify-center rounded border border-token text-muted hover:bg-surface-2"
-              >
-                ★
-              </button>
+              {player.isAdmin ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (confirm(`Retirer les droits admin à ${player.name} ?`)) onRevokeAdmin();
+                  }}
+                  title="Retirer admin"
+                  aria-label={`Retirer les droits admin de ${player.name}`}
+                  className="flex h-6 w-6 items-center justify-center rounded border border-token text-indigo-500 hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-700 dark:hover:text-red-300"
+                >
+                  ★
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onGrantAdmin}
+                  title="Promouvoir admin"
+                  aria-label={`Promouvoir ${player.name} co-admin`}
+                  className="flex h-6 w-6 items-center justify-center rounded border border-token text-muted hover:bg-surface-2"
+                >
+                  ★
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => {

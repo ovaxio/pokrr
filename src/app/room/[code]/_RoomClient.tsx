@@ -20,30 +20,33 @@ import TimerDisplay from "./_TimerDisplay";
 export default function RoomClient({ roomId }: { roomId: string }) {
   const [name, setName] = useState<string | null>(null);
   const [nameHydrated, setNameHydrated] = useState(false);
+  const [asViewer, setAsViewer] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
 
-  // Lecture localStorage post-hydration : pas accessible côté SSR.
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setName(getStoredName() || null);
     setNameHydrated(true);
   }, []);
 
-  const room = usePokrrRoom(roomId, name);
+  const room = usePokrrRoom(roomId, name, asViewer);
   const isAdmin = room.me?.isAdmin ?? false;
+  const amIViewer = room.me?.isViewer ?? false;
   useRoomShortcuts({ state: room.state, isAdmin, send: room.send });
 
   const players = room.state?.players ?? [];
-  const totalCount = players.length;
-  const votedCount = players.filter((p) => p.hasVoted).length;
+  const voters = players.filter((p) => !p.isViewer);
+  const totalCount = voters.length;
+  const votedCount = voters.filter((p) => p.hasVoted).length;
   const isRevealed = room.state?.phase === "revealed";
   const phase = room.state?.phase ?? "voting";
   const story = room.state?.story ?? "";
   const deckId = room.state?.deckId ?? DEFAULT_DECK_ID;
   const timer = room.state?.timer ?? null;
-  const adminPlayer = players.find((p) => p.isAdmin);
-  const adminOffline = adminPlayer ? !adminPlayer.online : players.length > 0;
+  const adminPlayers = players.filter((p) => p.isAdmin);
+  const anyAdminOnline = adminPlayers.some((p) => p.online);
+  const adminOffline = adminPlayers.length > 0 && !anyAdminOnline;
   const isConnecting = !room.state;
   const isKicked = room.status === "kicked";
   const needsName = nameHydrated && !name;
@@ -58,6 +61,26 @@ export default function RoomClient({ roomId }: { roomId: string }) {
             pokrr
           </Link>
           <div className="flex items-center gap-2 text-xs text-muted">
+            {amIViewer && room.state && (
+              <button
+                type="button"
+                onClick={() => room.send({ type: "set_viewer", isViewer: false })}
+                className="rounded border border-indigo-500/40 bg-indigo-500/10 px-2 py-1 text-indigo-600 dark:text-indigo-400 transition hover:bg-indigo-500/20"
+                title="Basculer en mode voter"
+              >
+                spectateur — participer
+              </button>
+            )}
+            {!amIViewer && room.state && (
+              <button
+                type="button"
+                onClick={() => room.send({ type: "set_viewer", isViewer: true })}
+                className="rounded border border-token bg-surface px-2 py-1 text-fg-soft transition hover:bg-surface-2"
+                title="Passer en mode spectateur"
+              >
+                voter
+              </button>
+            )}
             <span className="hidden sm:inline">Salle</span>
             <code className="rounded bg-surface px-2 py-1 font-mono text-fg-soft">
               {roomId}
@@ -97,9 +120,8 @@ export default function RoomClient({ roomId }: { roomId: string }) {
 
         {adminOffline && !isAdmin && (
           <div className="rounded-lg border border-amber-300 dark:border-amber-900/60 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 text-sm text-amber-900 dark:text-amber-200">
-            L&apos;admin {adminPlayer ? <strong>{adminPlayer.name}</strong> : null} est hors ligne.
-            Le rôle sera transféré automatiquement au plus ancien voter en ligne après 15 min sans
-            retour.
+            Aucun admin en ligne. Le rôle sera transféré automatiquement au plus ancien voter
+            après 15 min.
           </div>
         )}
 
@@ -114,7 +136,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
             ? "Connexion en cours…"
             : isRevealed
               ? `Résultats — ${votedCount}/${totalCount} ont voté`
-              : `${votedCount}/${totalCount} a voté`}
+              : `${votedCount}/${totalCount} ont voté`}
         </div>
 
         <section>
@@ -124,7 +146,8 @@ export default function RoomClient({ roomId }: { roomId: string }) {
             meVoterId={room.voterId}
             amIAdmin={isAdmin}
             onKick={(voterId) => room.send({ type: "kick", voterId })}
-            onTransfer={(voterId) => room.send({ type: "transfer_admin", voterId })}
+            onGrantAdmin={(voterId) => room.send({ type: "grant_admin", voterId })}
+            onRevokeAdmin={(voterId) => room.send({ type: "revoke_admin", voterId })}
             onRename={(newName) => {
               room.send({ type: "set_name", name: newName });
               storeName(newName);
@@ -153,24 +176,27 @@ export default function RoomClient({ roomId }: { roomId: string }) {
           />
         )}
 
-        <div className="mt-auto pt-2">
-          <CardDeck
-            selected={room.mySelectedVote}
-            phase={phase}
-            deckId={deckId}
-            onSelect={(value) => room.send({ type: "vote", value })}
-            onUnselect={() => room.send({ type: "unvote" })}
-          />
-        </div>
+        {!amIViewer && (
+          <div className="mt-auto pt-2">
+            <CardDeck
+              selected={room.mySelectedVote}
+              phase={phase}
+              deckId={deckId}
+              onSelect={(value) => room.send({ type: "vote", value })}
+              onUnselect={() => room.send({ type: "unvote" })}
+            />
+          </div>
+        )}
       </main>
 
       {needsName && (
         <JoinModal
           roomId={roomId}
           defaultName=""
-          onSubmit={(n) => {
+          onSubmit={(n, viewer) => {
             storeName(n);
             setName(n);
+            setAsViewer(viewer);
           }}
         />
       )}

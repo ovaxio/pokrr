@@ -18,15 +18,14 @@ type ServerPlayer = {
   name: string;
   vote: Card | null;
   joinedAt: number;
+  isViewer: boolean;
 };
 
 type ConnState = { voterId: string | null };
 
 // ---------- Rate limit (par IP, in-memory, par isolate Worker) ----------
-// Pas de garantie cross-instance. Au-delà : passer par une rate-limiter DO
-// dédiée ou par Cloudflare Rate Limiting Rules.
-const RATE_WINDOW_MS = 60_000; // 1 minute
-const RATE_MAX_CONNECTIONS = 30; // 30 connexions/min/IP
+const RATE_WINDOW_MS = 60_000;
+const RATE_MAX_CONNECTIONS = 30;
 const ipConnections = new Map<string, number[]>();
 
 function isRateLimited(ip: string | null): boolean {
@@ -39,7 +38,6 @@ function isRateLimited(ip: string | null): boolean {
   }
   recent.push(now);
   ipConnections.set(ip, recent);
-  // GC opportuniste : si la map dépasse 10k entrées, on purge les IPs sans hit récent.
   if (ipConnections.size > 10_000) {
     for (const [key, ts] of ipConnections) {
       if (ts.length === 0 || now - ts[ts.length - 1] > RATE_WINDOW_MS) {
@@ -51,14 +49,11 @@ function isRateLimited(ip: string | null): boolean {
 }
 
 // ---------- Structured logs ----------
-// Émet une ligne JSON par événement. Récupérable via `wrangler tail` en prod CF ou
-// dans la console partykit en dev.
 function log(event: string, data: Record<string, unknown> = {}): void {
   const line = JSON.stringify({ ts: new Date().toISOString(), event, ...data });
   console.log(line);
 }
 
-// voterId tronqué pour logs : suffisant pour la corrélation, non-exfiltrant le credential.
 function truncId(id: string | null | undefined): string {
   return id ? id.slice(0, 8) : "—";
 }
@@ -72,20 +67,10 @@ function clientIp(req: Party.Request): string | null {
 }
 
 // ---------- Origin allowlist (anti CSWSH) ----------
-// Bloque les WebSocket initiés depuis une page tierce. Les clients Node
-// (smoke tests, k6) n'envoient pas d'Origin → autorisés. Seuls les browsers
-// envoient Origin, et on les contraint à la liste.
 function isOriginAllowed(req: Party.Request): boolean {
   const origin = req.headers.get("origin");
-  if (!origin) return true; // client non-browser (Node, curl, smoke)
-
-  // En dev, on accepte localhost:* et 127.0.0.1:*.
+  if (!origin) return true;
   if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return true;
-
-  // En prod, lit POKRR_ALLOWED_ORIGINS depuis room.env (.env ou partykit.json vars).
-  // Doit être déclaré côté Cloudflare au déploiement.
-  // Pour le check static onBeforeConnect, on n'a pas accès à room.env, donc
-  // on hardcode aussi *.vercel.app + l'env partykit dev.
   if (/^https:\/\/[^/]+\.vercel\.app$/.test(origin)) return true;
   if (/^https:\/\/(www\.)?pokrr\.app$/.test(origin)) return true;
   if (process.env.POKRR_ALLOWED_ORIGINS) {
@@ -96,10 +81,6 @@ function isOriginAllowed(req: Party.Request): boolean {
 }
 
 // ---------- Admin election ----------
-// Si l'admin se déconnecte et ne revient pas dans la fenêtre de grâce, le serveur
-// élit automatiquement le voter en ligne le plus ancien comme nouvel admin.
-// Override via la variable d'env POKRR_ADMIN_GRACE_MS (chargée par PartyKit
-// depuis .env ou partykit.json vars).
 const DEFAULT_ADMIN_GRACE_MS = 15 * 60 * 1000;
 
 function readAdminGraceMs(env: unknown): number {
@@ -129,8 +110,6 @@ function sanitizeVoterId(raw: unknown): string | null {
 export default class PokrrRoom implements Party.Server {
   options: Party.ServerOptions = { hibernate: false };
 
-  // Rate-limit avant ouverture du WebSocket. Renvoie 429 si trop de connexions
-  // depuis la même IP dans la fenêtre.
   static onBeforeConnect(req: Party.Request): Party.Request | Response {
     if (!isOriginAllowed(req)) {
       log("forbidden_origin", { origin: req.headers.get("origin") });
@@ -148,7 +127,8 @@ export default class PokrrRoom implements Party.Server {
   private phase: Phase = "voting";
   private autoReveal = true;
   private version = 0;
-  private adminVoterId: string | null = null;
+  // Set de tous les admins courants (plusieurs admins possibles).
+  private adminVoterIds = new Set<string>();
   private players = new Map<string, ServerPlayer>();
   private connsByVoter = new Map<string, Set<string>>();
   private adminElectionTimer: ReturnType<typeof setTimeout> | null = null;
@@ -165,8 +145,6 @@ export default class PokrrRoom implements Party.Server {
 
   onConnect(conn: Party.Connection<ConnState>) {
     conn.setState({ voterId: null });
-    // Pas de broadcast tant que le client n'a pas fait `join`. On lui enverra
-    // l'état au moment du join.
     this.sendState(conn);
   }
 
@@ -180,7 +158,7 @@ export default class PokrrRoom implements Party.Server {
 
     switch (msg.type) {
       case "join":
-        return this.handleJoin(sender, msg.voterId, msg.name);
+        return this.handleJoin(sender, msg.voterId, msg.name, msg.asViewer);
       case "set_name":
         return this.handleSetName(sender, msg.name);
       case "vote":
@@ -200,7 +178,13 @@ export default class PokrrRoom implements Party.Server {
       case "kick":
         return this.handleKick(sender, msg.voterId);
       case "transfer_admin":
-        return this.handleTransferAdmin(sender, msg.voterId);
+        return this.handleGrantAdmin(sender, msg.voterId);
+      case "grant_admin":
+        return this.handleGrantAdmin(sender, msg.voterId);
+      case "revoke_admin":
+        return this.handleRevokeAdmin(sender, msg.voterId);
+      case "set_viewer":
+        return this.handleSetViewer(sender, msg.isViewer);
       case "set_deck":
         return this.handleSetDeck(sender, msg.deckId);
       case "start_timer":
@@ -222,9 +206,13 @@ export default class PokrrRoom implements Party.Server {
         this.connsByVoter.delete(voterId);
       }
     }
-    // Si l'admin vient de passer offline, programmer l'élection auto.
-    if (voterId === this.adminVoterId && !this.isOnline(voterId)) {
-      this.scheduleAdminElection();
+    // Si un admin vient de passer offline et qu'aucun admin n'est plus en ligne,
+    // programmer l'élection automatique.
+    if (this.adminVoterIds.has(voterId) && !this.isOnline(voterId)) {
+      const anyAdminOnline = [...this.adminVoterIds].some((id) => this.isOnline(id));
+      if (!anyAdminOnline) {
+        this.scheduleAdminElection();
+      }
     }
     this.bumpAndBroadcast();
     this.maybeAutoReveal();
@@ -232,12 +220,22 @@ export default class PokrrRoom implements Party.Server {
 
   // ---------- handlers ----------
 
-  private handleJoin(conn: Party.Connection<ConnState>, voterIdRaw: unknown, nameRaw: unknown) {
+  private handleJoin(
+    conn: Party.Connection<ConnState>,
+    voterIdRaw: unknown,
+    nameRaw: unknown,
+    asViewerRaw?: unknown,
+  ) {
     const voterId = sanitizeVoterId(voterIdRaw);
     if (!voterId) return this.sendError(conn, "invalid", "voterId invalide");
 
     const name = sanitizeName(nameRaw);
     if (!name) return this.sendError(conn, "invalid", "Pseudo invalide (1-24 caractères)");
+
+    const isFirst = this.players.size === 0;
+    // Premier à rejoindre = admin → viewer par défaut (rôle facilitateur).
+    // Peut être surchargé en passant explicitement asViewer: false depuis le modal.
+    const asViewer = isFirst ? asViewerRaw !== false : asViewerRaw === true;
 
     const isReconnect = this.players.has(voterId);
     if (!isReconnect && this.players.size >= LIMITS.maxPlayersPerRoom) {
@@ -245,8 +243,6 @@ export default class PokrrRoom implements Party.Server {
     }
 
     if (isReconnect) {
-      // Reconnect : on garde le pseudo existant côté serveur (l'utilisateur peut le
-      // re-changer via set_name).
       log("player_rejoined", { room: this.room.id, voter: truncId(voterId) });
     } else {
       const finalName = this.dedupeName(name, voterId);
@@ -255,15 +251,17 @@ export default class PokrrRoom implements Party.Server {
         name: finalName,
         vote: null,
         joinedAt: Date.now(),
+        isViewer: asViewer,
       });
-      const wasFirst = !this.adminVoterId;
-      if (wasFirst) {
-        this.adminVoterId = voterId;
+      // Le premier joueur devient admin (viewer ou pas).
+      if (isFirst) {
+        this.adminVoterIds.add(voterId);
       }
       log("player_joined", {
         room: this.room.id,
         voter: truncId(voterId),
-        is_admin: wasFirst,
+        is_admin: this.adminVoterIds.has(voterId),
+        is_viewer: asViewer,
         players: this.players.size,
       });
     }
@@ -273,8 +271,8 @@ export default class PokrrRoom implements Party.Server {
     conns.add(conn.id);
     this.connsByVoter.set(voterId, conns);
 
-    // L'admin est revenu → annuler l'élection programmée.
-    if (voterId === this.adminVoterId && this.adminElectionTimer) {
+    // Un admin revient en ligne → annuler l'élection programmée.
+    if (this.adminVoterIds.has(voterId) && this.adminElectionTimer) {
       clearTimeout(this.adminElectionTimer);
       this.adminElectionTimer = null;
     }
@@ -297,6 +295,9 @@ export default class PokrrRoom implements Party.Server {
   private handleVote(conn: Party.Connection<ConnState>, value: unknown) {
     const player = this.requirePlayer(conn);
     if (!player) return;
+    if (player.isViewer) {
+      return this.sendError(conn, "forbidden", "Les spectateurs ne peuvent pas voter");
+    }
     if (this.phase !== "voting") {
       return this.sendError(conn, "forbidden", "Vote impossible après reveal");
     }
@@ -312,6 +313,7 @@ export default class PokrrRoom implements Party.Server {
   private handleUnvote(conn: Party.Connection<ConnState>) {
     const player = this.requirePlayer(conn);
     if (!player) return;
+    if (player.isViewer) return;
     if (this.phase !== "voting") {
       return this.sendError(conn, "forbidden", "Pas de unvote après reveal");
     }
@@ -324,7 +326,7 @@ export default class PokrrRoom implements Party.Server {
     if (!this.requireAdmin(conn)) return;
     if (this.phase === "revealed") return;
     this.phase = "revealed";
-    const voted = [...this.players.values()].filter((p) => p.vote !== null).length;
+    const voted = [...this.players.values()].filter((p) => !p.isViewer && p.vote !== null).length;
     log("revealed_manual", { room: this.room.id, voted, total: this.players.size });
     this.bumpAndBroadcast();
   }
@@ -344,7 +346,6 @@ export default class PokrrRoom implements Party.Server {
       return this.sendError(conn, "invalid", "deckId inconnu");
     }
     if (deckIdRaw === this.deckId) return;
-    // Refuse de changer le deck si au moins un vote a été posé pour la story courante.
     const hasVote = [...this.players.values()].some((p) => p.vote !== null);
     if (hasVote) {
       return this.sendError(
@@ -392,7 +393,7 @@ export default class PokrrRoom implements Party.Server {
     this.story = story;
     this.clearVotes();
     this.phase = "voting";
-    this.timer = null; // reset timer entre stories
+    this.timer = null;
     log("next_story", { room: this.room.id, len: story.length });
     this.bumpAndBroadcast();
   }
@@ -420,32 +421,73 @@ export default class PokrrRoom implements Party.Server {
     if (!this.requireAdmin(conn)) return;
     const target = sanitizeVoterId(targetRaw);
     if (!target) return this.sendError(conn, "invalid", "voterId cible invalide");
-    if (target === this.adminVoterId) {
-      return this.sendError(conn, "forbidden", "L'admin ne peut pas se kicker lui-même");
+    const senderVoterId = conn.state?.voterId;
+    if (target === senderVoterId) {
+      return this.sendError(conn, "forbidden", "Impossible de se kicker soi-même");
     }
     if (!this.players.has(target)) return;
+    this.adminVoterIds.delete(target);
     this.players.delete(target);
-    this.kickConnections(target, "Vous avez été retiré de la salle par l'admin");
+    this.kickConnections(target, "Vous avez été retiré de la salle par un admin");
     this.connsByVoter.delete(target);
     log("player_kicked", { room: this.room.id, target: truncId(target) });
     this.bumpAndBroadcast();
     this.maybeAutoReveal();
   }
 
-  private handleTransferAdmin(conn: Party.Connection<ConnState>, targetRaw: unknown) {
+  private handleSetViewer(conn: Party.Connection<ConnState>, isViewerRaw: unknown) {
+    const player = this.requirePlayer(conn);
+    if (!player) return;
+    if (typeof isViewerRaw !== "boolean") {
+      return this.sendError(conn, "invalid", "Valeur booléenne attendue");
+    }
+    if (player.isViewer === isViewerRaw) return;
+    // Si le joueur repasse en voter, on efface son vote hypothétique (null de toute façon).
+    player.isViewer = isViewerRaw;
+    if (isViewerRaw) player.vote = null;
+    log("viewer_toggled", {
+      room: this.room.id,
+      voter: truncId(player.voterId),
+      is_viewer: isViewerRaw,
+    });
+    this.bumpAndBroadcast();
+    this.maybeAutoReveal();
+  }
+
+  private handleGrantAdmin(conn: Party.Connection<ConnState>, targetRaw: unknown) {
     if (!this.requireAdmin(conn)) return;
     const target = sanitizeVoterId(targetRaw);
     if (!target) return this.sendError(conn, "invalid", "voterId cible invalide");
-    if (!this.players.has(target)) {
+    const targetPlayer = this.players.get(target);
+    if (!targetPlayer) {
       return this.sendError(conn, "invalid", "Joueur cible introuvable");
     }
-    if (target === this.adminVoterId) return;
-    log("admin_transferred", {
+    if (this.adminVoterIds.has(target)) return;
+    log("admin_granted", {
       room: this.room.id,
-      from: truncId(this.adminVoterId),
+      by: truncId(conn.state?.voterId),
       to: truncId(target),
     });
-    this.adminVoterId = target;
+    this.adminVoterIds.add(target);
+    this.bumpAndBroadcast();
+  }
+
+  private handleRevokeAdmin(conn: Party.Connection<ConnState>, targetRaw: unknown) {
+    if (!this.requireAdmin(conn)) return;
+    const target = sanitizeVoterId(targetRaw);
+    if (!target) return this.sendError(conn, "invalid", "voterId cible invalide");
+    if (!this.adminVoterIds.has(target)) {
+      return this.sendError(conn, "invalid", "Ce joueur n'est pas admin");
+    }
+    if (this.adminVoterIds.size <= 1) {
+      return this.sendError(conn, "forbidden", "Impossible de révoquer le dernier admin");
+    }
+    log("admin_revoked", {
+      room: this.room.id,
+      by: truncId(conn.state?.voterId),
+      from: truncId(target),
+    });
+    this.adminVoterIds.delete(target);
     this.bumpAndBroadcast();
   }
 
@@ -468,8 +510,8 @@ export default class PokrrRoom implements Party.Server {
   private requireAdmin(conn: Party.Connection<ConnState>): boolean {
     const player = this.requirePlayer(conn);
     if (!player) return false;
-    if (this.adminVoterId !== player.voterId) {
-      this.sendError(conn, "forbidden", "Action réservée à l'admin");
+    if (!this.adminVoterIds.has(player.voterId)) {
+      this.sendError(conn, "forbidden", "Action réservée aux admins");
       return false;
     }
     return true;
@@ -502,21 +544,26 @@ export default class PokrrRoom implements Party.Server {
     const graceMs = readAdminGraceMs(this.room.env);
     this.adminElectionTimer = setTimeout(() => {
       this.adminElectionTimer = null;
-      // Si l'admin est revenu entre-temps, ne rien faire.
-      if (this.adminVoterId && this.isOnline(this.adminVoterId)) return;
-      // Élire le plus ancien joueur en ligne (parmi ceux qui ne sont pas l'admin actuel).
+      // Si un admin est revenu entre-temps, ne rien faire.
+      const anyAdminOnline = [...this.adminVoterIds].some((id) => this.isOnline(id));
+      if (anyAdminOnline) return;
+      // Élire le plus ancien joueur non-viewer non-admin en ligne.
       const candidates = [...this.players.values()]
-        .filter((p) => this.isOnline(p.voterId) && p.voterId !== this.adminVoterId)
+        .filter(
+          (p) =>
+            this.isOnline(p.voterId) &&
+            !this.adminVoterIds.has(p.voterId) &&
+            !p.isViewer,
+        )
         .sort((a, b) => a.joinedAt - b.joinedAt);
       const next = candidates[0];
-      if (!next) return; // plus personne en ligne, on attendra
+      if (!next) return;
       log("admin_elected", {
         room: this.room.id,
-        from: truncId(this.adminVoterId),
         to: truncId(next.voterId),
         grace_ms: graceMs,
       });
-      this.adminVoterId = next.voterId;
+      this.adminVoterIds.add(next.voterId);
       this.bumpAndBroadcast();
     }, graceMs);
   }
@@ -524,13 +571,16 @@ export default class PokrrRoom implements Party.Server {
   private maybeAutoReveal() {
     if (!this.autoReveal) return;
     if (this.phase !== "voting") return;
-    const onlinePlayers = [...this.players.values()].filter((p) => this.isOnline(p.voterId));
-    if (onlinePlayers.length === 0) return;
-    if (onlinePlayers.every((p) => p.vote !== null)) {
+    // Seuls les voters en ligne comptent (pas les viewers).
+    const onlineVoters = [...this.players.values()].filter(
+      (p) => this.isOnline(p.voterId) && !p.isViewer,
+    );
+    if (onlineVoters.length === 0) return;
+    if (onlineVoters.every((p) => p.vote !== null)) {
       this.phase = "revealed";
       log("revealed_auto", {
         room: this.room.id,
-        voted: onlinePlayers.length,
+        voted: onlineVoters.length,
         total: this.players.size,
       });
       this.bumpAndBroadcast();
@@ -543,9 +593,10 @@ export default class PokrrRoom implements Party.Server {
       .map((p) => ({
         voterId: p.voterId,
         name: p.name,
-        hasVoted: p.vote !== null,
-        vote: this.phase === "revealed" ? p.vote : null,
-        isAdmin: p.voterId === this.adminVoterId,
+        hasVoted: !p.isViewer && p.vote !== null,
+        vote: !p.isViewer && this.phase === "revealed" ? p.vote : null,
+        isAdmin: this.adminVoterIds.has(p.voterId),
+        isViewer: p.isViewer,
         online: this.isOnline(p.voterId),
       }));
     return {

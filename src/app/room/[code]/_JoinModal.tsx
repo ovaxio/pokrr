@@ -9,9 +9,10 @@ export default function JoinModal({
 }: {
   roomId: string;
   defaultName: string;
-  onSubmit: (name: string) => void;
+  onSubmit: (name: string, asViewer: boolean) => void;
 }) {
   const [name, setName] = useState(defaultName);
+  const [asViewer, setAsViewer] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const trimmed = name.trim();
 
@@ -39,7 +40,7 @@ export default function JoinModal({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (trimmed) onSubmit(trimmed.slice(0, 24));
+            if (trimmed) onSubmit(trimmed.slice(0, 24), asViewer);
           }}
           className="space-y-3"
         >
@@ -56,6 +57,15 @@ export default function JoinModal({
             placeholder="Ex. Guillaume"
             className="w-full rounded-lg border border-token-strong bg-surface px-4 py-3 text-base text-fg outline-none transition focus:border-indigo-500"
           />
+          <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-token bg-surface px-4 py-3 text-sm text-fg transition hover:bg-surface-2">
+            <input
+              type="checkbox"
+              checked={asViewer}
+              onChange={(e) => setAsViewer(e.target.checked)}
+              className="h-4 w-4 rounded border-token accent-indigo-600"
+            />
+            <span>Rejoindre en spectateur (sans voter)</span>
+          </label>
           <button
             type="submit"
             disabled={!trimmed}

@@ -18,7 +18,7 @@ export type UseRoom = {
   send: (msg: ClientMessage) => void;
 };
 
-export function usePokrrRoom(roomId: string, name: string | null): UseRoom {
+export function usePokrrRoom(roomId: string, name: string | null, asViewer = false): UseRoom {
   const voterId = useMemo(() => (typeof window === "undefined" ? "" : getOrCreateVoterId()), []);
   const [state, setState] = useState<RoomState | null>(null);
   const [status, setStatus] = useState<RoomStatus>("connecting");
@@ -34,7 +34,14 @@ export function usePokrrRoom(roomId: string, name: string | null): UseRoom {
 
     const onOpen = () => {
       setStatus("joining");
-      socket.send(JSON.stringify({ type: "join", voterId, name } satisfies ClientMessage));
+      socket.send(
+        JSON.stringify({
+          type: "join",
+          voterId,
+          name,
+          ...(asViewer ? { asViewer: true } : {}),
+        } satisfies ClientMessage),
+      );
     };
 
     const onMessage = (event: MessageEvent) => {
@@ -76,7 +83,7 @@ export function usePokrrRoom(roomId: string, name: string | null): UseRoom {
       socket.close();
       socketRef.current = null;
     };
-  }, [roomId, name, voterId]);
+  }, [roomId, name, voterId, asViewer]);
 
   const send = (msg: ClientMessage) => {
     const socket = socketRef.current;
