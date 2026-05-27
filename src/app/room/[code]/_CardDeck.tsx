@@ -6,14 +6,14 @@ export default function CardDeck({
   selected,
   phase,
   deckId,
-  onSelect,
-  onUnselect,
+  onSelectAction,
+  onUnselectAction,
 }: {
   selected: Card | null;
   phase: Phase;
   deckId: string;
-  onSelect: (card: Card) => void;
-  onUnselect: () => void;
+  onSelectAction: (card: Card) => void;
+  onUnselectAction: () => void;
 }) {
   const disabled = phase === "revealed";
   const deck = DECKS[deckId] ?? DECKS[DEFAULT_DECK_ID];
@@ -25,7 +25,7 @@ export default function CardDeck({
         {selected && !disabled && (
           <button
             type="button"
-            onClick={onUnselect}
+            onClick={onUnselectAction}
             className="text-fg-soft hover:text-fg"
           >
             Effacer
@@ -47,7 +47,7 @@ export default function CardDeck({
               aria-checked={isSelected}
               aria-label={`Vote ${card}`}
               disabled={disabled}
-              onClick={() => onSelect(card)}
+              onClick={() => onSelectAction(card)}
               className={
                 "flex h-16 items-center justify-center rounded-lg border text-xl font-semibold transition active:scale-95 " +
                 (isSelected

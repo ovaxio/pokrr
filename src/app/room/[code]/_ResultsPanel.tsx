@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { ArrowLeftRight, Check } from "lucide-react";
 import type { PlayerView } from "../../../../party/types";
-import { computeStats, isWideSpread } from "../../../lib/stats";
+import { computeStats, isWideSpread } from "@/lib/stats";
 
 export default function ResultsPanel({
   players,
@@ -89,7 +90,7 @@ export default function ResultsPanel({
               : "border-token bg-surface text-fg-soft hover:bg-surface-2")
           }
         >
-          {copied ? "Copié ✓" : "Copier MD"}
+          {copied ? <span className="inline-flex items-center gap-1">Copié <Check size={13} /></span> : "Copier MD"}
         </button>
       </div>
 
@@ -123,8 +124,8 @@ export default function ResultsPanel({
 
       {wideSpread && stats.lowest && stats.highest && stats.lowest.player.voterId !== stats.highest.player.voterId && (
         <div className="rounded-md border border-amber-300 dark:border-amber-900/60 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 text-sm text-amber-900 dark:text-amber-200">
-          <strong>{stats.highest.player.name}</strong> ({stats.highest.value}) ↔{" "}
-          <strong>{stats.lowest.player.name}</strong> ({stats.lowest.value}) — écart à discuter.
+          <strong>{stats.highest.player.name}</strong> ({stats.highest.value}) <ArrowLeftRight size={13} className="inline align-middle" />{" "}
+          <strong>{stats.lowest.player.name}</strong> ({stats.lowest.value}) : écart à discuter.
         </div>
       )}
     </section>

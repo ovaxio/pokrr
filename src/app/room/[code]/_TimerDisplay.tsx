@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AlarmClock, Timer } from "lucide-react";
 import type { TimerInfo } from "../../../../party/types";
 
 export default function TimerDisplay({ timer }: { timer: TimerInfo | null }) {
@@ -38,8 +39,8 @@ export default function TimerDisplay({ timer }: { timer: TimerInfo | null }) {
             : "border-token bg-surface/40 text-fg")
       }
     >
-      <span className="font-mono text-base font-semibold tabular-nums">
-        {expired ? "⏰ Temps écoulé" : `⏱ ${formatted}`}
+      <span className="inline-flex items-center gap-1.5 font-mono text-base font-semibold tabular-nums">
+        {expired ? <><AlarmClock size={16} /> Temps écoulé</> : <><Timer size={16} /> {formatted}</>}
       </span>
       {!expired && (
         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-2">

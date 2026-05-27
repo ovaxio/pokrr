@@ -1,25 +1,26 @@
 "use client";
 
 import { useEffect } from "react";
+import { X } from "lucide-react";
 import { DECKS, DEFAULT_DECK_ID } from "../../../../party/types";
 
 export default function HelpDialog({
   open,
   deckId,
-  onClose,
+  onCloseAction,
 }: {
   open: boolean;
   deckId: string;
-  onClose: () => void;
+  onCloseAction: () => void;
 }) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") onCloseAction();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+  }, [open, onCloseAction]);
 
   if (!open) return null;
 
@@ -33,7 +34,7 @@ export default function HelpDialog({
       role="dialog"
       aria-modal="true"
       aria-label="Aide raccourcis clavier"
-      onClick={onClose}
+      onClick={onCloseAction}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
     >
       <div
@@ -44,11 +45,11 @@ export default function HelpDialog({
           <h2 className="text-lg font-semibold text-fg">Raccourcis clavier</h2>
           <button
             type="button"
-            onClick={onClose}
+            onClick={onCloseAction}
             aria-label="Fermer l'aide"
             className="text-muted hover:text-fg"
           >
-            ×
+            <X size={18} />
           </button>
         </div>
 

@@ -5,11 +5,11 @@ import { useState } from "react";
 export default function StoryHeader({
   story,
   isAdmin,
-  onSubmit,
+  onSubmitAction,
 }: {
   story: string;
   isAdmin: boolean;
-  onSubmit: (next: string) => void;
+  onSubmitAction: (next: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(story);
@@ -24,7 +24,7 @@ export default function StoryHeader({
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          onSubmit(draft.trim().slice(0, 200));
+          onSubmitAction(draft.trim().slice(0, 200));
           setEditing(false);
         }}
         className="flex flex-col gap-2 sm:flex-row sm:items-center"

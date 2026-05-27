@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { applyTheme, getStoredTheme, resolveTheme, storeTheme, type ThemePref } from "../lib/theme";
+import { Moon, Sun, SunMoon } from "lucide-react";
+import { applyTheme, getStoredTheme, resolveTheme, storeTheme, type ThemePref } from "@/lib/theme";
 
 const NEXT: Record<ThemePref, ThemePref> = {
   system: "light",
@@ -15,10 +16,10 @@ const LABEL: Record<ThemePref, string> = {
   dark: "sombre",
 };
 
-const ICON: Record<ThemePref, string> = {
-  system: "◐",
-  light: "☀",
-  dark: "☾",
+const ICON: Record<ThemePref, React.ReactNode> = {
+  system: <SunMoon size={14} />,
+  light: <Sun size={14} />,
+  dark: <Moon size={14} />,
 };
 
 export default function ThemeToggle() {
@@ -57,10 +58,10 @@ export default function ThemeToggle() {
       onClick={cycle}
       title={`Thème : ${LABEL[display]} (clic pour changer)`}
       aria-label={`Thème actuel : ${LABEL[display]}. Cliquer pour basculer.`}
-      className="rounded border border-token bg-surface px-2 py-1 text-xs text-fg-soft transition hover:bg-surface-2"
+      className="inline-flex items-center gap-1 rounded border border-token bg-surface px-2 py-1 text-xs text-fg-soft transition hover:bg-surface-2"
     >
       <span aria-hidden="true">{ICON[display]}</span>
-      <span className="sr-only sm:not-sr-only sm:ml-1">{LABEL[display]}</span>
+      <span className="sr-only sm:not-sr-only">{LABEL[display]}</span>
     </button>
   );
 }

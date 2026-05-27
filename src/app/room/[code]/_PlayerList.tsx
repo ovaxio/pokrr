@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Check, Eye, Minus, Star, X } from "lucide-react";
 import type { Phase, PlayerView } from "../../../../party/types";
 
 export default function PlayerList({
@@ -8,19 +9,19 @@ export default function PlayerList({
   phase,
   meVoterId,
   amIAdmin,
-  onKick,
-  onGrantAdmin,
-  onRevokeAdmin,
-  onRename,
+  onKickAction,
+  onGrantAdminAction,
+  onRevokeAdminAction,
+  onRenameAction,
 }: {
   players: PlayerView[];
   phase: Phase;
   meVoterId: string;
   amIAdmin: boolean;
-  onKick: (voterId: string) => void;
-  onGrantAdmin: (voterId: string) => void;
-  onRevokeAdmin: (voterId: string) => void;
-  onRename: (name: string) => void;
+  onKickAction: (voterId: string) => void;
+  onGrantAdminAction: (voterId: string) => void;
+  onRevokeAdminAction: (voterId: string) => void;
+  onRenameAction: (name: string) => void;
 }) {
   if (players.length === 0) {
     return (
@@ -39,10 +40,10 @@ export default function PlayerList({
           phase={phase}
           isMe={p.voterId === meVoterId}
           amIAdmin={amIAdmin}
-          onKick={() => onKick(p.voterId)}
-          onGrantAdmin={() => onGrantAdmin(p.voterId)}
-          onRevokeAdmin={() => onRevokeAdmin(p.voterId)}
-          onRename={onRename}
+          onKick={() => onKickAction(p.voterId)}
+          onGrantAdmin={() => onGrantAdminAction(p.voterId)}
+          onRevokeAdmin={() => onRevokeAdminAction(p.voterId)}
+          onRename={onRenameAction}
         />
       ))}
     </div>
@@ -88,9 +89,7 @@ function PlayerCard({
       <div className="relative h-24 w-16">
         {player.isViewer ? (
           <div className="h-24 w-16 flex items-center justify-center rounded-xl border-2 border-dashed border-token-strong bg-surface/20">
-            <span className="text-2xl text-faint" aria-label="spectateur">
-              👁
-            </span>
+            <Eye size={24} className="text-faint" aria-label="spectateur" />
           </div>
         ) : (
           <div className={`flip-card ${revealed && player.vote ? "flipped" : ""}`}>
@@ -104,9 +103,9 @@ function PlayerCard({
               }
             >
               {player.hasVoted ? (
-                <span className="text-2xl text-indigo-500">✓</span>
+                <Check size={20} className="text-indigo-500" />
               ) : (
-                <span className="text-3xl text-faint">·</span>
+                <Minus size={16} className="text-faint" />
               )}
             </div>
             {/* Back : face de carte révélée */}
@@ -193,7 +192,7 @@ function PlayerCard({
                   aria-label={`Retirer les droits admin de ${player.name}`}
                   className="flex h-6 w-6 items-center justify-center rounded border border-token text-indigo-500 hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-700 dark:hover:text-red-300"
                 >
-                  ★
+                  <Star size={12} className="fill-current" />
                 </button>
               ) : (
                 <button
@@ -203,7 +202,7 @@ function PlayerCard({
                   aria-label={`Promouvoir ${player.name} co-admin`}
                   className="flex h-6 w-6 items-center justify-center rounded border border-token text-muted hover:bg-surface-2"
                 >
-                  ★
+                  <Star size={12} />
                 </button>
               )}
               <button
@@ -215,7 +214,7 @@ function PlayerCard({
                 aria-label={`Retirer ${player.name} de la salle`}
                 className="flex h-6 w-6 items-center justify-center rounded border border-token text-muted hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-700 dark:hover:text-red-300"
               >
-                ×
+                <X size={12} />
               </button>
             </>
           )}

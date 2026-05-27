@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Eye, Hand } from "lucide-react";
 
 export default function JoinModal({
   roomId,
   defaultName,
-  onSubmit,
+  onSubmitAction,
 }: {
   roomId: string;
   defaultName: string;
-  onSubmit: (name: string, asViewer: boolean) => void;
+  onSubmitAction: (name: string, asViewer: boolean) => void;
 }) {
   const [name, setName] = useState(defaultName);
   const [asViewer, setAsViewer] = useState(false);
@@ -40,7 +41,7 @@ export default function JoinModal({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (trimmed) onSubmit(trimmed.slice(0, 24), asViewer);
+            if (trimmed) onSubmitAction(trimmed.slice(0, 24), asViewer);
           }}
           className="space-y-3"
         >
@@ -54,18 +55,33 @@ export default function JoinModal({
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={24}
-            placeholder="Ex. Guillaume"
+            placeholder="Ex. John"
             className="w-full rounded-lg border border-token-strong bg-surface px-4 py-3 text-base text-fg outline-none transition focus:border-indigo-500"
           />
-          <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-token bg-surface px-4 py-3 text-sm text-fg transition hover:bg-surface-2">
-            <input
-              type="checkbox"
-              checked={asViewer}
-              onChange={(e) => setAsViewer(e.target.checked)}
-              className="h-4 w-4 rounded border-token accent-indigo-600"
-            />
-            <span>Rejoindre en spectateur (sans voter)</span>
-          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <label className={`flex cursor-pointer flex-col items-center gap-1.5 rounded-lg border px-4 py-3 text-sm transition ${!asViewer ? "border-indigo-500 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" : "border-token bg-surface text-fg-soft hover:bg-surface-2"}`}>
+              <input
+                type="radio"
+                name="join-mode"
+                className="sr-only"
+                checked={!asViewer}
+                onChange={() => setAsViewer(false)}
+              />
+              <Hand size={20} />
+              <span className="font-medium">Voter</span>
+            </label>
+            <label className={`flex cursor-pointer flex-col items-center gap-1.5 rounded-lg border px-4 py-3 text-sm transition ${asViewer ? "border-indigo-500 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" : "border-token bg-surface text-fg-soft hover:bg-surface-2"}`}>
+              <input
+                type="radio"
+                name="join-mode"
+                className="sr-only"
+                checked={asViewer}
+                onChange={() => setAsViewer(true)}
+              />
+              <Eye size={20} />
+              <span className="font-medium">Observer</span>
+            </label>
+          </div>
           <button
             type="submit"
             disabled={!trimmed}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { DECKS, type Phase } from "../../../../party/types";
 
 const TIMER_PRESETS = [
@@ -14,25 +15,25 @@ export default function AdminBar({
   autoReveal,
   deckId,
   timerActive,
-  onReveal,
-  onReset,
-  onNextStory,
-  onToggleAutoReveal,
-  onSetDeck,
-  onStartTimer,
-  onStopTimer,
+  onRevealAction,
+  onResetAction,
+  onNextStoryAction,
+  onToggleAutoRevealAction,
+  onSetDeckAction,
+  onStartTimerAction,
+  onStopTimerAction,
 }: {
   phase: Phase;
   autoReveal: boolean;
   deckId: string;
   timerActive: boolean;
-  onReveal: () => void;
-  onReset: () => void;
-  onNextStory: (story: string) => void;
-  onToggleAutoReveal: (enabled: boolean) => void;
-  onSetDeck: (deckId: string) => void;
-  onStartTimer: (sec: number) => void;
-  onStopTimer: () => void;
+  onRevealAction: () => void;
+  onResetAction: () => void;
+  onNextStoryAction: (story: string) => void;
+  onToggleAutoRevealAction: (enabled: boolean) => void;
+  onSetDeckAction: (deckId: string) => void;
+  onStartTimerAction: (sec: number) => void;
+  onStopTimerAction: () => void;
 }) {
   const [nextStory, setNextStory] = useState("");
 
@@ -42,7 +43,7 @@ export default function AdminBar({
         {phase === "voting" ? (
           <button
             type="button"
-            onClick={onReveal}
+            onClick={onRevealAction}
             className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
           >
             Révéler maintenant
@@ -50,7 +51,7 @@ export default function AdminBar({
         ) : (
           <button
             type="button"
-            onClick={onReset}
+            onClick={onResetAction}
             className="rounded-lg border border-token-strong bg-surface-2 px-4 py-2 text-sm font-medium text-fg hover:bg-surface"
           >
             Re-voter cette story
@@ -61,7 +62,7 @@ export default function AdminBar({
           onSubmit={(e) => {
             e.preventDefault();
             const value = nextStory.trim().slice(0, 200);
-            onNextStory(value);
+            onNextStoryAction(value);
             setNextStory("");
           }}
           className="flex flex-1 gap-2"
@@ -77,7 +78,7 @@ export default function AdminBar({
             type="submit"
             className="rounded-lg border border-token-strong bg-surface-2 px-3 py-2 text-sm font-medium text-fg hover:bg-surface"
           >
-            Story suivante →
+            <span className="inline-flex items-center gap-1">Story suivante <ArrowRight size={14} /></span>
           </button>
         </form>
       </div>
@@ -87,7 +88,7 @@ export default function AdminBar({
           <input
             type="checkbox"
             checked={autoReveal}
-            onChange={(e) => onToggleAutoReveal(e.target.checked)}
+            onChange={(e) => onToggleAutoRevealAction(e.target.checked)}
             className="accent-indigo-500"
           />
           Auto-révéler
@@ -97,7 +98,7 @@ export default function AdminBar({
           Deck :
           <select
             value={deckId}
-            onChange={(e) => onSetDeck(e.target.value)}
+            onChange={(e) => onSetDeckAction(e.target.value)}
             className="rounded border border-token bg-surface px-2 py-1 text-xs text-fg focus:border-indigo-500 outline-none"
           >
             {Object.values(DECKS).map((d) => (
@@ -114,7 +115,7 @@ export default function AdminBar({
             <button
               key={p.sec}
               type="button"
-              onClick={() => onStartTimer(p.sec)}
+              onClick={() => onStartTimerAction(p.sec)}
               className="rounded border border-token bg-surface px-2 py-1 text-xs text-fg hover:bg-surface-2"
             >
               {p.label}
@@ -123,7 +124,7 @@ export default function AdminBar({
           {timerActive && (
             <button
               type="button"
-              onClick={onStopTimer}
+              onClick={onStopTimerAction}
               className="rounded border border-red-300 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 px-2 py-1 text-xs text-red-900 dark:text-red-200 hover:bg-red-100 dark:hover:bg-red-950/60"
             >
               Stop

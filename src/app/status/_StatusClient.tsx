@@ -36,13 +36,18 @@ export default function StatusClient() {
     setPartyKitCheck("checking");
     try {
       const res = await fetch("/api/health", { cache: "no-store" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = (await res.json()) as Health;
-      setHealth(data);
-      setHealthError(null);
-      setPartyKitCheck(await probePartyKit(data.partyKitHost));
-    } catch (e) {
-      setHealthError(e instanceof Error ? e.message : "Erreur");
+      if (!res.ok) {
+        setHealthError(`HTTP ${res.status}`);
+        setHealth(null);
+        setPartyKitCheck("down");
+      } else {
+        const data = (await res.json()) as Health;
+        setHealth(data);
+        setHealthError(null);
+        setPartyKitCheck(await probePartyKit(data.partyKitHost));
+      }
+    } catch {
+      setHealthError("Erreur réseau");
       setHealth(null);
       setPartyKitCheck("down");
     }
@@ -51,7 +56,7 @@ export default function StatusClient() {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    checkHealth();
+    void checkHealth();
     const id = window.setInterval(checkHealth, 10_000);
     return () => window.clearInterval(id);
   }, [checkHealth]);

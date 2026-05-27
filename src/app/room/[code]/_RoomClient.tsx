@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { X } from "lucide-react";
 import ThemeToggle from "../../_ThemeToggle";
-import { usePokrrRoom } from "../../../lib/usePokrrRoom";
-import { useRoomShortcuts } from "../../../lib/useRoomShortcuts";
-import { getStoredName, storeName } from "../../../lib/voterId";
+import { usePokrrRoom } from "@/lib/usePokrrRoom";
+import { useRoomShortcuts } from "@/lib/useRoomShortcuts";
+import { getStoredName, storeName } from "@/lib/voterId";
 import { DEFAULT_DECK_ID } from "../../../../party/types";
 import AdminBar from "./_AdminBar";
 import CardDeck from "./_CardDeck";
@@ -33,7 +34,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
   const room = usePokrrRoom(roomId, name, asViewer);
   const isAdmin = room.me?.isAdmin ?? false;
   const amIViewer = room.me?.isViewer ?? false;
-  useRoomShortcuts({ state: room.state, isAdmin, send: room.send });
+  useRoomShortcuts({ state: room.state, isAdmin, sendAction: room.send });
 
   const players = room.state?.players ?? [];
   const voters = players.filter((p) => !p.isViewer);
@@ -66,9 +67,8 @@ export default function RoomClient({ roomId }: { roomId: string }) {
                 type="button"
                 onClick={() => room.send({ type: "set_viewer", isViewer: false })}
                 className="rounded border border-indigo-500/40 bg-indigo-500/10 px-2 py-1 text-indigo-600 dark:text-indigo-400 transition hover:bg-indigo-500/20"
-                title="Basculer en mode voter"
               >
-                spectateur — participer
+                Rejoindre le vote
               </button>
             )}
             {!amIViewer && room.state && (
@@ -76,9 +76,8 @@ export default function RoomClient({ roomId }: { roomId: string }) {
                 type="button"
                 onClick={() => room.send({ type: "set_viewer", isViewer: true })}
                 className="rounded border border-token bg-surface px-2 py-1 text-fg-soft transition hover:bg-surface-2"
-                title="Passer en mode spectateur"
               >
-                voter
+                Passer en spectateur
               </button>
             )}
             <span className="hidden sm:inline">Salle</span>
@@ -113,7 +112,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
               onClick={room.dismissError}
               className="text-red-700 dark:text-red-300 hover:text-red-900 dark:hover:text-red-100"
             >
-              ×
+              <X size={14} />
             </button>
           </div>
         )}
@@ -128,7 +127,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
         <StoryHeader
           story={story}
           isAdmin={isAdmin}
-          onSubmit={(s) => room.send({ type: "set_story", story: s })}
+          onSubmitAction={(s) => room.send({ type: "set_story", story: s })}
         />
 
         <div className="text-sm text-muted" role="status" aria-live="polite">
@@ -145,10 +144,10 @@ export default function RoomClient({ roomId }: { roomId: string }) {
             phase={phase}
             meVoterId={room.voterId}
             amIAdmin={isAdmin}
-            onKick={(voterId) => room.send({ type: "kick", voterId })}
-            onGrantAdmin={(voterId) => room.send({ type: "grant_admin", voterId })}
-            onRevokeAdmin={(voterId) => room.send({ type: "revoke_admin", voterId })}
-            onRename={(newName) => {
+            onKickAction={(voterId) => room.send({ type: "kick", voterId })}
+            onGrantAdminAction={(voterId) => room.send({ type: "grant_admin", voterId })}
+            onRevokeAdminAction={(voterId) => room.send({ type: "revoke_admin", voterId })}
+            onRenameAction={(newName) => {
               room.send({ type: "set_name", name: newName });
               storeName(newName);
               setName(newName);
@@ -166,13 +165,13 @@ export default function RoomClient({ roomId }: { roomId: string }) {
             autoReveal={room.state.autoReveal}
             deckId={deckId}
             timerActive={timer !== null}
-            onReveal={() => room.send({ type: "reveal" })}
-            onReset={() => room.send({ type: "reset" })}
-            onNextStory={(story) => room.send({ type: "next_story", story })}
-            onToggleAutoReveal={(enabled) => room.send({ type: "set_auto_reveal", enabled })}
-            onSetDeck={(deckId) => room.send({ type: "set_deck", deckId })}
-            onStartTimer={(durationSec) => room.send({ type: "start_timer", durationSec })}
-            onStopTimer={() => room.send({ type: "stop_timer" })}
+            onRevealAction={() => room.send({ type: "reveal" })}
+            onResetAction={() => room.send({ type: "reset" })}
+            onNextStoryAction={(story) => room.send({ type: "next_story", story })}
+            onToggleAutoRevealAction={(enabled) => room.send({ type: "set_auto_reveal", enabled })}
+            onSetDeckAction={(deckId) => room.send({ type: "set_deck", deckId })}
+            onStartTimerAction={(durationSec) => room.send({ type: "start_timer", durationSec })}
+            onStopTimerAction={() => room.send({ type: "stop_timer" })}
           />
         )}
 
@@ -182,8 +181,8 @@ export default function RoomClient({ roomId }: { roomId: string }) {
               selected={room.mySelectedVote}
               phase={phase}
               deckId={deckId}
-              onSelect={(value) => room.send({ type: "vote", value })}
-              onUnselect={() => room.send({ type: "unvote" })}
+              onSelectAction={(value) => room.send({ type: "vote", value })}
+              onUnselectAction={() => room.send({ type: "unvote" })}
             />
           </div>
         )}
@@ -193,7 +192,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
         <JoinModal
           roomId={roomId}
           defaultName=""
-          onSubmit={(n, viewer) => {
+          onSubmitAction={(n, viewer) => {
             storeName(n);
             setName(n);
             setAsViewer(viewer);
@@ -210,8 +209,8 @@ export default function RoomClient({ roomId }: { roomId: string }) {
         </div>
       )}
 
-      <ShareDialog roomId={roomId} open={shareOpen} onClose={() => setShareOpen(false)} />
-      <HelpDialog open={helpOpen} deckId={deckId} onClose={() => setHelpOpen(false)} />
+      <ShareDialog roomId={roomId} open={shareOpen} onCloseAction={() => setShareOpen(false)} />
+      <HelpDialog open={helpOpen} deckId={deckId} onCloseAction={() => setHelpOpen(false)} />
     </div>
   );
 }

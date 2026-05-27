@@ -6,7 +6,7 @@ import { DECKS, DEFAULT_DECK_ID, type ClientMessage, type RoomState } from "../.
 export type RoomShortcutsConfig = {
   state: RoomState | null;
   isAdmin: boolean;
-  send: (msg: ClientMessage) => void;
+  sendAction: (msg: ClientMessage) => void;
 };
 
 // Raccourcis clavier disponibles dans une salle :
@@ -15,7 +15,7 @@ export type RoomShortcutsConfig = {
 // - Space (admin, phase voting) : reveal
 // - R    (admin, phase revealed) : re-voter cette story
 // Inactif si focus dans un input/textarea/contenteditable.
-export function useRoomShortcuts({ state, isAdmin, send }: RoomShortcutsConfig) {
+export function useRoomShortcuts({ state, isAdmin, sendAction }: RoomShortcutsConfig) {
   useEffect(() => {
     if (!state) return;
 
@@ -38,7 +38,7 @@ export function useRoomShortcuts({ state, isAdmin, send }: RoomShortcutsConfig) 
         const card = deck.cards[idx];
         if (card) {
           e.preventDefault();
-          send({ type: "vote", value: card });
+          sendAction({ type: "vote", value: card });
         }
         return;
       }
@@ -47,7 +47,7 @@ export function useRoomShortcuts({ state, isAdmin, send }: RoomShortcutsConfig) 
       if (e.key === "?" && state.phase === "voting") {
         if ((deck.cards as readonly string[]).includes("?")) {
           e.preventDefault();
-          send({ type: "vote", value: "?" });
+          sendAction({ type: "vote", value: "?" });
         }
         return;
       }
@@ -58,18 +58,18 @@ export function useRoomShortcuts({ state, isAdmin, send }: RoomShortcutsConfig) 
       // Espace → reveal pendant la phase voting.
       if (e.key === " " && state.phase === "voting") {
         e.preventDefault();
-        send({ type: "reveal" });
+        sendAction({ type: "reveal" });
         return;
       }
 
       // R → reset (re-vote) après reveal.
       if ((e.key === "r" || e.key === "R") && state.phase === "revealed") {
         e.preventDefault();
-        send({ type: "reset" });
+        sendAction({ type: "reset" });
       }
     };
 
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [state, isAdmin, send]);
+  }, [state, isAdmin, sendAction]);
 }

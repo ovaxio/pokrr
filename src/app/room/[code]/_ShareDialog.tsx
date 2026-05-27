@@ -2,15 +2,16 @@
 
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useState } from "react";
+import { Check, X } from "lucide-react";
 
 export default function ShareDialog({
   roomId,
   open,
-  onClose,
+  onCloseAction,
 }: {
   roomId: string;
   open: boolean;
-  onClose: () => void;
+  onCloseAction: () => void;
 }) {
   const [url, setUrl] = useState("");
   const [copied, setCopied] = useState(false);
@@ -25,11 +26,11 @@ export default function ShareDialog({
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") onCloseAction();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+  }, [open, onCloseAction]);
 
   if (!open) return null;
 
@@ -69,7 +70,7 @@ export default function ShareDialog({
       role="dialog"
       aria-modal="true"
       aria-label="Partager la salle"
-      onClick={onClose}
+      onClick={onCloseAction}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
     >
       <div
@@ -80,11 +81,11 @@ export default function ShareDialog({
           <h2 className="text-lg font-semibold text-fg">Partager la salle</h2>
           <button
             type="button"
-            onClick={onClose}
+            onClick={onCloseAction}
             aria-label="Fermer"
             className="text-muted hover:text-fg"
           >
-            ×
+            <X size={18} />
           </button>
         </div>
 
@@ -111,7 +112,7 @@ export default function ShareDialog({
               : "bg-indigo-600 text-white hover:bg-indigo-500")
           }
         >
-          {copied ? "Lien copié ✓" : "Copier le lien"}
+          {copied ? <span className="inline-flex items-center gap-1">Lien copié <Check size={14} /></span> : "Copier le lien"}
         </button>
       </div>
     </div>
