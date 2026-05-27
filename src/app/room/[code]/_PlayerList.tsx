@@ -116,6 +116,7 @@ function PlayerCard({
         )}
         {/* Online dot */}
         <span
+          role="img"
           className={
             "absolute top-1 right-1 h-2 w-2 rounded-full ring-2 ring-bg " +
             (player.online ? "bg-emerald-500" : "bg-neutral-400 dark:bg-neutral-600")
@@ -155,8 +156,7 @@ function PlayerCard({
               type="button"
               onClick={isMe ? startEdit : undefined}
               disabled={!isMe}
-              title={isMe ? "Cliquer pour renommer" : undefined}
-              aria-label={isMe ? "Modifier ton pseudo" : undefined}
+              title={isMe ? "Modifier ton pseudo" : undefined}
               className={
                 "max-w-full truncate text-xs font-medium text-fg " +
                 (isMe ? "cursor-pointer rounded px-1 hover:bg-surface-2" : "cursor-default")
