@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Moon, Sun, SunMoon } from "lucide-react";
 import { applyTheme, getStoredTheme, resolveTheme, storeTheme, type ThemePref } from "@/lib/theme";
 
@@ -16,7 +16,7 @@ const LABEL: Record<ThemePref, string> = {
   dark: "sombre",
 };
 
-const ICON: Record<ThemePref, React.ReactNode> = {
+const ICON: Record<ThemePref, ReactNode> = {
   system: <SunMoon size={14} />,
   light: <Sun size={14} />,
   dark: <Moon size={14} />,

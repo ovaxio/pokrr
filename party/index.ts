@@ -107,7 +107,7 @@ function sanitizeVoterId(raw: unknown): string | null {
   return raw;
 }
 
-export default class PokrrRoom implements Party.Server {
+class PokrrRoom implements Party.Server {
   options: Party.ServerOptions = { hibernate: false };
 
   static onBeforeConnect(req: Party.Request): Party.Request | Response {
@@ -645,4 +645,4 @@ export default class PokrrRoom implements Party.Server {
   }
 }
 
-PokrrRoom satisfies Party.Worker;
+export default PokrrRoom satisfies Party.Worker;
