@@ -35,33 +35,12 @@ export default function ShareDialog({
   if (!open) return null;
 
   const copy = async () => {
-    let ok = false;
     try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(url);
-        ok = true;
-      }
-    } catch {
-      ok = false;
-    }
-    if (!ok) {
-      const ta = document.createElement("textarea");
-      ta.value = url;
-      ta.setAttribute("readonly", "");
-      ta.style.position = "fixed";
-      ta.style.opacity = "0";
-      document.body.appendChild(ta);
-      ta.select();
-      try {
-        ok = document.execCommand("copy");
-      } catch {
-        ok = false;
-      }
-      document.body.removeChild(ta);
-    }
-    if (ok) {
+      await navigator.clipboard.writeText(url);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // clipboard non disponible (contexte non-sécurisé)
     }
   };
 
