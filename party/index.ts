@@ -178,7 +178,7 @@ class PokrrRoom implements Party.Server {
       case "kick":
         return this.handleKick(sender, msg.voterId);
       case "transfer_admin":
-        return this.handleGrantAdmin(sender, msg.voterId);
+        return this.handleTransferAdmin(sender, msg.voterId);
       case "grant_admin":
         return this.handleGrantAdmin(sender, msg.voterId);
       case "revoke_admin":
@@ -454,6 +454,19 @@ class PokrrRoom implements Party.Server {
     this.maybeAutoReveal();
   }
 
+  private handleTransferAdmin(conn: Party.Connection<ConnState>, targetRaw: unknown) {
+    if (!this.requireAdmin(conn)) return;
+    const sender = conn.state?.voterId;
+    const target = sanitizeVoterId(targetRaw);
+    if (!target) return this.sendError(conn, "invalid", "voterId cible invalide");
+    if (!this.players.has(target)) return this.sendError(conn, "invalid", "Joueur cible introuvable");
+    if (this.adminVoterIds.has(target)) return this.sendError(conn, "invalid", "Ce joueur est déjà admin");
+    log("admin_transferred", { room: this.room.id, from: truncId(sender), to: truncId(target) });
+    this.adminVoterIds.add(target);
+    if (sender) this.adminVoterIds.delete(sender);
+    this.bumpAndBroadcast();
+  }
+
   private handleGrantAdmin(conn: Party.Connection<ConnState>, targetRaw: unknown) {
     if (!this.requireAdmin(conn)) return;
     const target = sanitizeVoterId(targetRaw);
@@ -563,6 +576,10 @@ class PokrrRoom implements Party.Server {
         to: truncId(next.voterId),
         grace_ms: graceMs,
       });
+      // Retirer les admins offline avant d'élire le nouveau.
+      for (const id of this.adminVoterIds) {
+        if (!this.isOnline(id)) this.adminVoterIds.delete(id);
+      }
       this.adminVoterIds.add(next.voterId);
       this.bumpAndBroadcast();
     }, graceMs);

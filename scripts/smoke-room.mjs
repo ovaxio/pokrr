@@ -61,7 +61,7 @@ const bob = await connect("bob");
 const carol = await connect("carol");
 
 console.log("\n→ Alice join (devient admin)");
-send(alice, { type: "join", voterId: "voter-alice", name: "Alice" });
+send(alice, { type: "join", voterId: "voter-alice", name: "Alice", asViewer: false });
 await sleep(120);
 
 console.log("\n→ Bob join");

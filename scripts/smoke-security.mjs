@@ -71,7 +71,7 @@ console.log("\n→ Test 2 : XSS story");
   const alice = await connect(room);
   send(alice, { type: "join", voterId: "v-alice", name: "Alice" });
   await sleep(150);
-  send(alice, { type: "set_story", story: '<img src=x onerror="alert(1)"> US-123' });
+  send(alice, { type: "set_story", story: '<img src="" onerror="alert(1)" alt=""> US-123' });
   await sleep(150);
   expect(!alice.lastState?.story.includes("<"), "pas de < dans la story serveur");
   expect(alice.lastState?.story.includes("US-123"), "le texte légitime est conservé");
@@ -83,7 +83,7 @@ console.log("\n→ Test 3 : JSON malformé");
 {
   const room = `sec-malformed-${Date.now()}`;
   const alice = await connect(room);
-  send(alice, { type: "join", voterId: "v-alice", name: "Alice" });
+  send(alice, { type: "join", voterId: "v-alice", name: "Alice", asViewer: false });
   await sleep(150);
   alice.send("not json at all {");
   await sleep(150);
