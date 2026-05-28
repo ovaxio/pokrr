@@ -4,46 +4,56 @@ import "./globals.css";
 import ThemeScript from "./_ThemeScript";
 
 const SITE_NAME = "pokrr";
+const SITE_URL = "https://pokrr.app";
 const SITE_DESCRIPTION =
-  "Planning poker en ligne gratuit, sans inscription, sans pub. Crée une salle, partage le lien, vote.";
+  "Planning poker en ligne gratuit, sans inscription, sans pub. Fibonacci, T-Shirt, decks custom. Crée une salle, partage le lien, vote.";
 
-const siteUrl =
+// metadataBase adapts to preview deployments for relative URL resolution,
+// but canonical and JSON-LD always point to the production URL.
+const metadataBaseUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://pokrr.app");
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : SITE_URL);
 
 export const metadata: Metadata = {
-  ...(siteUrl ? { metadataBase: new URL(siteUrl) } : {}),
+  metadataBase: new URL(metadataBaseUrl),
   title: {
-    default: `${SITE_NAME} — planning poker minimaliste`,
+    default: `${SITE_NAME} — Planning Poker gratuit en ligne, sans inscription`,
     template: `%s · ${SITE_NAME}`,
+  },
+  alternates: {
+    canonical: SITE_URL,
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   authors: [{ name: "Guillaume Chambard" }],
-  keywords: [
-    "planning poker",
-    "scrum",
-    "agile",
-    "estimation",
-    "refinement",
-    "fibonacci",
-    "gratuit",
-  ],
   openGraph: {
     type: "website",
-    title: `${SITE_NAME} — planning poker minimaliste`,
+    title: `${SITE_NAME} — Planning Poker gratuit en ligne, sans inscription`,
     description: SITE_DESCRIPTION,
     siteName: SITE_NAME,
     locale: "fr_FR",
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME} — planning poker minimaliste`,
+    title: `${SITE_NAME} — Planning Poker gratuit en ligne, sans inscription`,
     description: SITE_DESCRIPTION,
   },
   robots: {
     index: true,
     follow: true,
+  },
+};
+
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "pokrr",
+  url: SITE_URL,
+  logo: {
+    "@type": "ImageObject",
+    url: `${SITE_URL}/icon.svg`,
+    width: 32,
+    height: 32,
   },
 };
 
@@ -56,6 +66,10 @@ export default function RootLayout({
     <html lang="fr" className="h-full antialiased" suppressHydrationWarning>
       <head>
         <ThemeScript />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
       </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
