@@ -56,7 +56,7 @@ export default function JoinModal({
             onChange={(e) => setName(e.target.value)}
             maxLength={24}
             placeholder={d.pseudoPlaceholder}
-            className="w-full rounded-lg border border-token-strong bg-surface px-4 py-3 text-base text-fg outline-none transition focus:border-indigo-500"
+            className="w-full rounded-lg border border-token-strong bg-surface px-4 py-3 text-base text-fg outline-none transition focus:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
           />
           <div className="grid grid-cols-2 gap-2">
             <label className={`flex cursor-pointer flex-col items-center gap-1.5 rounded-lg border px-4 py-3 text-sm transition ${!asViewer ? "border-indigo-500 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" : "border-token bg-surface text-fg-soft hover:bg-surface-2"}`}>

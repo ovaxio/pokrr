@@ -31,7 +31,7 @@ export default function RoomPreview({ locale }: { locale: string }) {
       <div className="mx-auto max-w-3xl space-y-4">
         {/* Illustration — aria-hidden car contenu décoratif */}
         <div
-          className="dark [zoom:0.72] overflow-hidden rounded-xl ring-1 ring-white/8"
+          className="dark [zoom:0.85] overflow-hidden rounded-xl ring-1 ring-white/8 sm:[zoom:0.72]"
           aria-hidden="true"
         >
           {/* Browser chrome bar */}

@@ -93,7 +93,7 @@ function PlayerCard({
       <div className="relative h-24 w-16">
         {player.isViewer ? (
           <div className="h-24 w-16 flex items-center justify-center rounded-xl border-2 border-dashed border-token-strong bg-surface/20">
-            <Eye size={24} className="text-faint" aria-label="spectateur" />
+            <Eye size={24} className="text-faint" aria-label={d.viewerBadge} />
           </div>
         ) : (
           <div className={`flip-card ${revealed && player.vote ? "flipped" : ""}`}>
@@ -151,7 +151,7 @@ function PlayerCard({
               }}
               maxLength={24}
               aria-label={d.editNameAriaLabel}
-              className="w-full rounded border border-indigo-500 bg-surface px-1 py-0.5 text-center text-xs font-medium text-fg outline-none"
+              className="w-full rounded border border-indigo-500 bg-surface px-1 py-0.5 text-center text-xs font-medium text-fg outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
             />
           </form>
         ) : (
@@ -194,7 +194,7 @@ function PlayerCard({
                   }}
                   title={d.revokeAdminTitle}
                   aria-label={interpolate(d.revokeAdminConfirm, { name: player.name })}
-                  className="flex h-6 w-6 items-center justify-center rounded border border-token text-indigo-500 hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-700 dark:hover:text-red-300"
+                  className="flex h-8 w-8 items-center justify-center rounded border border-token text-indigo-500 hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-700 dark:hover:text-red-300"
                 >
                   <Star size={12} className="fill-current" />
                 </button>
@@ -204,7 +204,7 @@ function PlayerCard({
                   onClick={onGrantAdmin}
                   title={d.promoteAdminTitle}
                   aria-label={`${d.promoteAdminTitle} ${player.name}`}
-                  className="flex h-6 w-6 items-center justify-center rounded border border-token text-muted hover:bg-surface-2"
+                  className="flex h-8 w-8 items-center justify-center rounded border border-token text-muted hover:bg-surface-2"
                 >
                   <Star size={12} />
                 </button>
@@ -216,7 +216,7 @@ function PlayerCard({
                 }}
                 title={d.kickTitle}
                 aria-label={interpolate(d.kickConfirm, { name: player.name })}
-                className="flex h-6 w-6 items-center justify-center rounded border border-token text-muted hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-700 dark:hover:text-red-300"
+                className="flex h-8 w-8 items-center justify-center rounded border border-token text-muted hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-700 dark:hover:text-red-300"
               >
                 <X size={12} />
               </button>

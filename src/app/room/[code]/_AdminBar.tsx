@@ -74,7 +74,7 @@ export default function AdminBar({
             onChange={(e) => setNextStory(e.target.value)}
             placeholder={d.nextStoryPlaceholder}
             maxLength={200}
-            className="flex-1 rounded-lg border border-token-strong bg-surface px-3 py-2 text-sm text-fg outline-none focus:border-indigo-500"
+            className="flex-1 rounded-lg border border-token-strong bg-surface px-3 py-2 text-sm text-fg outline-none focus:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
           />
           <button
             type="submit"
@@ -101,7 +101,7 @@ export default function AdminBar({
           <select
             value={deckId}
             onChange={(e) => onSetDeckAction(e.target.value)}
-            className="rounded border border-token bg-surface px-2 py-1 text-xs text-fg focus:border-indigo-500 outline-none"
+            className="rounded border border-token bg-surface px-2 py-1 text-xs text-fg outline-none focus:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
           >
             {Object.values(DECKS).map((d) => (
               <option key={d.id} value={d.id}>
