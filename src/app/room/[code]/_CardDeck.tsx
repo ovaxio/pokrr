@@ -1,6 +1,7 @@
 "use client";
 
 import { DECKS, DEFAULT_DECK_ID, type Card, type Phase } from "../../../../party/types";
+import { useDict } from "@/i18n/DictContext";
 
 export default function CardDeck({
   selected,
@@ -15,20 +16,21 @@ export default function CardDeck({
   onSelectAction: (card: Card) => void;
   onUnselectAction: () => void;
 }) {
+  const d = useDict();
   const disabled = phase === "revealed";
   const deck = DECKS[deckId] ?? DECKS[DEFAULT_DECK_ID];
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-xs text-muted">
-        <span>{disabled ? "Cartes verrouillées" : "Choisis une carte"}</span>
+        <span>{disabled ? d.cardsLocked : d.chooseCard}</span>
         {selected && !disabled && (
           <button
             type="button"
             onClick={onUnselectAction}
             className="text-fg-soft hover:text-fg"
           >
-            Effacer
+            {d.clearCard}
           </button>
         )}
       </div>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { DECKS, type Phase } from "../../../../party/types";
+import { useDict } from "@/i18n/DictContext";
 
 const TIMER_PRESETS = [
   { sec: 60, label: "1 min" },
@@ -35,6 +36,7 @@ export default function AdminBar({
   onStartTimerAction: (sec: number) => void;
   onStopTimerAction: () => void;
 }) {
+  const d = useDict();
   const [nextStory, setNextStory] = useState("");
 
   return (
@@ -46,7 +48,7 @@ export default function AdminBar({
             onClick={onRevealAction}
             className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
           >
-            Révéler maintenant
+            {d.revealNow}
           </button>
         ) : (
           <button
@@ -54,7 +56,7 @@ export default function AdminBar({
             onClick={onResetAction}
             className="rounded-lg border border-token-strong bg-surface-2 px-4 py-2 text-sm font-medium text-fg hover:bg-surface"
           >
-            Re-voter cette story
+            {d.revoteStory}
           </button>
         )}
 
@@ -70,7 +72,7 @@ export default function AdminBar({
           <input
             value={nextStory}
             onChange={(e) => setNextStory(e.target.value)}
-            placeholder="Story suivante (titre)…"
+            placeholder={d.nextStoryPlaceholder}
             maxLength={200}
             className="flex-1 rounded-lg border border-token-strong bg-surface px-3 py-2 text-sm text-fg outline-none focus:border-indigo-500"
           />
@@ -78,7 +80,7 @@ export default function AdminBar({
             type="submit"
             className="rounded-lg border border-token-strong bg-surface-2 px-3 py-2 text-sm font-medium text-fg hover:bg-surface"
           >
-            <span className="inline-flex items-center gap-1">Story suivante <ArrowRight size={14} /></span>
+            <span className="inline-flex items-center gap-1">{d.nextStorySubmit} <ArrowRight size={14} /></span>
           </button>
         </form>
       </div>
@@ -91,11 +93,11 @@ export default function AdminBar({
             onChange={(e) => onToggleAutoRevealAction(e.target.checked)}
             className="accent-indigo-500"
           />
-          Auto-révéler
+          {d.autoReveal}
         </label>
 
         <label className="flex items-center gap-2 text-muted">
-          Deck :
+          {d.deckLabel} :
           <select
             value={deckId}
             onChange={(e) => onSetDeckAction(e.target.value)}
@@ -110,7 +112,7 @@ export default function AdminBar({
         </label>
 
         <div className="flex items-center gap-1 text-muted">
-          <span>Timer :</span>
+          <span>{d.timerLabel} :</span>
           {TIMER_PRESETS.map((p) => (
             <button
               key={p.sec}
@@ -127,7 +129,7 @@ export default function AdminBar({
               onClick={onStopTimerAction}
               className="rounded border border-red-300 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 px-2 py-1 text-xs text-red-900 dark:text-red-200 hover:bg-red-100 dark:hover:bg-red-950/60"
             >
-              Stop
+              {d.stop}
             </button>
           )}
         </div>

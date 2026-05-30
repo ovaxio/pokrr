@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { useDict } from "@/i18n/DictContext";
 import ThemeToggle from "../../_ThemeToggle";
+import LocaleToggle from "../../_LocaleToggle";
 import { usePokrrRoom } from "@/lib/usePokrrRoom";
 import { useRoomShortcuts } from "@/lib/useRoomShortcuts";
 import { getStoredName, storeName } from "@/lib/voterId";
@@ -19,6 +21,7 @@ import StoryHeader from "./_StoryHeader";
 import TimerDisplay from "./_TimerDisplay";
 
 export default function RoomClient({ roomId }: { roomId: string }) {
+  const d = useDict();
   const [name, setName] = useState<string | null>(null);
   const [nameHydrated, setNameHydrated] = useState(false);
   const [asViewer, setAsViewer] = useState(false);
@@ -54,7 +57,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
 
   return (
     <div className="min-h-screen bg-bg text-fg">
-      <h1 className="sr-only">Planning poker — Salle {roomId}</h1>
+      <h1 className="sr-only">{d.roomSrTitlePrefix} {roomId}</h1>
 
       <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-5 px-4 py-5 sm:px-6 sm:gap-6 sm:py-6">
         <header className="flex items-center justify-between gap-3 text-sm">
@@ -68,7 +71,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
                 onClick={() => room.send({ type: "set_viewer", isViewer: false })}
                 className="rounded border border-indigo-500/40 bg-indigo-500/10 px-2 py-1 text-indigo-600 dark:text-indigo-400 transition hover:bg-indigo-500/20"
               >
-                Rejoindre le vote
+                {d.joinVote}
               </button>
             )}
             {!amIViewer && room.state && (
@@ -77,10 +80,10 @@ export default function RoomClient({ roomId }: { roomId: string }) {
                 onClick={() => room.send({ type: "set_viewer", isViewer: true })}
                 className="rounded border border-token bg-surface px-2 py-1 text-fg-soft transition hover:bg-surface-2"
               >
-                Passer en spectateur
+                {d.goSpectator}
               </button>
             )}
-            <span className="hidden sm:inline">Salle</span>
+            <span className="hidden sm:inline">{d.roomLabel}</span>
             <code className="rounded bg-surface px-2 py-1 font-mono text-fg-soft">
               {roomId}
             </code>
@@ -89,17 +92,18 @@ export default function RoomClient({ roomId }: { roomId: string }) {
               onClick={() => setShareOpen(true)}
               className="rounded border border-token bg-surface px-2 py-1 text-fg-soft transition hover:bg-surface-2"
             >
-              Partager
+              {d.share}
             </button>
             <button
               type="button"
               onClick={() => setHelpOpen(true)}
-              aria-label="Raccourcis clavier"
-              title="Raccourcis clavier"
+              aria-label={d.shortcutsLabel}
+              title={d.shortcutsLabel}
               className="rounded border border-token bg-surface px-2 py-1 font-mono text-fg-soft transition hover:bg-surface-2"
             >
               ?
             </button>
+            <LocaleToggle />
             <ThemeToggle />
           </div>
         </header>
@@ -119,8 +123,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
 
         {adminOffline && !isAdmin && (
           <div className="rounded-lg border border-amber-300 dark:border-amber-900/60 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 text-sm text-amber-900 dark:text-amber-200">
-            Aucun admin en ligne. Le rôle sera transféré automatiquement au plus ancien voter
-            après 15 min.
+            {d.adminOffline}
           </div>
         )}
 
@@ -132,10 +135,10 @@ export default function RoomClient({ roomId }: { roomId: string }) {
 
         <div className="text-sm text-muted" role="status" aria-live="polite">
           {isConnecting
-            ? "Connexion en cours…"
+            ? d.connecting
             : isRevealed
-              ? `Résultats — ${votedCount}/${totalCount} ont voté`
-              : `${votedCount}/${totalCount} ont voté`}
+              ? `${d.resultsLabel} ${votedCount}/${totalCount} ${d.voted}`
+              : `${votedCount}/${totalCount} ${d.voted}`}
         </div>
 
         <section>
@@ -205,7 +208,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
           role="alert"
           className="fixed inset-0 z-50 flex items-center justify-center bg-bg/95 backdrop-blur px-4 text-center text-red-700 dark:text-red-300"
         >
-          {room.errorMsg ?? "Vous avez été retiré"}
+          {room.errorMsg ?? d.kicked}
         </div>
       )}
 

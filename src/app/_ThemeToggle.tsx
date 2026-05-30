@@ -3,17 +3,12 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Moon, Sun, SunMoon } from "lucide-react";
 import { applyTheme, getStoredTheme, resolveTheme, storeTheme, type ThemePref } from "@/lib/theme";
+import { useDict } from "@/i18n/DictContext";
 
 const NEXT: Record<ThemePref, ThemePref> = {
   system: "light",
   light: "dark",
   dark: "system",
-};
-
-const LABEL: Record<ThemePref, string> = {
-  system: "système",
-  light: "clair",
-  dark: "sombre",
 };
 
 const ICON: Record<ThemePref, ReactNode> = {
@@ -23,6 +18,12 @@ const ICON: Record<ThemePref, ReactNode> = {
 };
 
 export default function ThemeToggle() {
+  const d = useDict();
+  const LABEL: Record<ThemePref, string> = {
+    system: d.themeSystem,
+    light: d.themeLight,
+    dark: d.themeDark,
+  };
   const [pref, setPref] = useState<ThemePref>("system");
   const [mounted, setMounted] = useState(false);
 

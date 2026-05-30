@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { headers } from "next/headers";
 import "./globals.css";
 import ThemeScript from "./_ThemeScript";
+import { locales, defaultLocale } from "@/i18n/shared";
 
 const SITE_NAME = "pokrr";
 const SITE_URL = "https://pokrr.app";
 const SITE_DESCRIPTION =
   "Planning poker en ligne gratuit, sans inscription, sans pub. Fibonacci, T-Shirt, decks custom. Crée une salle, partage le lien, vote.";
 
-// metadataBase adapts to preview deployments for relative URL resolution,
-// but canonical and JSON-LD always point to the production URL.
 const metadataBaseUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : SITE_URL);
@@ -20,9 +20,6 @@ export const metadata: Metadata = {
     default: `${SITE_NAME} — Planning Poker gratuit en ligne, sans inscription`,
     template: `%s · ${SITE_NAME}`,
   },
-  alternates: {
-    canonical: SITE_URL,
-  },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   authors: [{ name: "Guillaume Chambard" }],
@@ -32,25 +29,13 @@ export const metadata: Metadata = {
     title: `${SITE_NAME} — Planning Poker gratuit en ligne, sans inscription`,
     description: SITE_DESCRIPTION,
     siteName: SITE_NAME,
-    locale: "fr_FR",
-    images: [
-      {
-        url: `${SITE_URL}/opengraph-image`,
-        width: 1200,
-        height: 630,
-        alt: `${SITE_NAME} — Planning Poker gratuit en ligne, sans inscription`,
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: `${SITE_NAME} — Planning Poker gratuit en ligne, sans inscription`,
     description: SITE_DESCRIPTION,
   },
-  robots: {
-    index: true,
-    follow: true,
-  },
+  robots: { index: true, follow: true },
 };
 
 const organizationJsonLd = {
@@ -66,13 +51,13 @@ const organizationJsonLd = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: ReactNode;
-}>) {
+export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+  const h = await headers();
+  const xLocale = h.get("x-locale");
+  const lang = xLocale && (locales as string[]).includes(xLocale) ? xLocale : defaultLocale;
+
   return (
-    <html lang="fr" className="h-full antialiased" suppressHydrationWarning>
+    <html lang={lang} className="h-full antialiased" suppressHydrationWarning>
       <head>
         <ThemeScript />
         <script

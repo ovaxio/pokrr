@@ -3,6 +3,8 @@
 import { useEffect } from "react";
 import { X } from "lucide-react";
 import { DECKS, DEFAULT_DECK_ID } from "../../../../party/types";
+import { useDict } from "@/i18n/DictContext";
+import { interpolate } from "@/i18n/shared";
 
 export default function HelpDialog({
   open,
@@ -13,6 +15,8 @@ export default function HelpDialog({
   deckId: string;
   onCloseAction: () => void;
 }) {
+  const d = useDict();
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -33,7 +37,7 @@ export default function HelpDialog({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Aide raccourcis clavier"
+      aria-label={d.helpDialogAriaLabel}
       onClick={onCloseAction}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
     >
@@ -42,11 +46,11 @@ export default function HelpDialog({
         className="w-full max-w-md space-y-4 rounded-xl border border-token bg-elevated p-6 shadow-2xl"
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-fg">Raccourcis clavier</h2>
+          <h2 className="text-lg font-semibold text-fg">{d.helpDialogTitle}</h2>
           <button
             type="button"
             onClick={onCloseAction}
-            aria-label="Fermer l'aide"
+            aria-label={d.helpCloseAriaLabel}
             className="text-muted hover:text-fg"
           >
             <X size={18} />
@@ -56,33 +60,33 @@ export default function HelpDialog({
         <section className="space-y-3 text-sm">
           <div>
             <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">
-              Voter (deck {deck.label})
+              {interpolate(d.helpSectionVoting, { label: deck.label })}
             </div>
             <div className="grid grid-cols-2 gap-y-1 gap-x-4">
               {reachableByKey.map((card, i) => (
-                <ShortcutRow key={card} keys={String(i)} label={`Carte ${card}`} />
+                <ShortcutRow key={card} keys={String(i)} label={`${d.helpCard} ${card}`} />
               ))}
-              {hasQuestion && <ShortcutRow keys="?" label="Carte ?" />}
+              {hasQuestion && <ShortcutRow keys="?" label={`${d.helpCard} ?`} />}
             </div>
             {clickOnly.length > 0 && (
               <p className="mt-2 text-xs text-muted">
-                Cartes {clickOnly.join(", ")} : clic uniquement.
+                {interpolate(d.helpClickOnly, { cards: clickOnly.join(", ") })}
               </p>
             )}
           </div>
 
           <div>
             <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">
-              Admin
+              {d.helpSectionAdmin}
             </div>
             <div className="space-y-1">
-              <ShortcutRow keys="Space" label="Révéler (phase voting)" />
-              <ShortcutRow keys="R" label="Re-voter cette story (phase revealed)" />
+              <ShortcutRow keys="Space" label={d.helpReveal} />
+              <ShortcutRow keys="R" label={d.helpRevote} />
             </div>
           </div>
 
           <div className="rounded-md border border-token bg-surface px-3 py-2 text-xs text-muted">
-            Désactivé quand un champ texte est focus.
+            {d.helpDisabled}
           </div>
         </section>
       </div>
@@ -93,7 +97,7 @@ export default function HelpDialog({
 function ShortcutRow({ keys, label }: { keys: string; label: string }) {
   return (
     <div className="flex items-center gap-3">
-      <kbd className="inline-flex min-w-[2rem] items-center justify-center rounded border border-token bg-surface px-2 py-0.5 font-mono text-xs text-fg">
+      <kbd className="inline-flex min-w-8 items-center justify-center rounded border border-token bg-surface px-2 py-0.5 font-mono text-xs text-fg">
         {keys}
       </kbd>
       <span className="text-fg-soft">{label}</span>

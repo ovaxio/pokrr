@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ArrowLeftRight, Check } from "lucide-react";
 import type { PlayerView } from "../../../../party/types";
 import { computeStats, isWideSpread } from "@/lib/stats";
+import { useDict } from "@/i18n/DictContext";
 
 export default function ResultsPanel({
   players,
@@ -14,12 +15,13 @@ export default function ResultsPanel({
   deckId: string;
   story: string;
 }) {
+  const d = useDict();
   const stats = computeStats(players, deckId);
   const [copied, setCopied] = useState(false);
 
   const copyMarkdown = async () => {
     try {
-      await navigator.clipboard.writeText(buildMarkdown(players, stats, story));
+      await navigator.clipboard.writeText(buildMarkdown(players, stats, story, d));
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1500);
     } catch {
@@ -30,7 +32,7 @@ export default function ResultsPanel({
   if (stats.voteCount === 0) {
     return (
       <div className="rounded-lg border border-token bg-surface/40 p-4 text-sm text-muted">
-        Aucun vote enregistré.
+        {d.noVotes}
       </div>
     );
   }
@@ -44,17 +46,17 @@ export default function ResultsPanel({
       <div className="flex items-start justify-between gap-3">
         {stats.numericDeck ? (
           <div className="grid flex-1 grid-cols-3 gap-3">
-            <Stat label="Moyenne" value={fmt(stats.mean)} subdued={stats.numericCount === 0} />
-            <Stat label="Médiane" value={fmt(stats.median)} subdued={stats.numericCount === 0} />
+            <Stat label={d.statMean} value={fmt(stats.mean)} subdued={stats.numericCount === 0} />
+            <Stat label={d.statMedian} value={fmt(stats.median)} subdued={stats.numericCount === 0} />
             <Stat
-              label="Suggestion"
+              label={d.statSuggestion}
               value={stats.consensusSuggestion ?? "—"}
               accent={stats.consensusSuggestion !== null}
             />
           </div>
         ) : (
           <div className="flex-1 rounded-md border border-token bg-bg px-3 py-2 text-sm text-muted">
-            Deck non-numérique → distribution uniquement.
+            {d.nonNumericDeck}
           </div>
         )}
         <button
@@ -68,19 +70,19 @@ export default function ResultsPanel({
               : "border-token bg-surface text-fg-soft hover:bg-surface-2")
           }
         >
-          {copied ? <span className="inline-flex items-center gap-1">Copié <Check size={13} /></span> : "Copier MD"}
+          {copied ? <span className="inline-flex items-center gap-1">{d.copiedMd} <Check size={13} /></span> : d.copyMd}
         </button>
       </div>
 
       {stats.consensus && (
         <div className="rounded-md border border-emerald-300 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-2 text-sm text-emerald-900 dark:text-emerald-200">
-          Consensus : tout le monde a voté <strong>{stats.distribution[0].card}</strong>.
+          {d.consensusPrefix} <strong>{stats.distribution[0].card}</strong>.
         </div>
       )}
 
       <div className="space-y-2">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
-          Distribution
+          {d.distribution}
         </h3>
         <div className="space-y-1.5">
           {stats.distribution.map(({ card, count }) => (
@@ -93,7 +95,7 @@ export default function ResultsPanel({
                 />
               </div>
               <span className="w-8 text-right text-xs text-muted">
-                {count} {count > 1 ? "votes" : "vote"}
+                {count} {count > 1 ? d.votePlural : d.voteSingular}
               </span>
             </div>
           ))}
@@ -103,7 +105,7 @@ export default function ResultsPanel({
       {wideSpread && stats.lowest && stats.highest && stats.lowest.player.voterId !== stats.highest.player.voterId && (
         <div className="rounded-md border border-amber-300 dark:border-amber-900/60 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 text-sm text-amber-900 dark:text-amber-200">
           <strong>{stats.highest.player.name}</strong> ({stats.highest.value}) <ArrowLeftRight size={13} className="inline align-middle" />{" "}
-          <strong>{stats.lowest.player.name}</strong> ({stats.lowest.value}) : écart à discuter.
+          <strong>{stats.lowest.player.name}</strong> ({stats.lowest.value}) : {d.spreadWarning}.
         </div>
       )}
     </section>
@@ -114,21 +116,22 @@ function buildMarkdown(
   players: PlayerView[],
   stats: ReturnType<typeof computeStats>,
   story: string,
+  d: ReturnType<typeof useDict>,
 ): string {
   const lines: string[] = [];
   if (story) lines.push(`## ${story}`, "");
-  lines.push("| Voter | Vote |", "|---|---|");
+  lines.push(`| ${d.mdVoterCol} | ${d.mdVoteCol} |`, "|---|---|");
   for (const p of players) {
     if (p.vote) lines.push(`| ${escapeMd(p.name)} | ${escapeMd(p.vote)} |`);
   }
   lines.push("");
   if (stats.numericDeck) {
     lines.push(
-      `**Moyenne** : ${fmt(stats.mean)} · **Médiane** : ${fmt(stats.median)} · **Suggestion** : ${stats.consensusSuggestion ?? "—"}`,
+      `**${d.mdMean}** : ${fmt(stats.mean)} · **${d.mdMedian}** : ${fmt(stats.median)} · **${d.mdSuggestion}** : ${stats.consensusSuggestion ?? "—"}`,
     );
   }
   if (stats.consensus) {
-    lines.push(`**Consensus** sur ${stats.distribution[0].card}.`);
+    lines.push(`**${d.mdConsensusPrefix}** ${stats.distribution[0].card}.`);
   }
   return lines.join("\n");
 }

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Check, Eye, Minus, Star, X } from "lucide-react";
 import type { Phase, PlayerView } from "../../../../party/types";
+import { useDict } from "@/i18n/DictContext";
+import { interpolate } from "@/i18n/shared";
 
 export default function PlayerList({
   players,
@@ -23,10 +25,11 @@ export default function PlayerList({
   onRevokeAdminAction: (voterId: string) => void;
   onRenameAction: (name: string) => void;
 }) {
+  const d = useDict();
   if (players.length === 0) {
     return (
       <p className="text-center text-sm text-muted py-6">
-        Personne dans la salle pour le moment.
+        {d.noPlayers}
       </p>
     );
   }
@@ -69,6 +72,7 @@ function PlayerCard({
   onRevokeAdmin: () => void;
   onRename: (name: string) => void;
 }) {
+  const d = useDict();
   const revealed = phase === "revealed";
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(player.name);
@@ -121,7 +125,7 @@ function PlayerCard({
             "absolute top-1 right-1 h-2 w-2 rounded-full ring-2 ring-bg " +
             (player.online ? "bg-emerald-500" : "bg-neutral-400 dark:bg-neutral-600")
           }
-          aria-label={player.online ? "en ligne" : "hors ligne"}
+          aria-label={player.online ? d.statusOnline : d.statusOffline}
         />
       </div>
 
@@ -146,7 +150,7 @@ function PlayerCard({
                 }
               }}
               maxLength={24}
-              aria-label="Modifier ton pseudo"
+              aria-label={d.editNameAriaLabel}
               className="w-full rounded border border-indigo-500 bg-surface px-1 py-0.5 text-center text-xs font-medium text-fg outline-none"
             />
           </form>
@@ -156,7 +160,7 @@ function PlayerCard({
               type="button"
               onClick={isMe ? startEdit : undefined}
               disabled={!isMe}
-              title={isMe ? "Modifier ton pseudo" : undefined}
+              title={isMe ? d.editNameAriaLabel : undefined}
               className={
                 "max-w-full truncate text-xs font-medium text-fg " +
                 (isMe ? "cursor-pointer rounded px-1 hover:bg-surface-2" : "cursor-default")
@@ -165,19 +169,19 @@ function PlayerCard({
               {player.name}
             </button>
             {isMe && (
-              <span className="text-[10px] text-muted leading-none">(toi)</span>
+              <span className="text-[10px] text-muted leading-none">{d.youLabel}</span>
             )}
           </>
         )}
         <div className="flex items-center gap-1 text-[10px]">
           {player.isAdmin && (
             <span className="rounded bg-indigo-500/20 px-1 py-0.5 uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
-              admin
+              {d.adminBadge}
             </span>
           )}
           {player.isViewer && !player.isAdmin && (
             <span className="rounded bg-neutral-500/10 px-1 py-0.5 uppercase tracking-wider text-muted">
-              vue
+              {d.viewerBadge}
             </span>
           )}
           {amIAdmin && !isMe && (
@@ -186,10 +190,10 @@ function PlayerCard({
                 <button
                   type="button"
                   onClick={() => {
-                    if (confirm(`Retirer les droits admin à ${player.name} ?`)) onRevokeAdmin();
+                    if (confirm(interpolate(d.revokeAdminConfirm, { name: player.name }))) onRevokeAdmin();
                   }}
-                  title="Retirer admin"
-                  aria-label={`Retirer les droits admin de ${player.name}`}
+                  title={d.revokeAdminTitle}
+                  aria-label={interpolate(d.revokeAdminConfirm, { name: player.name })}
                   className="flex h-6 w-6 items-center justify-center rounded border border-token text-indigo-500 hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-700 dark:hover:text-red-300"
                 >
                   <Star size={12} className="fill-current" />
@@ -198,8 +202,8 @@ function PlayerCard({
                 <button
                   type="button"
                   onClick={onGrantAdmin}
-                  title="Promouvoir admin"
-                  aria-label={`Promouvoir ${player.name} co-admin`}
+                  title={d.promoteAdminTitle}
+                  aria-label={`${d.promoteAdminTitle} ${player.name}`}
                   className="flex h-6 w-6 items-center justify-center rounded border border-token text-muted hover:bg-surface-2"
                 >
                   <Star size={12} />
@@ -208,10 +212,10 @@ function PlayerCard({
               <button
                 type="button"
                 onClick={() => {
-                  if (confirm(`Retirer ${player.name} de la salle ?`)) onKick();
+                  if (confirm(interpolate(d.kickConfirm, { name: player.name }))) onKick();
                 }}
-                title="Kick"
-                aria-label={`Retirer ${player.name} de la salle`}
+                title={d.kickTitle}
+                aria-label={interpolate(d.kickConfirm, { name: player.name })}
                 className="flex h-6 w-6 items-center justify-center rounded border border-token text-muted hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-700 dark:hover:text-red-300"
               >
                 <X size={12} />

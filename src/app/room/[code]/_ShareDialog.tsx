@@ -3,6 +3,7 @@
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useState } from "react";
 import { Check, X } from "lucide-react";
+import { useDict } from "@/i18n/DictContext";
 
 export default function ShareDialog({
   roomId,
@@ -13,6 +14,7 @@ export default function ShareDialog({
   open: boolean;
   onCloseAction: () => void;
 }) {
+  const d = useDict();
   const [url, setUrl] = useState("");
   const [copied, setCopied] = useState(false);
 
@@ -48,7 +50,7 @@ export default function ShareDialog({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Partager la salle"
+      aria-label={d.shareAriaLabel}
       onClick={onCloseAction}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
     >
@@ -57,11 +59,11 @@ export default function ShareDialog({
         className="w-full max-w-sm space-y-5 rounded-xl border border-token bg-elevated p-6 shadow-2xl"
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-fg">Partager la salle</h2>
+          <h2 className="text-lg font-semibold text-fg">{d.shareTitle}</h2>
           <button
             type="button"
             onClick={onCloseAction}
-            aria-label="Fermer"
+            aria-label={d.close}
             className="text-muted hover:text-fg"
           >
             <X size={18} />
@@ -74,7 +76,7 @@ export default function ShareDialog({
 
         <div className="space-y-2">
           <div className="text-xs uppercase tracking-wider text-muted">
-            Code de la salle
+            {d.roomCodeLabel}
           </div>
           <div className="rounded-md border border-token bg-surface px-3 py-2 text-center font-mono text-2xl tracking-widest text-fg">
             {roomId}
@@ -91,7 +93,7 @@ export default function ShareDialog({
               : "bg-indigo-600 text-white hover:bg-indigo-500")
           }
         >
-          {copied ? <span className="inline-flex items-center gap-1">Lien copié <Check size={14} /></span> : "Copier le lien"}
+          {copied ? <span className="inline-flex items-center gap-1">{d.linkCopied} <Check size={14} /></span> : d.copyLink}
         </button>
       </div>
     </div>
