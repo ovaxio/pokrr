@@ -66,7 +66,7 @@ export const en: Dict = {
     },
     {
       q: "Is pokrr really free?",
-      a: "Yes — no ads, no subscription, no credit card. Forever.",
+      a: "Yes: no ads, no subscription, no credit card. Forever.",
     },
     {
       q: "Do I need to create an account?",
@@ -82,7 +82,7 @@ export const en: Dict = {
     },
     {
       q: "Is my data stored?",
-      a: "No. No personal data is stored server-side. Rooms expire after 4 hours of inactivity. pokrr is GDPR-friendly.",
+      a: "No. No personal data is stored server-side. Rooms expire after 4 hours of inactivity. pokrr is GDPR-compliant.",
     },
   ],
 
@@ -90,14 +90,14 @@ export const en: Dict = {
   roomLabel: "Room",
   connecting: "Connecting…",
   voted: "voted",
-  resultsLabel: "Results —",
+  resultsLabel: "Results:",
   adminOffline:
-    "No admin online. The role will be transferred automatically to the longest-present voter after 15 min.",
+    "No admin online. The role will automatically transfer to the earliest voter after 15 min.",
   joinVote: "Join the vote",
   goSpectator: "Switch to spectator",
   share: "Share",
   shortcutsLabel: "Keyboard shortcuts",
-  kicked: "You have been removed",
+  kicked: "You were removed from this room.",
 
   revealNow: "Reveal now",
   revoteStory: "Re-vote this story",
@@ -186,6 +186,6 @@ export const en: Dict = {
   blogSubtitle: "Planning poker guides for agile teams.",
   blogEmpty: "Coming soon.",
   blogBackLink: "All articles",
-  blogCta: "Try pokrr with your team — free, no account needed.",
+  blogCta: "Try pokrr with your team: free, no account needed.",
   blogCtaButton: "Create a room →",
 };

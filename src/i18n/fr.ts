@@ -62,11 +62,11 @@ export const fr: Dict = {
   faq: [
     {
       q: "Qu'est-ce que le planning poker ?",
-      a: "Le planning poker est une technique d'estimation agile utilisée par les équipes Scrum. Chaque membre vote simultanément sur la complexité d'une user story à l'aide de cartes (souvent la suite de Fibonacci). Le vote simultané évite le biais d'ancrage.",
+      a: "Le planning poker est une technique d'estimation agile utilisée par les équipes Scrum. Chaque membre vote simultanément sur la complexité d'une user story avec des cartes (souvent la suite de Fibonacci). Le vote simultané évite le biais d'ancrage.",
     },
     {
       q: "pokrr est-il vraiment gratuit ?",
-      a: "Oui — sans pub, sans abonnement, sans carte bancaire. Pour toujours.",
+      a: "Oui : sans pub, sans abonnement, sans carte bancaire. Pour toujours.",
     },
     {
       q: "Faut-il créer un compte ?",
@@ -82,7 +82,7 @@ export const fr: Dict = {
     },
     {
       q: "Les données sont-elles stockées ?",
-      a: "Non. Aucune donnée personnelle côté serveur. Les salles expirent après 4h d'inactivité. pokrr est RGPD-friendly.",
+      a: "Non. Aucune donnée personnelle côté serveur. Les salles expirent après 4h d'inactivité. pokrr est conforme au RGPD.",
     },
   ],
 
@@ -90,14 +90,14 @@ export const fr: Dict = {
   roomLabel: "Salle",
   connecting: "Connexion en cours…",
   voted: "ont voté",
-  resultsLabel: "Résultats —",
+  resultsLabel: "Résultats :",
   adminOffline:
-    "Aucun admin en ligne. Le rôle sera transféré automatiquement au plus ancien voter après 15 min.",
+    "Aucun admin en ligne. Le rôle passe automatiquement au plus ancien votant après 15 min.",
   joinVote: "Rejoindre le vote",
   goSpectator: "Passer en spectateur",
   share: "Partager",
   shortcutsLabel: "Raccourcis clavier",
-  kicked: "Vous avez été retiré",
+  kicked: "Vous avez été retiré de la salle.",
 
   revealNow: "Révéler maintenant",
   revoteStory: "Re-voter cette story",
@@ -111,7 +111,7 @@ export const fr: Dict = {
   joinModalAriaLabel: "Choisir un pseudo",
   joinModalRoomPrefix: "Salle",
   joinModalTitle: "Ton pseudo",
-  joinModalSubtitle: "Affiché aux autres voters. Aucune autre information n'est demandée.",
+  joinModalSubtitle: "Affiché aux autres participants. Rien d'autre n'est demandé.",
   pseudoSrLabel: "Pseudo",
   pseudoPlaceholder: "Ex. John",
   voter: "Voter",
@@ -186,6 +186,6 @@ export const fr: Dict = {
   blogSubtitle: "Guides sur le planning poker pour les équipes agiles.",
   blogEmpty: "Bientôt.",
   blogBackLink: "Tous les articles",
-  blogCta: "Essaie pokrr avec ton équipe — gratuit, sans inscription.",
+  blogCta: "Essaie pokrr avec ton équipe : gratuit, sans inscription.",
   blogCtaButton: "Créer une salle →",
 };

@@ -1,13 +1,13 @@
 // Illustration statique de la room en état post-révélation — section de preuve produit sur la landing.
 // Utilise la classe `dark` forcée pour afficher les tokens dark indépendamment du thème système.
 
-const PLAYERS = [
+const PLAYERS: { name: string; vote: string; isAdmin?: boolean }[] = [
   { name: "Alice", vote: "5", isAdmin: true },
   { name: "Bob", vote: "8" },
   { name: "Claire", vote: "8" },
   { name: "David", vote: "3" },
   { name: "Emma", vote: "8" },
-] as const;
+];
 
 const DECK = ["0", "1", "2", "3", "5", "8", "13", "21", "34", "55", "89", "∞", "?", "☕"] as const;
 const SELECTED = "8";
