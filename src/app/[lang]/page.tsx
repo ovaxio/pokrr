@@ -4,6 +4,7 @@ import JoinRoomForm from "../_JoinRoomForm";
 import NewRoomButton from "../_NewRoomButton";
 import ThemeToggle from "../_ThemeToggle";
 import LocaleToggle from "../_LocaleToggle";
+import RoomPreview from "./_RoomPreview";
 import { locales, getDict } from "@/i18n/shared";
 import type { Locale } from "@/i18n/types";
 
@@ -110,6 +111,8 @@ export default async function LangHome({ params }: { params: Promise<Record<stri
           <footer className="text-xs text-muted">{d.pageFooter}</footer>
         </main>
       </div>
+
+      <RoomPreview locale={locale} />
 
       <section id="comment" aria-label={d.howToTitle} className="border-t border-token bg-surface px-6 py-20">
         <div className="mx-auto max-w-md space-y-10">
