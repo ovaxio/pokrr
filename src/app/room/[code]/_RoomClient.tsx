@@ -34,6 +34,16 @@ export default function RoomClient({ roomId }: { roomId: string }) {
     setNameHydrated(true);
   }, []);
 
+  useEffect(() => {
+    console.log(
+      "%cpokrr",
+      "color: #6366f1; font-size: 28px; font-weight: 700; letter-spacing: -0.04em; font-family: system-ui, sans-serif;"
+    );
+    console.log(
+      "Aucun tracker. Aucune pub. Aucun compte.\nCode source : github.com/ovaxio/pokrr"
+    );
+  }, []);
+
   const room = usePokrrRoom(roomId, name, asViewer);
   const isAdmin = room.me?.isAdmin ?? false;
   const amIViewer = room.me?.isViewer ?? false;

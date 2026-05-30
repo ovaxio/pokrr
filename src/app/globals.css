@@ -121,6 +121,12 @@ body {
   to   { opacity: 1; transform: none; }
 }
 
+@keyframes pokrr-suggestion-pulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
 .anim-fade-up {
   animation-name: pokrr-fade-up;
   animation-duration: var(--dur);
@@ -145,10 +151,19 @@ body {
   animation-fill-mode: both;
 }
 
+.anim-suggestion-pulse {
+  animation-name: pokrr-suggestion-pulse;
+  animation-duration: 700ms;
+  animation-timing-function: var(--ease-out-quart);
+  animation-delay: 750ms;
+  animation-fill-mode: both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .anim-fade-up,
   .anim-grow-x,
-  .anim-modal-in {
+  .anim-modal-in,
+  .anim-suggestion-pulse {
     animation: none;
   }
 }

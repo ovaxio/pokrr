@@ -85,7 +85,7 @@ export default function JoinModal({
           <button
             type="submit"
             disabled={!trimmed}
-            className="w-full rounded-lg bg-indigo-600 px-5 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-40"
+            className="w-full rounded-lg bg-indigo-600 px-5 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-40 disabled:translate-y-0.5"
           >
             {d.enterRoom}
           </button>

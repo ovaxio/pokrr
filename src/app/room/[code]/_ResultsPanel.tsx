@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { CSSProperties } from "react";
 import { ArrowLeftRight, Check } from "lucide-react";
 import type { PlayerView } from "../../../../party/types";
@@ -47,12 +47,27 @@ export default function ResultsPanel({
       <div className="flex items-start justify-between gap-3">
         {stats.numericDeck ? (
           <div className="grid flex-1 grid-cols-3 gap-3">
-            <Stat label={d.statMean} value={fmt(stats.mean)} subdued={stats.numericCount === 0} />
-            <Stat label={d.statMedian} value={fmt(stats.median)} subdued={stats.numericCount === 0} />
+            <Stat
+              label={d.statMean}
+              value={fmt(stats.mean)}
+              countFrom={stats.numericCount > 0 ? stats.mean : null}
+              subdued={stats.numericCount === 0}
+              animDelay={0}
+            />
+            <Stat
+              label={d.statMedian}
+              value={fmt(stats.median)}
+              countFrom={stats.numericCount > 0 ? stats.median : null}
+              subdued={stats.numericCount === 0}
+              animDelay={100}
+            />
             <Stat
               label={d.statSuggestion}
               value={stats.consensusSuggestion ?? "—"}
+              countFrom={stats.consensusSuggestion ? Number(stats.consensusSuggestion) || null : null}
               accent={stats.consensusSuggestion !== null}
+              pulse={stats.consensusSuggestion !== null}
+              animDelay={200}
             />
           </div>
         ) : (
@@ -141,34 +156,69 @@ function escapeMd(s: string): string {
   return s.replace(/\|/g, "\\|").replace(/\n/g, " ");
 }
 
+// Counts a number from 0 to target over `duration` ms with ease-out-expo.
+// Respects prefers-reduced-motion: jumps to final value immediately if set.
+function useCountUp(target: number | null, duration = 700, delay = 0): number {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (target === null) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) { setValue(target); return; }
+    let rafId: number;
+    const timer = setTimeout(() => {
+      let start: number | null = null;
+      const tick = (ts: number) => {
+        if (!start) start = ts;
+        const t = Math.min((ts - start) / duration, 1);
+        const eased = t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+        setValue(target * eased);
+        if (t < 1) rafId = requestAnimationFrame(tick);
+        else setValue(target);
+      };
+      rafId = requestAnimationFrame(tick);
+    }, delay);
+    return () => { clearTimeout(timer); cancelAnimationFrame(rafId); };
+  }, [target, duration, delay]);
+  return value;
+}
+
 function Stat({
   label,
   value,
+  countFrom,
   subdued,
   accent,
+  pulse = false,
+  animDelay = 0,
 }: {
   label: string;
   value: string;
+  countFrom?: number | null;
   subdued?: boolean;
   accent?: boolean;
+  pulse?: boolean;
+  animDelay?: number;
 }) {
+  const animated = useCountUp(countFrom ?? null, 700, animDelay);
+  const display = (countFrom !== undefined && countFrom !== null) ? fmt(animated) : value;
+
   return (
     <div
       className={
         "rounded-md border px-3 py-2 text-center " +
         (accent
-          ? "border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-950/40"
+          ? "border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-950/40" + (pulse ? " anim-suggestion-pulse" : "")
           : "border-token bg-bg")
       }
     >
       <div className="text-xs uppercase tracking-wider text-muted">{label}</div>
       <div
         className={
-          "mt-0.5 text-2xl font-bold " +
+          "mt-0.5 text-2xl font-bold tabular-nums " +
           (subdued ? "text-faint" : accent ? "text-indigo-700 dark:text-indigo-200" : "text-fg")
         }
       >
-        {value}
+        {display}
       </div>
     </div>
   );
