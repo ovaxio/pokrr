@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { CSSProperties } from "react";
 import { ArrowLeftRight, Check } from "lucide-react";
 import type { PlayerView } from "../../../../party/types";
 import { computeStats, isWideSpread } from "@/lib/stats";
@@ -42,7 +43,7 @@ export default function ResultsPanel({
     stats.lowest && stats.highest && isWideSpread(stats.lowest.value, stats.highest.value, deckId);
 
   return (
-    <section className="space-y-4 rounded-lg border border-token bg-surface/40 p-4">
+    <section className="anim-fade-up space-y-4 rounded-lg border border-token bg-surface/40 p-4" style={{ '--dur': '350ms' } as CSSProperties}>
       <div className="flex items-start justify-between gap-3">
         {stats.numericDeck ? (
           <div className="grid flex-1 grid-cols-3 gap-3">
@@ -85,13 +86,13 @@ export default function ResultsPanel({
           {d.distribution}
         </h3>
         <div className="space-y-1.5">
-          {stats.distribution.map(({ card, count }) => (
+          {stats.distribution.map(({ card, count }, i) => (
             <div key={card} className="flex items-center gap-3">
               <span className="w-10 text-center font-mono text-sm text-fg">{card}</span>
               <div className="flex-1">
                 <div
-                  className="h-5 rounded bg-indigo-600/80 transition-all"
-                  style={{ width: `${(count / maxCount) * 100}%` }}
+                  className="anim-grow-x h-5 rounded bg-indigo-600/80"
+                  style={{ width: `${(count / maxCount) * 100}%`, '--delay': `${i * 80}ms`, '--dur': '500ms' } as CSSProperties}
                 />
               </div>
               <span className="w-8 text-right text-xs text-muted">

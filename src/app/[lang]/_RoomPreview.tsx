@@ -1,5 +1,6 @@
 // Illustration statique de la room en état post-révélation — section de preuve produit sur la landing.
 // Utilise la classe `dark` forcée pour afficher les tokens dark indépendamment du thème système.
+import type { CSSProperties } from "react";
 
 const PLAYERS: { name: string; vote: string; isAdmin?: boolean }[] = [
   { name: "Alice", vote: "5", isAdmin: true },
@@ -31,7 +32,8 @@ export default function RoomPreview({ locale }: { locale: string }) {
       <div className="mx-auto max-w-3xl space-y-4">
         {/* Illustration — aria-hidden car contenu décoratif */}
         <div
-          className="dark [zoom:0.85] overflow-hidden rounded-xl ring-1 ring-white/8 sm:[zoom:0.72]"
+          className="anim-fade-up dark [zoom:0.85] overflow-hidden rounded-xl ring-1 ring-white/8 sm:[zoom:0.72]"
+          style={{ '--delay': '80ms', '--dur': '520ms' } as CSSProperties}
           aria-hidden="true"
         >
           {/* Browser chrome bar */}
@@ -136,13 +138,16 @@ export default function RoomPreview({ locale }: { locale: string }) {
                   {isFr ? "Distribution" : "Distribution"}
                 </p>
                 <div className="space-y-1.5">
-                  {DISTRIBUTION.map(({ card, count }) => (
+                  {DISTRIBUTION.map(({ card, count }, idx) => (
                     <div key={card} className="flex items-center gap-3">
                       <span className="w-10 text-center font-mono text-sm text-fg">{card}</span>
                       <div className="flex-1">
                         <div
-                          className="h-5 rounded bg-indigo-600/80"
-                          style={{ width: `${(count / MAX_COUNT) * 100}%` }}
+                          className="anim-grow-x h-5 rounded bg-indigo-600/80"
+                          style={{
+                            width: `${(count / MAX_COUNT) * 100}%`,
+                            '--delay': `${200 + idx * 110}ms`,
+                          } as CSSProperties}
                         />
                       </div>
                       <span className="w-14 text-right text-xs text-muted">

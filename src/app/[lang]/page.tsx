@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 import JoinRoomForm from "../_JoinRoomForm";
 import NewRoomButton from "../_NewRoomButton";
@@ -93,10 +94,10 @@ export default async function LangHome({ params }: { params: Promise<Record<stri
             <ThemeToggle />
           </div>
           <header className="space-y-3">
-            <h1 className="text-4xl font-bold tracking-tight text-balance sm:text-5xl">pokrr</h1>
-            <p className="text-fg-soft text-pretty">{d.tagline}</p>
+            <h1 className="anim-fade-up text-4xl font-bold tracking-tight text-balance sm:text-5xl" style={{ '--delay': '0ms' } as CSSProperties}>pokrr</h1>
+            <p className="anim-fade-up text-fg-soft text-pretty" style={{ '--delay': '80ms' } as CSSProperties}>{d.tagline}</p>
           </header>
-          <section className="space-y-6">
+          <section className="anim-fade-up space-y-6" style={{ '--delay': '160ms' } as CSSProperties}>
             <NewRoomButton />
             <div className="flex items-center gap-3 text-xs uppercase tracking-wider text-muted">
               <span className="h-px flex-1 bg-token" />
@@ -108,7 +109,7 @@ export default async function LangHome({ params }: { params: Promise<Record<stri
               Sans inscription · Aucune donnée stockée · RGPD-friendly
             </p>
           </section>
-          <footer className="text-xs text-muted">{d.pageFooter}</footer>
+          <footer className="anim-fade-up text-xs text-muted" style={{ '--delay': '240ms' } as CSSProperties}>{d.pageFooter}</footer>
         </main>
       </div>
 
@@ -116,10 +117,10 @@ export default async function LangHome({ params }: { params: Promise<Record<stri
 
       <section id="comment" aria-label={d.howToTitle} className="border-t border-token bg-surface px-6 py-20">
         <div className="mx-auto max-w-md space-y-10">
-          <h2 className="text-2xl font-bold tracking-tight text-balance">{d.howToTitle}</h2>
+          <h2 className="anim-fade-up text-2xl font-bold tracking-tight text-balance" style={{ '--delay': '0ms' } as CSSProperties}>{d.howToTitle}</h2>
           <ol className="space-y-10">
             {d.howToSteps.map((step, i) => (
-              <li key={step.title} className="flex gap-5">
+              <li key={step.title} className="anim-fade-up flex gap-5" style={{ '--delay': `${i * 90}ms` } as CSSProperties}>
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-bold text-accent">
                   {i + 1}
                 </span>

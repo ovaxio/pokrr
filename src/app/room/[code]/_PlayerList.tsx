@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { CSSProperties } from "react";
 import { Check, Eye, Minus, Star, X } from "lucide-react";
 import type { Phase, PlayerView } from "../../../../party/types";
 import { useDict } from "@/i18n/DictContext";
@@ -89,7 +90,7 @@ function PlayerCard({
   };
 
   return (
-    <div className="flex w-20 flex-col items-center gap-1.5">
+    <div className="anim-fade-up flex w-20 flex-col items-center gap-1.5" style={{ '--dur': '320ms' } as CSSProperties}>
       <div className="relative h-24 w-16">
         {player.isViewer ? (
           <div className="h-24 w-16 flex items-center justify-center rounded-xl border-2 border-dashed border-token-strong bg-surface/20">

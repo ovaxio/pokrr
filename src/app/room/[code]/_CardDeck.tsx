@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { DECKS, DEFAULT_DECK_ID, type Card, type Phase } from "../../../../party/types";
 import { useDict } from "@/i18n/DictContext";
 
@@ -39,7 +40,7 @@ export default function CardDeck({
         aria-label={`Deck ${deck.label}`}
         className="grid grid-cols-4 gap-2 sm:grid-cols-7"
       >
-        {deck.cards.map((card) => {
+        {deck.cards.map((card, i) => {
           const isSelected = selected === card;
           return (
             <button
@@ -50,11 +51,12 @@ export default function CardDeck({
               aria-label={`Vote ${card}`}
               disabled={disabled}
               onClick={() => onSelectAction(card)}
+              style={{ '--delay': `${i * 18}ms`, '--dur': '260ms' } as CSSProperties}
               className={
-                "flex h-16 items-center justify-center rounded-lg border text-xl font-semibold transition active:scale-95 " +
+                "anim-fade-up flex h-16 items-center justify-center rounded-lg border text-xl font-semibold transition active:scale-95 " +
                 (isSelected
                   ? "border-indigo-400 bg-indigo-600 text-white shadow-md shadow-indigo-900/40"
-                  : "border-token-strong bg-surface text-fg hover:border-token-strong hover:bg-surface-2") +
+                  : "border-token-strong bg-surface text-fg hover:bg-surface-2 " + (!disabled ? "[@media(hover:hover)]:hover:scale-[1.04] motion-reduce:hover:scale-100" : "")) +
                 (disabled ? " cursor-not-allowed opacity-40" : "")
               }
             >

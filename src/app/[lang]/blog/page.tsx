@@ -41,13 +41,6 @@ export default async function BlogIndexPage({
           {langPosts.map((post) => (
             <li key={post.slug}>
               <article className="space-y-2">
-                <time className="text-xs text-muted">
-                  {new Date(post.date).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </time>
                 <h2 className="text-xl font-semibold leading-snug">
                   <Link
                     href={`/${lang}/blog/${post.slug}`}

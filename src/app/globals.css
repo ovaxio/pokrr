@@ -91,3 +91,60 @@ body {
     transition: none;
   }
 }
+
+/* ── Motion ──────────────────────────────────────── */
+
+:root {
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Overridden per-element via inline style */
+  --dur: 440ms;
+  --delay: 0ms;
+}
+
+@keyframes pokrr-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes pokrr-grow-x {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+@keyframes pokrr-modal-in {
+  from { opacity: 0; transform: scale(0.97) translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.anim-fade-up {
+  animation-name: pokrr-fade-up;
+  animation-duration: var(--dur);
+  animation-timing-function: var(--ease-out-quart);
+  animation-delay: var(--delay);
+  animation-fill-mode: both;
+}
+
+.anim-grow-x {
+  transform-origin: left center;
+  animation-name: pokrr-grow-x;
+  animation-duration: var(--dur);
+  animation-timing-function: var(--ease-out-expo);
+  animation-delay: var(--delay);
+  animation-fill-mode: both;
+}
+
+.anim-modal-in {
+  animation-name: pokrr-modal-in;
+  animation-duration: 280ms;
+  animation-timing-function: var(--ease-out-quart);
+  animation-fill-mode: both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-fade-up,
+  .anim-grow-x,
+  .anim-modal-in {
+    animation: none;
+  }
+}

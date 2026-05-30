@@ -42,18 +42,6 @@ export default async function BlogPostPage({
 
   return (
     <article className="space-y-8">
-      <header className="space-y-3">
-        <time className="text-xs text-muted">
-          {new Date(post.date).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
-        </time>
-        <h1 className="text-3xl font-bold leading-tight tracking-tight">{post.title}</h1>
-        <p className="text-muted">{post.description}</p>
-        <hr className="border-token" />
-      </header>
 
       <div className="prose prose-neutral dark:prose-invert prose-headings:font-bold prose-headings:tracking-tight prose-a:text-accent prose-a:no-underline hover:prose-a:underline max-w-none">
         <Post />

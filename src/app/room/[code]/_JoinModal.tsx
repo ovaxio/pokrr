@@ -30,7 +30,7 @@ export default function JoinModal({
       aria-label={d.joinModalAriaLabel}
       className="fixed inset-0 z-40 flex items-center justify-center bg-bg/95 backdrop-blur px-4"
     >
-      <div className="w-full max-w-md space-y-6 rounded-xl border border-token bg-elevated p-6 shadow-2xl">
+      <div className="anim-modal-in w-full max-w-md space-y-6 rounded-xl border border-token bg-elevated p-6 shadow-2xl">
         <header className="space-y-2">
           <p className="text-xs uppercase tracking-wider text-muted">
             {d.joinModalRoomPrefix} <span className="font-mono text-fg">{roomId}</span>
