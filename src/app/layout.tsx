@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { headers } from "next/headers";
+  import { Geist } from "next/font/google";
 import "./globals.css";
 import ThemeScript from "./_ThemeScript";
 import { Analytics } from "@vercel/analytics/next";
 import { locales, defaultLocale } from "@/i18n/shared";
+
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist",
+  display: "swap",
+});
 
 const SITE_NAME = "pokrr";
 const SITE_URL = "https://pokrr.app";
@@ -58,7 +65,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const lang = xLocale && (locales as string[]).includes(xLocale) ? xLocale : defaultLocale;
 
   return (
-    <html lang={lang} className="h-full antialiased" suppressHydrationWarning>
+    <html lang={lang} className={`h-full antialiased ${geist.variable}`} suppressHydrationWarning>
       <head>
         <ThemeScript />
         <script

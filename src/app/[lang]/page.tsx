@@ -92,8 +92,8 @@ export default async function LangHome({ params }: { params: Promise<Record<stri
             <ThemeToggle />
           </div>
           <header className="space-y-3">
-            <h1 className="text-5xl font-bold tracking-tight">pokrr</h1>
-            <p className="text-muted">{d.tagline}</p>
+            <h1 className="text-4xl font-bold tracking-tight text-balance sm:text-5xl">pokrr</h1>
+            <p className="text-fg-soft text-pretty">{d.tagline}</p>
           </header>
           <section className="space-y-6">
             <NewRoomButton />
@@ -103,6 +103,9 @@ export default async function LangHome({ params }: { params: Promise<Record<stri
               <span className="h-px flex-1 bg-token" />
             </div>
             <JoinRoomForm />
+            <p className="text-xs text-faint text-center">
+              Sans inscription · Aucune donnée stockée · RGPD-friendly
+            </p>
           </section>
           <footer className="text-xs text-muted">{d.pageFooter}</footer>
         </main>
@@ -110,16 +113,16 @@ export default async function LangHome({ params }: { params: Promise<Record<stri
 
       <section id="comment" aria-label={d.howToTitle} className="border-t border-token bg-surface px-6 py-20">
         <div className="mx-auto max-w-md space-y-10">
-          <h2 className="text-2xl font-bold tracking-tight">{d.howToTitle}</h2>
-          <ol className="space-y-8">
+          <h2 className="text-2xl font-bold tracking-tight text-balance">{d.howToTitle}</h2>
+          <ol className="space-y-10">
             {d.howToSteps.map((step, i) => (
-              <li key={step.title} className="flex gap-4">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-bold text-accent">
+              <li key={step.title} className="flex gap-5">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-bold text-accent">
                   {i + 1}
                 </span>
-                <div className="space-y-1">
+                <div className="space-y-1 pt-0.5">
                   <h3 className="font-semibold">{step.title}</h3>
-                  <p className="text-sm text-muted">{step.desc}</p>
+                  <p className="text-sm text-muted text-pretty">{step.desc}</p>
                 </div>
               </li>
             ))}
@@ -127,28 +130,34 @@ export default async function LangHome({ params }: { params: Promise<Record<stri
         </div>
       </section>
 
-      <section id="features" aria-label={d.featuresTitle} className="border-t border-token bg-bg px-6 py-20">
+      <section id="features" aria-label={d.featuresTitle} className="border-t border-token bg-bg px-6 py-16">
         <div className="mx-auto max-w-md space-y-10">
-          <h2 className="text-2xl font-bold tracking-tight">{d.featuresTitle}</h2>
-          <ul className="space-y-6">
-            {d.features.map((f) => (
-              <li key={f.title} className="space-y-1">
+          <h2 className="text-2xl font-bold tracking-tight text-balance">{d.featuresTitle}</h2>
+          <ul className="grid grid-cols-1 sm:grid-cols-2">
+            {d.features.map((f, i) => (
+              <li
+                key={f.title}
+                className={[
+                  "space-y-1 border-t border-token py-5",
+                  i % 2 === 0 ? "sm:pr-5" : "sm:border-l sm:pl-5",
+                ].join(" ")}
+              >
                 <h3 className="font-semibold">{f.title}</h3>
-                <p className="text-sm text-muted">{f.desc}</p>
+                <p className="text-sm text-muted text-pretty">{f.desc}</p>
               </li>
             ))}
           </ul>
         </div>
       </section>
 
-      <section id="faq" aria-label={d.faqTitle} className="border-t border-token bg-surface px-6 py-20">
+      <section id="faq" aria-label={d.faqTitle} className="border-t border-token bg-surface px-6 py-24">
         <div className="mx-auto max-w-md space-y-10">
-          <h2 className="text-2xl font-bold tracking-tight">{d.faqTitle}</h2>
-          <dl className="space-y-8">
+          <h2 className="text-2xl font-bold tracking-tight text-balance">{d.faqTitle}</h2>
+          <dl className="divide-y divide-token">
             {d.faq.map((item) => (
-              <div key={item.q} className="space-y-2">
+              <div key={item.q} className="space-y-2 py-6 first:pt-0 last:pb-0">
                 <dt className="font-semibold">{item.q}</dt>
-                <dd className="text-sm text-muted">{item.a}</dd>
+                <dd className="text-sm text-muted text-pretty">{item.a}</dd>
               </div>
             ))}
           </dl>

@@ -16,6 +16,11 @@
   --color-faint: var(--faint);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
+  --font-display: var(--font-geist, ui-sans-serif, system-ui, sans-serif);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
 }
 
 /* Light theme (défaut) */

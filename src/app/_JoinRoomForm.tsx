@@ -18,7 +18,7 @@ export default function JoinRoomForm() {
       }}
       className="space-y-2"
     >
-      <label htmlFor="room-code" className="block text-sm text-muted">
+      <label htmlFor="room-code" className="block text-sm text-fg-soft">
         {d.joinRoomLabel}
       </label>
       <div className="flex gap-2">
@@ -33,7 +33,7 @@ export default function JoinRoomForm() {
         <button
           type="submit"
           disabled={!trimmed}
-          className="rounded-lg border border-token-strong bg-surface-2 px-4 py-2 text-base font-medium text-fg transition hover:bg-surface disabled:cursor-not-allowed disabled:opacity-40"
+          className="rounded-lg border border-token-strong bg-surface-2 px-4 py-2 text-base font-medium text-fg transition hover:bg-surface disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
         >
           {d.joinRoomSubmit}
         </button>
