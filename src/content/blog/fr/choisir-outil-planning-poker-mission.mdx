@@ -1,0 +1,87 @@
+export const meta = {
+  slug: "choisir-outil-planning-poker-mission",
+  title: "Comment choisir son outil de planning poker en mission client",
+  description: "Il existe 20 outils de planning poker. La plupart se ressemblent sur les features. Ils ne se ressemblent pas sur ce qui fait échouer une session.",
+  date: "2026-05-30",
+};
+
+# Comment choisir son outil de planning poker en mission client
+
+Lundi matin. Premier sprint planning avec une nouvelle équipe cliente. Tu envoies le lien vers l'outil que tu utilises depuis deux ans en interne.
+
+Vingt minutes plus tard, trois personnes n'ont pas de compte, une a un problème de mail de confirmation, et le product owner attend que "l'IT valide le service".
+
+Tu n'as pas encore posé une seule user story.
+
+J'ai vécu ça en mission dans l'industrie pharmaceutique. Ce jour-là, j'ai compris que je choisissais mes outils de planning poker sur les mauvaises variables.
+
+## Le premier critère n'est pas une feature
+
+Il existe une vingtaine d'outils de planning poker en ligne. Fibonacci, T-Shirt sizing, minuteur, export, intégration Jira, rôles admin. Sur ces points, ils se ressemblent tous.
+
+Là où ils divergent : est-ce que l'équipe peut rejoindre une session sans créer un compte ?
+
+C'est le critère zéro. Celui à vérifier avant toute comparaison de features.
+
+En équipe interne, on règle le problème une fois. En mission client, chaque nouveau participant, chaque stakeholder invité, chaque séance de découverte avec une équipe qu'on ne connaît pas encore : tout recommence. Et tu n'as aucun contrôle sur les machines, les règles informatiques, ou la patience des gens en face.
+
+Un code de salle dans le Slack, un clic, un pseudo. Si l'outil demande plus que ça, il demande trop.
+
+## Le deuxième critère : le mobile sans installation
+
+Salle de réunion hybride. Trois personnes en présentiel, cinq à distance. Les participants distants ont souvent leur téléphone à portée, pas toujours un PC disponible pendant la réunion.
+
+Un outil qui nécessite une application mobile installée perd la moitié de ta salle avant d'avoir commencé.
+
+Le bon test : peut-on rejoindre la session depuis Safari sur iPhone en moins de trente secondes ? Si oui, on passe au critère suivant.
+
+## Les features qui changent une session
+
+Une fois les deux premiers critères remplis, les fonctionnalités ont leur importance. Mais dans un ordre précis.
+
+**Le vote simultané.** C'est la règle fondamentale du planning poker : personne ne voit les cartes des autres avant la révélation. Les outils qui affichent les votes en temps réel brisent l'exercice. Le biais d'ancrage s'installe, les estimations convergent artificiellement, et la discussion qui suit ne sert plus à grand-chose.
+
+**Le minuteur par story.** Pas indispensable, mais utile pour tenir le rythme sur des backlogs longs. Dix minutes par story maximum, sinon la session déraille sur la première.
+
+**Les decks de cartes.** Fibonacci (1, 2, 3, 5, 8, 13, 21…) pour la majorité des équipes Scrum. T-Shirt sizing (XS, S, M, L, XL) pour les équipes qui estiment en taille plutôt qu'en complexité, souvent sur des projets avec des livrables hétérogènes. Vérifier que l'outil couvre l'échelle que l'équipe utilise déjà.
+
+**Le multi-admin.** En mission, tu n'es pas toujours disponible pour chaque session. Pouvoir transférer le rôle d'animateur à un autre membre de l'équipe, sans reconfigurer l'outil, c'est ce qui rend l'outil autonome après ton départ.
+
+## Les features qui ne servent pas en mission
+
+**L'intégration Jira.** En interne, c'est confortable. En mission cliente, tu n'as souvent pas accès à leur instance, ou les droits sont trop limités pour que l'intégration serve à quelque chose.
+
+**L'historique multi-sessions.** Utile pour une équipe qui utilise le même outil depuis six mois. En début de mission, personne ne consulte l'historique.
+
+**Le compte équipe et les espaces de travail.** Si ça nécessite une invitation et une gestion d'équipe, le problème du critère zéro revient par la porte de service.
+
+## La checklist dans l'ordre
+
+Avant de choisir un outil de planning poker pour une mission client :
+
+1. **Rejoindre sans compte** : lien + pseudo, pas d'inscription
+2. **Mobile sans application** : fonctionne dans le navigateur du téléphone
+3. **Vote simultané** : cartes cachées jusqu'à la révélation
+4. **Decks disponibles** : Fibonacci et T-Shirt au minimum
+5. **Multi-admin** : transfert de rôle sans friction
+6. **Timer optionnel** : pratique, pas bloquant
+
+Si les cinq premiers sont cochés, l'outil peut servir en mission. Le reste est confort.
+
+[pokrr](https://pokrr.app) coche ces cinq critères. Gratuit, sans compte, fonctionne sur mobile, vote simultané, Fibonacci + T-Shirt + decks custom, multi-admin avec transfert.
+
+---
+
+## Questions fréquentes
+
+### Quelle est la différence entre le planning poker Fibonacci et le T-Shirt sizing ?
+
+Fibonacci (1, 2, 3, 5, 8, 13, 21…) s'utilise pour estimer la complexité en story points. Les écarts entre les valeurs augmentent avec la taille, ce qui reflète l'incertitude croissante sur les grosses stories. Le T-Shirt sizing (XS, S, M, L, XL) est plus accessible pour les équipes qui débutent, ou pour des livrables difficiles à chiffrer en points. Les deux fonctionnent : le choix dépend de l'équipe et de sa maturité agile.
+
+### Combien de participants peut-on avoir dans une session de planning poker en ligne ?
+
+Il n'y a pas de limite fixe sur la plupart des outils gratuits. En pratique, une session fonctionne bien entre 4 et 12 participants. Au-delà, les discussions après révélation des cartes deviennent difficiles à faciliter, surtout à distance.
+
+### Est-ce qu'on peut faire du planning poker sans scrum master ?
+
+Oui. Le rôle d'animateur peut tourner dans l'équipe. Ce qui change : il faut quelqu'un pour gérer les discussions quand les écarts sont importants, et quelqu'un pour décider quand passer à la story suivante. Ce sont des compétences de facilitation, pas forcément liées au rôle de scrum master.
