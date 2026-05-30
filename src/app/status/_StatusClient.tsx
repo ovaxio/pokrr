@@ -118,7 +118,7 @@ function Card({
       </div>
       <span
         className={
-          "rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider " + badgeColor
+          "rounded px-2 py-0.5 text-xs font-semibold uppercase tracking-wider " + badgeColor
         }
       >
         {checking ? "Check…" : up ? "Up" : "Down"}

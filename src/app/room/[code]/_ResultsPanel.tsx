@@ -160,7 +160,7 @@ function Stat({
           : "border-token bg-bg")
       }
     >
-      <div className="text-[10px] uppercase tracking-wider text-muted">{label}</div>
+      <div className="text-xs uppercase tracking-wider text-muted">{label}</div>
       <div
         className={
           "mt-0.5 text-2xl font-bold " +

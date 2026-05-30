@@ -118,7 +118,7 @@ export default function AdminBar({
               key={p.sec}
               type="button"
               onClick={() => onStartTimerAction(p.sec)}
-              className="rounded border border-token bg-surface px-2 py-1 text-xs text-fg hover:bg-surface-2"
+              className="rounded border border-token bg-surface px-2 py-1.5 text-xs text-fg hover:bg-surface-2"
             >
               {p.label}
             </button>
@@ -127,7 +127,7 @@ export default function AdminBar({
             <button
               type="button"
               onClick={onStopTimerAction}
-              className="rounded border border-red-300 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 px-2 py-1 text-xs text-red-900 dark:text-red-200 hover:bg-red-100 dark:hover:bg-red-950/60"
+              className="rounded border border-red-300 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 px-2 py-1.5 text-xs text-red-900 dark:text-red-200 hover:bg-red-100 dark:hover:bg-red-950/60"
             >
               {d.stop}
             </button>

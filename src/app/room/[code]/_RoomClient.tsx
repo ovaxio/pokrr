@@ -69,7 +69,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
               <button
                 type="button"
                 onClick={() => room.send({ type: "set_viewer", isViewer: false })}
-                className="rounded border border-indigo-500/40 bg-indigo-500/10 px-2 py-1 text-indigo-600 dark:text-indigo-400 transition hover:bg-indigo-500/20"
+                className="rounded border border-indigo-500/40 bg-indigo-500/10 px-2 py-1.5 text-indigo-600 dark:text-indigo-400 transition hover:bg-indigo-500/20"
               >
                 {d.joinVote}
               </button>
@@ -78,7 +78,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
               <button
                 type="button"
                 onClick={() => room.send({ type: "set_viewer", isViewer: true })}
-                className="rounded border border-token bg-surface px-2 py-1 text-fg-soft transition hover:bg-surface-2"
+                className="rounded border border-token bg-surface px-2 py-1.5 text-fg-soft transition hover:bg-surface-2"
               >
                 {d.goSpectator}
               </button>
@@ -90,7 +90,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
             <button
               type="button"
               onClick={() => setShareOpen(true)}
-              className="rounded border border-token bg-surface px-2 py-1 text-fg-soft transition hover:bg-surface-2"
+              className="rounded border border-token bg-surface px-2 py-1.5 text-fg-soft transition hover:bg-surface-2"
             >
               {d.share}
             </button>
@@ -99,7 +99,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
               onClick={() => setHelpOpen(true)}
               aria-label={d.shortcutsLabel}
               title={d.shortcutsLabel}
-              className="rounded border border-token bg-surface px-2 py-1 font-mono text-fg-soft transition hover:bg-surface-2"
+              className="rounded border border-token bg-surface px-3 py-1.5 font-mono text-fg-soft transition hover:bg-surface-2"
             >
               ?
             </button>

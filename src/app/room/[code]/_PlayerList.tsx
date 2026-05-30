@@ -169,11 +169,11 @@ function PlayerCard({
               {player.name}
             </button>
             {isMe && (
-              <span className="text-[10px] text-muted leading-none">{d.youLabel}</span>
+              <span className="text-xs text-muted leading-none">{d.youLabel}</span>
             )}
           </>
         )}
-        <div className="flex items-center gap-1 text-[10px]">
+        <div className="flex items-center gap-1 text-xs">
           {player.isAdmin && (
             <span className="rounded bg-indigo-500/20 px-1 py-0.5 uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
               {d.adminBadge}

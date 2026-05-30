@@ -97,7 +97,7 @@ export default function RoomPreview({ locale }: { locale: string }) {
                       {p.name}
                     </span>
                     {p.isAdmin && (
-                      <span className="rounded bg-indigo-500/20 px-1 py-0.5 text-[10px] uppercase tracking-wider text-indigo-300">
+                      <span className="rounded bg-indigo-500/20 px-1 py-0.5 text-xs uppercase tracking-wider text-indigo-300">
                         admin
                       </span>
                     )}
@@ -111,19 +111,19 @@ export default function RoomPreview({ locale }: { locale: string }) {
               {/* Stats */}
               <div className="grid grid-cols-3 gap-3">
                 <div className="rounded-md border border-token bg-bg px-3 py-2 text-center">
-                  <div className="text-[10px] uppercase tracking-wider text-muted">
+                  <div className="text-xs uppercase tracking-wider text-muted">
                     {isFr ? "Moyenne" : "Mean"}
                   </div>
                   <div className="mt-0.5 text-2xl font-bold text-fg">6.4</div>
                 </div>
                 <div className="rounded-md border border-token bg-bg px-3 py-2 text-center">
-                  <div className="text-[10px] uppercase tracking-wider text-muted">
+                  <div className="text-xs uppercase tracking-wider text-muted">
                     {isFr ? "Médiane" : "Median"}
                   </div>
                   <div className="mt-0.5 text-2xl font-bold text-fg">8</div>
                 </div>
                 <div className="rounded-md border border-indigo-700 bg-indigo-950/40 px-3 py-2 text-center">
-                  <div className="text-[10px] uppercase tracking-wider text-muted">
+                  <div className="text-xs uppercase tracking-wider text-muted">
                     {isFr ? "Suggestion" : "Suggestion"}
                   </div>
                   <div className="mt-0.5 text-2xl font-bold text-indigo-200">8</div>
