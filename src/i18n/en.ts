@@ -1,7 +1,7 @@
 import type { Dict } from "./types";
 
 export const en: Dict = {
-  tagline: "Minimalist planning poker: free, no ads, no account required.",
+  tagline: "Estimate sprint stories with your team: free, no account, no ads.",
   createRoom: "Create a room",
   or: "or",
   joinRoomLabel: "Join a room",
@@ -34,12 +34,12 @@ export const en: Dict = {
 
   features: [
     {
-      title: "No account needed",
-      desc: "No sign-up, no email. Create a room and start your sprint in 10 seconds.",
+      title: "Simultaneous reveal",
+      desc: "All cards flip at the same time: anchoring bias is eliminated.",
     },
     {
-      title: "Simultaneous reveal",
-      desc: "All cards flip at the same time — anchoring bias is eliminated.",
+      title: "No account needed",
+      desc: "No sign-up, no email. Create a room and start your sprint in 10 seconds.",
     },
     {
       title: "5 voting scales",

@@ -1,7 +1,7 @@
 import type { Dict } from "./types";
 
 export const fr: Dict = {
-  tagline: "Planning poker minimaliste : gratuit, sans pub, sans inscription.",
+  tagline: "Estimez vos stories en équipe : gratuit, sans compte, sans pub.",
   createRoom: "Créer une salle",
   or: "ou",
   joinRoomLabel: "Rejoindre une salle",
@@ -34,12 +34,12 @@ export const fr: Dict = {
 
   features: [
     {
-      title: "Sans inscription",
-      desc: "Aucun compte, aucun email. Crée une salle et lance ton sprint en 10 secondes.",
+      title: "Vote simultané",
+      desc: "Les cartes se révèlent toutes en même temps : le biais d'ancrage est éliminé.",
     },
     {
-      title: "Vote simultané",
-      desc: "Les cartes se révèlent toutes en même temps — le biais d'ancrage est éliminé.",
+      title: "Sans inscription",
+      desc: "Aucun compte, aucun email. Crée une salle et lance ton sprint en 10 secondes.",
     },
     {
       title: "5 échelles de vote",
