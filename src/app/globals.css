@@ -25,34 +25,38 @@ h1, h2, h3 {
 
 /* Light theme (défaut) */
 :root {
-  --bg: #ffffff;
-  --surface: #fafafa;
-  --surface-2: #f5f5f5;
-  --elevated: #ffffff;
-  --border: #e5e5e5;
-  --border-strong: #d4d4d4;
-  --fg: #171717;
-  --fg-soft: #404040;
-  --muted: #525252;
-  --faint: #737373;
-  --accent: #4f46e5;
-  --accent-soft: #eef2ff;
+  /* Neutrals: OKLCH avec teinte indigo subliminale (chroma 0.005-0.010) */
+  --bg:           oklch(99.5% 0.005 270);
+  --surface:      oklch(97.8% 0.007 270);
+  --surface-2:    oklch(96.2% 0.009 270);
+  --elevated:     oklch(99.5% 0.005 270);
+  --border:       oklch(91.2% 0.010 270);
+  --border-strong:oklch(85.5% 0.010 270);
+  --fg:           oklch(14.5% 0.008 270);
+  --fg-soft:      oklch(31.2% 0.008 270);
+  --muted:        oklch(40.4% 0.008 270);
+  --faint:        oklch(55.8% 0.005 270);
+  /* Accent */
+  --accent:       oklch(50.9% 0.313 265);
+  --accent-soft:  oklch(95.7% 0.024 271);
 }
 
 /* Dark theme */
 .dark {
-  --bg: #0a0a0a;
-  --surface: #171717;
-  --surface-2: #262626;
-  --elevated: #171717;
-  --border: #262626;
-  --border-strong: #404040;
-  --fg: #ededed;
-  --fg-soft: #d4d4d4;
-  --muted: #a3a3a3;
-  --faint: #737373;
-  --accent: #6366f1;
-  --accent-soft: #1e1b4b;
+  /* Neutrals: teinte indigo plus marquée sur les sombres (chroma 0.012-0.014) */
+  --bg:           oklch(10.0% 0.012 270);
+  --surface:      oklch(14.5% 0.014 270);
+  --surface-2:    oklch(20.5% 0.014 270);
+  --elevated:     oklch(14.5% 0.014 270);
+  --border:       oklch(20.5% 0.014 270);
+  --border-strong:oklch(31.2% 0.012 270);
+  --fg:           oklch(93.8% 0.006 270);
+  --fg-soft:      oklch(85.5% 0.007 270);
+  --muted:        oklch(71.0% 0.007 270);
+  --faint:        oklch(55.8% 0.005 270);
+  /* Accent */
+  --accent:       oklch(59.6% 0.269 265);
+  --accent-soft:  oklch(18.4% 0.096 271);
 }
 
 body {
