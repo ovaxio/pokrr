@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { headers } from "next/headers";
 import "./globals.css";
 import ThemeScript from "./_ThemeScript";
+import { Analytics } from "@vercel/analytics/next";
 import { locales, defaultLocale } from "@/i18n/shared";
 
 const SITE_NAME = "pokrr";
@@ -65,7 +66,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
