@@ -5,13 +5,16 @@ const partyKitHost = process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "localhost:1999";
 const isLocalPK = partyKitHost.startsWith("localhost");
 const partyKitWS = `${isLocalPK ? "ws" : "wss"}://${partyKitHost}`;
 const isProd = process.env.NODE_ENV === "production";
+// Dev-only allowance so impeccable live mode can load.
+const __impeccableLiveDev =
+  process.env.NODE_ENV === "development" ? " http://localhost:8400" : "";
 
 // CSP : 'unsafe-inline' est conservé pour les inline scripts de Next App Router
 // (__next_f.push) et les styles Tailwind injectés. Une vraie politique nonce-based
 // nécessiterait un middleware ; gardée pour V2.
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isProd ? "" : " 'unsafe-eval'"}`,
+  `script-src 'self' 'unsafe-inline'${isProd ? "" : " 'unsafe-eval'"}${__impeccableLiveDev}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
