@@ -27,7 +27,7 @@ export default function JoinRoomForm() {
           value={code}
           onChange={(e) => setCode(e.target.value)}
           placeholder={d.joinRoomPlaceholder}
-          autoComplete="offest"
+          autoComplete="off"
           className="flex-1 rounded-lg border border-token-strong bg-surface px-3 py-2 text-base font-mono tracking-wider text-fg outline-none transition focus:border-indigo-500"
         />
         <button

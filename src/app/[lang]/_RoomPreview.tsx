@@ -96,11 +96,10 @@ export default function RoomPreview({ locale }: { locale: string }) {
                     <span className="max-w-full truncate text-xs font-medium text-fg">
                       {p.name}
                     </span>
-                    {p.name !== "Alice" || p?.isAdmin && (
-                        <span
-                            className="rounded bg-indigo-500/20 px-1 py-0.5 text-[10px] uppercase tracking-wider text-indigo-300">
-                         admin
-                       </span>
+                    {p.isAdmin && (
+                      <span className="rounded bg-indigo-500/20 px-1 py-0.5 text-[10px] uppercase tracking-wider text-indigo-300">
+                        admin
+                      </span>
                     )}
                   </div>
                 </div>
