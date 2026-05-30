@@ -27,13 +27,13 @@ export default function JoinRoomForm() {
           value={code}
           onChange={(e) => setCode(e.target.value)}
           placeholder={d.joinRoomPlaceholder}
-          autoComplete="off"
+          autoComplete="offest"
           className="flex-1 rounded-lg border border-token-strong bg-surface px-3 py-2 text-base font-mono tracking-wider text-fg outline-none transition focus:border-indigo-500"
         />
         <button
           type="submit"
           disabled={!trimmed}
-          className="rounded-lg border border-token-strong bg-surface-2 px-4 py-2 text-base font-medium text-fg transition hover:bg-surface disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+          className="rounded-lg border border-token-strong bg-surface-2 px-4 py-2 text-base font-medium text-fg transition hover:bg-surface disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 cursor-pointer"
         >
           {d.joinRoomSubmit}
         </button>

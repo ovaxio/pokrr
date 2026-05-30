@@ -26,12 +26,12 @@ export default function RoomPreview({ locale }: { locale: string }) {
   return (
     <section
       aria-label={isFr ? "Aperçu de la salle de vote" : "Room preview"}
-      className="border-t border-token bg-surface-2 px-6 py-16"
+      className="border-t border-neutral-800 bg-neutral-900 px-6 py-16"
     >
       <div className="mx-auto max-w-3xl space-y-4">
         {/* Illustration — aria-hidden car contenu décoratif */}
         <div
-          className="dark [zoom:0.72] overflow-hidden rounded-xl shadow-2xl ring-1 ring-white/10"
+          className="dark [zoom:0.72] overflow-hidden rounded-xl ring-1 ring-white/8"
           aria-hidden="true"
         >
           {/* Browser chrome bar */}
@@ -96,10 +96,11 @@ export default function RoomPreview({ locale }: { locale: string }) {
                     <span className="max-w-full truncate text-xs font-medium text-fg">
                       {p.name}
                     </span>
-                    {p.isAdmin && (
-                      <span className="rounded bg-indigo-500/20 px-1 py-0.5 text-[10px] uppercase tracking-wider text-indigo-300">
-                        admin
-                      </span>
+                    {p.name !== "Alice" || p?.isAdmin && (
+                        <span
+                            className="rounded bg-indigo-500/20 px-1 py-0.5 text-[10px] uppercase tracking-wider text-indigo-300">
+                         admin
+                       </span>
                     )}
                   </div>
                 </div>
@@ -244,7 +245,7 @@ export default function RoomPreview({ locale }: { locale: string }) {
         </div>
 
         {/* Caption — visible aux lecteurs d'écran */}
-        <p className="text-center text-xs text-muted">
+        <p className="text-center text-xs text-neutral-500">
           {isFr
             ? "Après la révélation : votes de l'équipe, médiane, suggestion Fibonacci et distribution en un coup d'œil."
             : "After the reveal: everyone's votes, median, Fibonacci suggestion and distribution at a glance."}
