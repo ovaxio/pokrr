@@ -1,11 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { posts, type Lang } from "@/content/blog/registry";
+import { getPosts, type Lang } from "@/content/blog/registry";
+import { getDict, locales } from "@/i18n/shared";
 
-export const metadata: Metadata = {
-  title: "Blog",
-  description: "Guides et conseils sur le planning poker agile pour les équipes Scrum.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<Record<string, string>>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  const locale = (locales as string[]).includes(lang) ? lang : "fr";
+  const d = getDict(locale as Lang);
+  return {
+    title: "Blog",
+    description: d.blogSubtitle,
+  };
+}
 
 export default async function BlogIndexPage({
   params,
@@ -13,28 +23,26 @@ export default async function BlogIndexPage({
   params: Promise<Record<string, string>>;
 }) {
   const { lang } = await params;
-  const langPosts = posts[lang as Lang] ?? [];
+  const locale = (locales as string[]).includes(lang) ? (lang as Lang) : "fr";
+  const d = getDict(locale);
+  const langPosts = getPosts(locale);
 
   return (
     <div className="space-y-10">
       <header className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Blog</h1>
-        <p className="text-muted">
-          {lang === "fr"
-            ? "Guides sur le planning poker pour les équipes agiles."
-            : "Planning poker guides for agile teams."}
-        </p>
+        <p className="text-muted">{d.blogSubtitle}</p>
       </header>
 
       {langPosts.length === 0 ? (
-        <p className="text-muted">{lang === "fr" ? "Bientôt." : "Coming soon."}</p>
+        <p className="text-muted">{d.blogEmpty}</p>
       ) : (
         <ul className="space-y-8">
           {langPosts.map((post) => (
             <li key={post.slug}>
               <article className="space-y-2">
                 <time className="text-xs text-muted">
-                  {new Date(post.date).toLocaleDateString(lang === "fr" ? "fr-FR" : "en-US", {
+                  {new Date(post.date).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
                     year: "numeric",
                     month: "long",
                     day: "numeric",

@@ -182,4 +182,10 @@ export const fr: Dict = {
   themeSystem: "système",
   themeLight: "clair",
   themeDark: "sombre",
+
+  blogSubtitle: "Guides sur le planning poker pour les équipes agiles.",
+  blogEmpty: "Bientôt.",
+  blogBackLink: "Tous les articles",
+  blogCta: "Essaie pokrr avec ton équipe — gratuit, sans inscription.",
+  blogCtaButton: "Créer une salle →",
 };

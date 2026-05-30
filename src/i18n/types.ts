@@ -129,4 +129,11 @@ export type Dict = {
   themeSystem: string;
   themeLight: string;
   themeDark: string;
+
+  // Blog
+  blogSubtitle: string;
+  blogEmpty: string;
+  blogBackLink: string;
+  blogCta: string;
+  blogCtaButton: string;
 };

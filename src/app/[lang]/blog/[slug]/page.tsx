@@ -1,16 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { posts, importers, type Lang } from "@/content/blog/registry";
+import { registry, getPost, type Lang } from "@/content/blog/registry";
+import { getDict, locales } from "@/i18n/shared";
 
 export async function generateStaticParams() {
-  const params: { lang: string; slug: string }[] = [];
-  for (const [lang, langPosts] of Object.entries(posts)) {
-    for (const post of langPosts) {
-      params.push({ lang, slug: post.slug });
-    }
-  }
-  return params;
+  return Object.entries(registry).flatMap(([lang, posts]) =>
+    posts.map((post) => ({ lang, slug: post.slug })),
+  );
 }
 
 export const dynamicParams = false;
@@ -21,7 +18,7 @@ export async function generateMetadata({
   params: Promise<Record<string, string>>;
 }): Promise<Metadata> {
   const { lang, slug } = await params;
-  const post = (posts[lang as Lang] ?? []).find((p) => p.slug === slug);
+  const post = getPost(lang as Lang, slug);
   if (!post) return {};
   return {
     title: post.title,
@@ -36,54 +33,45 @@ export default async function BlogPostPage({
   params: Promise<Record<string, string>>;
 }) {
   const { lang, slug } = await params;
-  const langImporters = importers[lang as Lang] ?? {};
-  const importer = langImporters[slug];
-  if (!importer) notFound();
+  const locale = (locales as string[]).includes(lang) ? (lang as Lang) : "fr";
+  const post = getPost(locale, slug);
+  if (!post) notFound();
 
-  const { default: Post, meta } = await importer();
-  const post = meta ?? (posts[lang as Lang] ?? []).find((p) => p.slug === slug);
+  const { default: Post } = await post.load();
+  const d = getDict(locale);
 
   return (
     <article className="space-y-8">
-      {post && (
-        <header className="space-y-3">
-          <time className="text-xs text-muted">
-            {new Date(post.date).toLocaleDateString(lang === "fr" ? "fr-FR" : "en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </time>
-          <h1 className="text-3xl font-bold leading-tight tracking-tight">{post.title}</h1>
-          <p className="text-muted">{post.description}</p>
-          <hr className="border-token" />
-        </header>
-      )}
+      <header className="space-y-3">
+        <time className="text-xs text-muted">
+          {new Date(post.date).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })}
+        </time>
+        <h1 className="text-3xl font-bold leading-tight tracking-tight">{post.title}</h1>
+        <p className="text-muted">{post.description}</p>
+        <hr className="border-token" />
+      </header>
 
       <div className="prose prose-neutral dark:prose-invert prose-headings:font-bold prose-headings:tracking-tight prose-a:text-accent prose-a:no-underline hover:prose-a:underline max-w-none">
         <Post />
       </div>
 
       <div className="border-t border-token pt-8">
-        <Link
-          href={`/${lang}/blog`}
-          className="text-sm text-muted hover:text-fg transition-colors"
-        >
-          ← {lang === "fr" ? "Tous les articles" : "All articles"}
+        <Link href={`/${lang}/blog`} className="text-sm text-muted hover:text-fg transition-colors">
+          ← {d.blogBackLink}
         </Link>
       </div>
 
       <div className="rounded-lg border border-accent/20 bg-accent-soft p-6 space-y-3">
-        <p className="font-semibold text-fg">
-          {lang === "fr"
-            ? "Essaie pokrr avec ton équipe — gratuit, sans inscription."
-            : "Try pokrr with your team — free, no account needed."}
-        </p>
+        <p className="font-semibold text-fg">{d.blogCta}</p>
         <Link
           href={`/${lang}`}
           className="inline-block rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-opacity"
         >
-          {lang === "fr" ? "Créer une salle →" : "Create a room →"}
+          {d.blogCtaButton}
         </Link>
       </div>
     </article>
