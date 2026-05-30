@@ -1,6 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import ThemeToggle from "../_ThemeToggle";
 import StatusClient from "./_StatusClient";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default function StatusPage() {
   return (

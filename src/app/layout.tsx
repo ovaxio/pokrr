@@ -28,10 +28,19 @@ export const metadata: Metadata = {
   authors: [{ name: "Guillaume Chambard" }],
   openGraph: {
     type: "website",
+    url: SITE_URL,
     title: `${SITE_NAME} — Planning Poker gratuit en ligne, sans inscription`,
     description: SITE_DESCRIPTION,
     siteName: SITE_NAME,
     locale: "fr_FR",
+    images: [
+      {
+        url: `${SITE_URL}/opengraph-image`,
+        width: 1200,
+        height: 630,
+        alt: `${SITE_NAME} — Planning Poker gratuit en ligne, sans inscription`,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",

@@ -1,0 +1,24 @@
+# pokrr
+
+> pokrr is a free, real-time planning poker app for agile teams. Create a room, share the code, vote on user stories together — no account required.
+
+## App
+
+- [Home](https://pokrr.app/): Landing page and room creation — create or join a planning poker session instantly
+- [How it works](https://pokrr.app/#comment): Step-by-step guide to running a planning poker session
+- [FAQ](https://pokrr.app/#faq): Common questions about planning poker and pokrr
+
+## About
+
+pokrr is a minimalist planning poker tool built for Scrum and agile teams. It supports Fibonacci, T-Shirt sizing, powers of 2, and custom card decks. Sessions are room-based with shareable codes. No data is stored server-side — rooms expire after 4 hours of inactivity. Built with Next.js and PartyKit (Cloudflare Durable Objects) for real-time WebSocket sessions.
+
+## Key features
+
+- No account, no login, no ads — free forever
+- Fibonacci, T-Shirt, powers of 2, custom decks
+- Real-time simultaneous vote reveal (prevents anchoring bias)
+- Built-in story timer
+- QR code room sharing
+- Markdown export
+- Multi-admin support with admin transfer
+- GDPR-friendly: no personal data stored server-side
