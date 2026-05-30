@@ -94,7 +94,7 @@ export default async function LangHome({ params }: { params: Promise<Record<stri
             <ThemeToggle />
           </div>
           <header className="space-y-3">
-            <h1 className="anim-fade-up text-4xl font-bold tracking-tight text-balance sm:text-5xl" style={{ '--delay': '0ms' } as CSSProperties}>pokrr</h1>
+            <h1 className="anim-fade-up text-5xl font-bold tracking-tight text-balance sm:text-6xl" style={{ '--delay': '0ms' } as CSSProperties}>pokrr</h1>
             <p className="anim-fade-up text-fg-soft text-pretty" style={{ '--delay': '80ms' } as CSSProperties}>{d.tagline}</p>
           </header>
           <section className="anim-fade-up space-y-6" style={{ '--delay': '160ms' } as CSSProperties}>
@@ -115,16 +115,16 @@ export default async function LangHome({ params }: { params: Promise<Record<stri
 
       <RoomPreview locale={locale} />
 
-      <section id="comment" aria-label={d.howToTitle} className="border-t border-token bg-surface px-6 py-20">
-        <div className="mx-auto max-w-md space-y-10">
+      <section id="comment" aria-label={d.howToTitle} className="border-t border-token bg-surface px-6 py-24">
+        <div className="mx-auto max-w-xl space-y-12">
           <h2 className="anim-fade-up text-2xl font-bold tracking-tight text-balance" style={{ '--delay': '0ms' } as CSSProperties}>{d.howToTitle}</h2>
-          <ol className="space-y-10">
+          <ol className="space-y-12">
             {d.howToSteps.map((step, i) => (
-              <li key={step.title} className="anim-fade-up flex gap-5" style={{ '--delay': `${i * 90}ms` } as CSSProperties}>
+              <li key={step.title} className="anim-fade-up flex gap-6" style={{ '--delay': `${i * 90}ms` } as CSSProperties}>
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-bold text-accent">
                   {i + 1}
                 </span>
-                <div className="space-y-1 pt-0.5">
+                <div className="space-y-1.5 pt-0.5">
                   <h3 className="font-semibold">{step.title}</h3>
                   <p className="text-sm text-muted text-pretty">{step.desc}</p>
                 </div>
@@ -134,18 +134,12 @@ export default async function LangHome({ params }: { params: Promise<Record<stri
         </div>
       </section>
 
-      <section id="features" aria-label={d.featuresTitle} className="border-t border-token bg-bg px-6 py-16">
-        <div className="mx-auto max-w-md space-y-10">
+      <section id="features" aria-label={d.featuresTitle} className="border-t border-token bg-bg px-6 py-20">
+        <div className="mx-auto max-w-2xl space-y-10">
           <h2 className="text-2xl font-bold tracking-tight text-balance">{d.featuresTitle}</h2>
-          <ul className="grid grid-cols-1 sm:grid-cols-2">
-            {d.features.map((f, i) => (
-              <li
-                key={f.title}
-                className={[
-                  "space-y-1 border-t border-token py-5",
-                  i % 2 === 0 ? "sm:pr-5" : "sm:border-l sm:pl-5",
-                ].join(" ")}
-              >
+          <ul className="grid grid-cols-1 gap-x-10 sm:grid-cols-2">
+            {d.features.map((f) => (
+              <li key={f.title} className="space-y-2 border-t border-token py-6">
                 <h3 className="font-semibold">{f.title}</h3>
                 <p className="text-sm text-muted text-pretty">{f.desc}</p>
               </li>
@@ -155,7 +149,7 @@ export default async function LangHome({ params }: { params: Promise<Record<stri
       </section>
 
       <section id="faq" aria-label={d.faqTitle} className="border-t border-token bg-surface px-6 py-24">
-        <div className="mx-auto max-w-md space-y-10">
+        <div className="mx-auto max-w-lg space-y-10">
           <h2 className="text-2xl font-bold tracking-tight text-balance">{d.faqTitle}</h2>
           <dl className="divide-y divide-token">
             {d.faq.map((item) => (
