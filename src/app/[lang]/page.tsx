@@ -36,15 +36,18 @@ export default async function LangHome({ params }: { params: Promise<Record<stri
 
   const webAppJsonLd = {
     "@context": "https://schema.org",
-    "@type": "WebApplication",
+    "@type": ["WebApplication", "SoftwareApplication"],
+    "@id": `${SITE_URL}/${lang}/#webapp`,
     name: "pokrr",
     url: `${SITE_URL}/${lang}`,
     applicationCategory: "BusinessApplication",
-    operatingSystem: "Web",
+    operatingSystem: "Web, Any browser",
     description: d.tagline,
-    inLanguage: locale === "fr" ? "fr-FR" : "en",
+    inLanguage: locale === "fr" ? "fr-FR" : "en-US",
     offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
     featureList: d.features.map((f) => f.title),
+    isAccessibleForFree: true,
+    publisher: { "@id": `${SITE_URL}/#organization` },
   };
 
   const howToJsonLd = {

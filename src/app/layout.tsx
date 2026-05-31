@@ -49,8 +49,24 @@ export const metadata: Metadata = {
 const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
+  "@id": `${SITE_URL}/#organization`,
   name: "pokrr",
   url: SITE_URL,
+  description:
+    "Planning poker gratuit en ligne pour équipes agile et Scrum. Sans inscription, sans pub, sans données stockées.",
+  foundingDate: "2025",
+  knowsAbout: [
+    "Planning Poker",
+    "Agile estimation",
+    "Scrum",
+    "Sprint planning",
+    "Story points",
+    "Fibonacci sequence",
+    "T-Shirt sizing",
+  ],
+  sameAs: [
+    // Add your social/profile URLs here: GitHub, LinkedIn, ProductHunt, etc.
+  ],
   logo: {
     "@type": "ImageObject",
     url: `${SITE_URL}/icon.svg`,
