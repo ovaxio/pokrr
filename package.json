@@ -6,7 +6,7 @@
     "dev": "concurrently -n next,party -c cyan,magenta \"npm:dev:next\" \"npm:dev:party\"",
     "dev:next": "next dev --webpack",
     "dev:party": "partykit dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "party:deploy": "partykit deploy",
