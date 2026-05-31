@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import createMDX from "@next/mdx";
+import remarkGfm from "remark-gfm";
 
 const partyKitHost = process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "localhost:1999";
 const isLocalPK = partyKitHost.startsWith("localhost");
@@ -51,5 +52,7 @@ const nextConfig: NextConfig = {
   },
 };
 
-const withMDX = createMDX({});
+const withMDX = createMDX({
+  options: { remarkPlugins: [remarkGfm] },
+});
 export default withMDX(nextConfig);

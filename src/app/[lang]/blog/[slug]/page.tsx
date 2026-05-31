@@ -1,8 +1,18 @@
 import type { Metadata } from "next";
+import type { ComponentPropsWithoutRef } from "react";
+import type { MDXProps } from "mdx/types";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { registry, getPost, type Lang } from "@/content/blog/registry";
 import { getDict, locales } from "@/i18n/shared";
+
+const mdxComponents = {
+  table: (props: ComponentPropsWithoutRef<"table">) => (
+    <div className="prose-table-scroll overflow-x-auto my-6">
+      <table {...props} className="min-w-max" />
+    </div>
+  ),
+};
 
 const SITE_URL = "https://pokrr.app";
 
@@ -130,7 +140,7 @@ export default async function BlogPostPage({
         </p>
 
         <div className="prose prose-neutral dark:prose-invert prose-headings:font-bold prose-headings:tracking-tight prose-a:text-accent prose-a:no-underline hover:prose-a:underline max-w-none">
-          <Post />
+          <Post components={mdxComponents} />
         </div>
 
         <div className="border-t border-token pt-8">

@@ -1,4 +1,5 @@
 import type { ComponentType } from "react";
+import type { MDXProps } from "mdx/types";
 
 export type FaqItem = { q: string; a: string };
 
@@ -10,13 +11,40 @@ export type PostEntry = {
   updatedAt: string;
   translations?: Partial<Record<Lang, string>>;
   faq?: FaqItem[];
-  load: () => Promise<{ default: ComponentType }>;
+  load: () => Promise<{ default: ComponentType<MDXProps> }>;
 };
 
 export type Lang = "fr" | "en";
 
 export const registry: Record<Lang, PostEntry[]> = {
   fr: [
+    {
+      slug: "comparatif-outils-planning-poker-gratuit",
+      title: "Planning poker gratuit sans inscription : comparatif 2026 (pokrr, PlanITPoker, PointingPoker et autres)",
+      description: "Tableau comparatif des 5 principaux outils de planning poker gratuits en ligne : inscription, limites, decks, pubs. Verdict par contexte d'équipe.",
+      publishedAt: "2026-05-31",
+      updatedAt: "2026-05-31",
+      translations: { en: "best-free-planning-poker-tools-comparison" },
+      faq: [
+        {
+          q: "Quel outil de planning poker est vraiment gratuit sans limite ?",
+          a: "PointingPoker et pokrr sont les deux outils sans limite de participants et sans limite de sessions en version gratuite. PointingPoker est financé par des publicités. pokrr ne l'est pas.",
+        },
+        {
+          q: "Est-ce que PlanITPoker est vraiment gratuit ?",
+          a: "Partiellement. La version gratuite est limitée à 7 participants par session. Au-delà, la version payante coûte 20 dollars par mois.",
+        },
+        {
+          q: "Peut-on faire du planning poker sans créer de compte ?",
+          a: "Oui. PointingPoker, pokrr, Scrum Poker Online (sans decks custom) et PlanningPoker.live permettent de créer et rejoindre une session sans inscription. Seul Parabol exige un compte.",
+        },
+        {
+          q: "Quelle est la différence entre PlanningPoker.live et pokrr ?",
+          a: "PlanningPoker.live propose plus d'intégrations (Jira, Linear, Zoom, Teams, Meet, Webex) et le vote asynchrone. pokrr est entièrement gratuit sans système de crédits, sans pubs, et sans limite de sessions ou de participants.",
+        },
+      ],
+      load: () => import("./fr/comparatif-outils-planning-poker-gratuit.mdx"),
+    },
     {
       slug: "guide-complet-planning-poker",
       title: "Le guide complet du Planning Poker (2026) : méthode, règles et outil gratuit sans inscription",
@@ -77,6 +105,33 @@ export const registry: Record<Lang, PostEntry[]> = {
     },
   ],
   en: [
+    {
+      slug: "best-free-planning-poker-tools-comparison",
+      title: "Free Planning Poker With No Signup: 2026 Comparison (pokrr, PlanITPoker, PointingPoker and more)",
+      description: "Verified comparison of 5 free online planning poker tools: signup requirements, participant limits, decks, ads. Context-based verdict.",
+      publishedAt: "2026-05-31",
+      updatedAt: "2026-05-31",
+      translations: { fr: "comparatif-outils-planning-poker-gratuit" },
+      faq: [
+        {
+          q: "Which planning poker tool is genuinely free with no limits?",
+          a: "PointingPoker and pokrr are the two tools with no participant limit and no session limit in their free versions. PointingPoker is ad-funded. pokrr is not.",
+        },
+        {
+          q: "Is PlanITPoker really free?",
+          a: "Partially. The free version is capped at 7 participants per session. Beyond that, the paid version costs $20 per month.",
+        },
+        {
+          q: "Can you run planning poker without creating an account?",
+          a: "Yes. PointingPoker, pokrr, Scrum Poker Online (without custom decks), and PlanningPoker.live all let you create and join a session without signing up. Only Parabol requires an account.",
+        },
+        {
+          q: "What's the difference between PlanningPoker.live and pokrr?",
+          a: "PlanningPoker.live offers more integrations (Jira, Linear, Zoom, Teams, Meet, Webex) and async voting. pokrr is entirely free with no credit system, no ads, and no session or participant limits.",
+        },
+      ],
+      load: () => import("./en/best-free-planning-poker-tools-comparison.mdx"),
+    },
     {
       slug: "complete-guide-planning-poker",
       title: "The Complete Planning Poker Guide (2026): Rules, Method & Free Online Tool, No Signup",

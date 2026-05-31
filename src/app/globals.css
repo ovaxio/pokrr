@@ -65,6 +65,38 @@ body {
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
+/* ── Blog prose table scroll indicator ──────────────── */
+
+.prose-table-scroll {
+  position: relative;
+}
+.prose-table-scroll::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 3rem;
+  background: linear-gradient(to right, transparent, var(--bg));
+  pointer-events: none;
+  border-radius: 0 4px 4px 0;
+}
+.prose-table-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+.prose-table-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.prose-table-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 2px;
+}
+/* Firefox */
+.prose-table-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
 /* Flip card pour les votes des joueurs */
 .flip-card {
   position: relative;
