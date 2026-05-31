@@ -94,7 +94,7 @@ export default async function LangHome({ params }: { params: Promise<Record<stri
             <ThemeToggle />
           </div>
           <header className="space-y-3">
-            <h1 className="anim-fade-up text-5xl font-bold tracking-tight text-balance sm:text-6xl" style={{ '--delay': '0ms' } as CSSProperties}>pokrr</h1>
+            <h1 className="anim-fade-up text-5xl font-bold tracking-tight text-balance sm:text-6xl">pokrr</h1>
             <p className="anim-fade-up text-fg-soft text-pretty" style={{ '--delay': '80ms' } as CSSProperties}>{d.tagline}</p>
           </header>
           <section className="anim-fade-up space-y-6" style={{ '--delay': '160ms' } as CSSProperties}>
@@ -117,7 +117,7 @@ export default async function LangHome({ params }: { params: Promise<Record<stri
 
       <section id="comment" aria-label={d.howToTitle} className="border-t border-token bg-surface px-6 py-24">
         <div className="mx-auto max-w-xl space-y-12">
-          <h2 className="anim-fade-up text-2xl font-bold tracking-tight text-balance" style={{ '--delay': '0ms' } as CSSProperties}>{d.howToTitle}</h2>
+          <h2 className="anim-fade-up text-2xl font-bold tracking-tight text-balance">{d.howToTitle}</h2>
           <ol className="space-y-12">
             {d.howToSteps.map((step, i) => (
               <li key={step.title} className="anim-fade-up flex gap-6" style={{ '--delay': `${i * 90}ms` } as CSSProperties}>

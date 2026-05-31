@@ -35,7 +35,7 @@ h1, h2, h3 {
   --fg:           oklch(14.5% 0.008 270);
   --fg-soft:      oklch(31.2% 0.008 270);
   --muted:        oklch(40.4% 0.008 270);
-  --faint:        oklch(55.8% 0.005 270);
+  --faint:        oklch(51.5% 0.005 270);
   /* Accent */
   --accent:       oklch(50.9% 0.313 265);
   --accent-soft:  oklch(95.7% 0.024 271);
@@ -53,7 +53,7 @@ h1, h2, h3 {
   --fg:           oklch(93.8% 0.006 270);
   --fg-soft:      oklch(85.5% 0.007 270);
   --muted:        oklch(71.0% 0.007 270);
-  --faint:        oklch(55.8% 0.005 270);
+  --faint:        oklch(51.5% 0.005 270);
   /* Accent */
   --accent:       oklch(59.6% 0.269 265);
   --accent-soft:  oklch(18.4% 0.096 271);
