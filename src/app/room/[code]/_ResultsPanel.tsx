@@ -163,7 +163,7 @@ function useCountUp(target: number | null, duration = 700, delay = 0): number {
   useEffect(() => {
     if (target === null) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduced) { setValue(target); return; }
+    if (reduced) { const t = setTimeout(() => setValue(target), 0); return () => clearTimeout(t); }
     let rafId: number;
     const timer = setTimeout(() => {
       let start: number | null = null;
