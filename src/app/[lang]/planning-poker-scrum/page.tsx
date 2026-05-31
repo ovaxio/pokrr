@@ -10,7 +10,7 @@ type Props = { params: Promise<{ lang: string }> };
 
 const content = {
   fr: {
-    metaTitle: "Planning Poker Scrum : estimez votre backlog sprint en équipe, sans friction",
+    metaTitle: "Planning Poker Scrum : estimez votre backlog sprint en équipe, sans délai",
     metaDescription:
       "Outil de planning poker pour équipes Scrum. Fibonacci, vote simultané, rôle admin pour le Scrum Master. Gratuit, sans inscription, sans limite de sessions.",
     title: "Planning poker Scrum : estimez votre backlog sans alourdir la cérémonie",
@@ -19,7 +19,7 @@ const content = {
     lead2:
       "L'outil de planning poker ne doit pas en rajouter : pas d'inscription pour l'équipe, pas de configuration entre deux sprints, pas de compte à renouveler.",
     lead3:
-      "pokrr est prêt en 10 secondes. Créer une salle, partager le lien, commencer à voter.",
+      "pokrr est prêt en 10 secondes. Créer une salle, partager le lien, estimer vos stories.",
     cta: "Créer une salle",
     rolesTitle: "Qui fait quoi pendant le planning poker Scrum ?",
     roles: [
@@ -40,7 +40,7 @@ const content = {
     features: [
       {
         title: "Vote simultané anti-ancrage",
-        desc: "Personne ne voit les votes des autres avant la révélation. Le senior ne donne pas le ton avant que l'équipe ait voté. C'est la règle fondamentale du planning poker — elle s'applique en présentiel comme à distance.",
+        desc: "Personne ne voit les votes des autres avant la révélation. Le senior ne donne pas le ton avant que l'équipe ait voté. C'est la règle fondamentale du planning poker : elle s'applique en présentiel comme à distance.",
       },
       {
         title: "Fibonacci et T-Shirt dans le même outil",
@@ -48,7 +48,7 @@ const content = {
       },
       {
         title: "Admin = rôle du Scrum Master",
-        desc: "Le SM crée la salle, contrôle la révélation et peut passer à la story suivante. Plusieurs admins peuvent être actifs simultanément si l'équipe est co-facilite.",
+        desc: "Le SM crée la salle, contrôle la révélation et peut passer à la story suivante. Plusieurs admins peuvent être actifs simultanément si la session est co-animée.",
       },
       {
         title: "Timer par story",
@@ -67,7 +67,7 @@ const content = {
     antiPatterns: [
       {
         title: "Le SM donne son estimation avant le vote",
-        desc: "Même involontairement, une estimation verbale avant la révélation déclenche le biais d'ancrage documenté par Kahneman et Tversky. La règle : on vote, puis on parle.",
+        desc: "Même involontairement, une estimation verbale avant la révélation tire les votes vers ce premier chiffre. La règle : on vote, puis on parle.",
       },
       {
         title: "Traiter l'estimation comme un engagement",
@@ -98,11 +98,11 @@ const content = {
       },
       {
         q: "pokrr peut-il tracker la vélocité ?",
-        a: "Non. pokrr est un outil de session de planning poker. Les salles expirent après 4 heures d'inactivité et aucune donnée n'est stockée côté serveur. Le suivi de la vélocité sprint par sprint se fait dans votre outil de gestion de projet (Jira, Linear, Notion, etc.).",
+        a: "Non. pokrr est un outil de session. Les salles expirent après 4 heures d'inactivité, aucune donnée n'est conservée. Le suivi de la vélocité se fait dans votre outil de gestion de projet (Jira, Linear, Notion).",
       },
       {
         q: "Est-ce que pokrr s'intègre à Jira ?",
-        a: "Non, pas d'intégration native. Les résultats de session peuvent être copiés en Markdown depuis l'interface pour être reportés manuellement dans votre backlog.",
+        a: "Non, pas d'intégration native. Copiez les résultats en Markdown depuis l'interface et collez-les directement dans votre backlog Jira.",
       },
     ],
     blogLinkLabel: "Lire : pourquoi la suite Fibonacci en planning poker ?",
@@ -138,7 +138,7 @@ const content = {
     features: [
       {
         title: "Simultaneous vote, anchoring-free",
-        desc: "No one sees anyone else's vote before the reveal. The senior doesn't set the tone before the team has voted. That's the core rule of planning poker — it applies in person and remotely.",
+        desc: "No one sees anyone else's vote before the reveal. The senior doesn't set the tone before the team has voted. That's the core rule of planning poker: it applies in person and remotely.",
       },
       {
         title: "Fibonacci and T-Shirt in the same tool",
@@ -165,7 +165,7 @@ const content = {
     antiPatterns: [
       {
         title: "The SM gives their estimate before the vote",
-        desc: "Even unintentionally, a verbal estimate before the reveal triggers anchoring bias, documented by Kahneman and Tversky. The rule: vote first, then talk.",
+        desc: "Even unintentionally, a verbal estimate before the reveal pulls the team's votes toward that first number. The rule: vote first, then talk.",
       },
       {
         title: "Treating estimates as commitments",
@@ -196,11 +196,11 @@ const content = {
       },
       {
         q: "Can pokrr track velocity?",
-        a: "No. pokrr is a planning poker session tool. Rooms expire after 4 hours of inactivity and no data is stored server-side. Sprint-by-sprint velocity tracking happens in your project management tool (Jira, Linear, Notion, etc.).",
+        a: "No. pokrr is a session tool. Rooms expire after 4 hours of inactivity and no data is retained. Sprint-by-sprint velocity tracking belongs in your project management tool (Jira, Linear, Notion).",
       },
       {
         q: "Does pokrr integrate with Jira?",
-        a: "No native integration. Session results can be copied as Markdown from the interface and manually reported to your backlog.",
+        a: "No native integration. Copy the session results as Markdown from the interface and paste them directly into your Jira backlog.",
       },
     ],
     blogLinkLabel: "Read: why does planning poker use Fibonacci?",
@@ -282,6 +282,7 @@ export default async function ScrumPage({ params }: Props) {
         <div className="absolute top-4 right-4 flex items-center gap-2">
           <Link
             href={locale === "fr" ? "/en/planning-poker-scrum" : "/fr/planning-poker-scrum"}
+            aria-label={locale === "fr" ? "Switch to English" : "Passer en français"}
             className="text-xs text-muted hover:text-fg transition-colors px-2 py-1 rounded border border-token"
           >
             {locale === "fr" ? "EN" : "FR"}

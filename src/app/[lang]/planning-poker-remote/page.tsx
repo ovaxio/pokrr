@@ -10,7 +10,7 @@ type Props = { params: Promise<{ lang: string }> };
 
 const content = {
   fr: {
-    title: "Planning poker en remote : lancez votre session sans friction",
+    title: "Planning poker en remote : lancez votre session en moins de 60 secondes",
     metaTitle: "Planning Poker en Remote : outil gratuit sans inscription pour équipes distribuées",
     metaDescription:
       "Lancez une session de planning poker avec votre équipe à distance en moins de 60 secondes. Gratuit, sans compte, sans installation. Fonctionne dans tout navigateur.",
@@ -33,7 +33,7 @@ const content = {
       },
       {
         title: "Vote masqué jusqu'à la révélation",
-        desc: "Même à distance, personne ne voit les votes des autres avant la révélation simultanée. Le biais d'ancrage ne s'invite pas dans la call.",
+        desc: "Même à distance, personne ne voit les votes des autres avant la révélation simultanée. Le biais d'ancrage reste hors de l'appel.",
       },
       {
         title: "Timer par story",
@@ -50,17 +50,17 @@ const content = {
     ],
     howToTitle: "Comment lancer une session de planning poker en remote",
     howToSteps: [
-      { step: "Aller sur pokrr.app/fr et cliquer « Créer une salle »." },
+      { step: "Aller sur pokrr.app et cliquer « Créer une salle »." },
       {
         step: "Copier le lien ou le QR code et le partager dans Slack, Teams ou Discord.",
       },
       { step: "Chaque participant entre un pseudo. Aucun compte requis." },
       { step: "Le product owner présente la première user story." },
       {
-        step: "Tout le monde vote en secret. L'admin révèle toutes les cartes simultanément.",
+        step: "Tout le monde vote en secret. L'animateur de la session révèle toutes les cartes d'un coup.",
       },
       {
-        step: "Discuter les écarts, re-voter si nécessaire, passer à la story suivante.",
+        step: "Discutez les écarts, re-votez si nécessaire et passez à la story suivante.",
       },
     ],
     faqTitle: "Questions fréquentes",
@@ -86,7 +86,7 @@ const content = {
         a: "Un code court, un lien URL et un QR code sont générés automatiquement à la création. Colle le lien dans le canal Slack de l'équipe avant la call.",
       },
     ],
-    blogLinkLabel: "Lire le guide : adapter le planning poker pour les équipes remote",
+    blogLinkLabel: "Lire le guide complet du planning poker",
     blogHref: "/fr/blog/guide-complet-planning-poker",
   },
   en: {
@@ -130,14 +130,14 @@ const content = {
     ],
     howToTitle: "How to run a planning poker session with a remote team",
     howToSteps: [
-      { step: "Go to pokrr.app/en and click \"Create a room\"." },
+      { step: "Go to pokrr.app and click \"Create a room\"." },
       {
         step: "Copy the link or QR code and share it in Slack, Teams, or Discord.",
       },
       { step: "Each participant enters a username. No account required." },
       { step: "The product owner presents the first user story." },
       {
-        step: "Everyone votes in secret. The admin reveals all cards simultaneously.",
+        step: "Everyone votes in secret. The session admin reveals all cards at once.",
       },
       {
         step: "Discuss the divergence, re-vote if needed, move to the next story.",
@@ -166,7 +166,7 @@ const content = {
         a: "A short room code, a URL link, and a QR code are generated automatically when you create a room. Paste the link in the team's Slack channel before the call.",
       },
     ],
-    blogLinkLabel: "Read the guide: planning poker for remote teams",
+    blogLinkLabel: "Read the complete planning poker guide",
     blogHref: "/en/blog/complete-guide-planning-poker",
   },
 } as const;
@@ -261,6 +261,7 @@ export default async function RemotePage({ params }: Props) {
         <div className="absolute top-4 right-4 flex items-center gap-2">
           <Link
             href={locale === "fr" ? "/en/planning-poker-remote" : "/fr/planning-poker-remote"}
+            aria-label={locale === "fr" ? "Switch to English" : "Passer en français"}
             className="text-xs text-muted hover:text-fg transition-colors px-2 py-1 rounded border border-token"
           >
             {locale === "fr" ? "EN" : "FR"}
