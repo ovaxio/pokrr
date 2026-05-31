@@ -1,0 +1,159 @@
+# Le guide complet du Planning Poker (2026) : méthode, règles et outil gratuit sans inscription
+
+La session de planning poker qui se passe le mieux n'est pas celle où tout le monde tombe d'accord du premier coup. C'est celle où quelqu'un vote 2 et quelqu'un vote 13 sur la même story.
+
+Le planning poker est une technique d'estimation agile où chaque membre de l'équipe vote simultanément sur la complexité d'une user story, en utilisant des cartes numérotées. Personne ne voit les choix des autres avant la révélation. Conçu par James Grenning en 2002 et popularisé par Mike Cohn dans *Agile Estimating and Planning* (2005), c'est aujourd'hui la méthode d'estimation la plus utilisée dans les équipes Scrum.
+
+Ce guide couvre les règles complètes, la mécanique du vote, les decks de cartes, les erreurs courantes, et comment lancer une session gratuite en ligne sans créer de compte.
+
+## Qu'est-ce que le planning poker ?
+
+Le planning poker, aussi appelé scrum poker, est une méthode d'estimation par consensus basée sur des cartes. Chaque participant dispose d'un jeu avec des valeurs prédéfinies, souvent la suite de Fibonacci : 1, 2, 3, 5, 8, 13, 21 (et parfois 34, 40, 100, ?, ☕).
+
+Pour chaque user story présentée, chaque membre choisit une carte en secret. Quand tout le monde est prêt, les cartes sont révélées simultanément. Si les estimations convergent, l'équipe adopte la médiane. Si elles divergent, les outliers s'expliquent et l'équipe revote.
+
+### Origine de la méthode
+
+James Grenning publie le premier article sur la technique en 2002. Mike Cohn l'adapte dans son livre *Agile Estimating and Planning* (2005) et dépose la marque "Planning Poker" via Mountain Goat Software. La méthode est aujourd'hui dans le domaine commun sous les deux noms.
+
+### Planning poker vs scrum poker : quelle différence ?
+
+Aucune différence de fond. "Scrum poker" est une variante du nom sans distinction de règles. "Planning poker" reste le terme le plus courant dans la documentation agile officielle et les offres d'emploi.
+
+## Comment fonctionne le planning poker ? (les règles, étape par étape)
+
+Quatre étapes. Elles paraissent simples. L'exécution révèle rapidement où se cachent les désaccords dans l'équipe.
+
+### 1. Présenter la user story
+
+Le product owner lit la story à l'équipe. Les participants posent des questions de clarification. Aucune estimation n'est donnée à ce stade. Si quelqu'un commence à "suggérer" une valeur avant le vote, l'exercice perd l'essentiel de son intérêt.
+
+### 2. Voter simultanément
+
+Chaque membre choisit une carte en secret. Tout le monde vote en même temps : personne ne voit les choix des autres. C'est la règle fondamentale. Un vote visible avant la révélation déclenche le biais d'ancrage : les estimations convergent artificiellement vers ce que le senior ou le premier votant a choisi, que ce soit justifié ou non.
+
+### 3. Révéler et discuter les écarts
+
+Toutes les cartes se retournent au même instant. Écarts faibles (une valeur d'écart au maximum) ? On prend la médiane et on passe. Écarts importants ? Les membres avec l'estimation la plus haute et la plus basse s'expliquent en premier.
+
+La personne qui a voté 13 a vu quelque chose que celle qui a voté 3 n'a pas vu : une dépendance technique, une ambiguïté fonctionnelle, un risque d'intégration. Ou l'inverse. Le but de la discussion est de faire apparaître cet angle mort. Pas de trouver un compromis arithmétique.
+
+### 4. Voter jusqu'au consensus
+
+Après discussion, l'équipe revote. Ce cycle se répète jusqu'à ce qu'un consensus émerge. Si après deux tours la divergence reste forte, la bonne décision est souvent de fractionner la story plutôt que de forcer un chiffre sur quelque chose de genuinement flou.
+
+### Que signifient les valeurs spéciales des cartes ?
+
+- **?** : "Je ne sais pas estimer cette story." Signal direct que des clarifications sont nécessaires avant d'aller plus loin.
+- **☕** : Pause. Convention sociale, pas technique.
+- **∞ ou très grand nombre** : La story est trop grande pour être estimée. Elle doit être découpée.
+- **0** : Tâche triviale, sans effort réel.
+
+## Pourquoi utilise-t-on la suite de Fibonacci et pas 1-2-3-4-5 ?
+
+La question revient dans chaque équipe qui découvre la méthode. La réponse tient en une observation : estimer la différence entre 4 et 5 suppose une précision sur la complexité logicielle que personne ne possède réellement.
+
+La suite de Fibonacci (1, 2, 3, 5, 8, 13, 21...) reflète une vérité sur l'estimation : plus une story est grande, plus l'incertitude grandit vite. L'écart entre 8 et 13 force l'équipe à trancher clairement : "on est sûrs que c'est gérable dans le sprint" ou "c'est trop flou, il faut mieux la définir avant". Une suite linéaire permet trop de consensus confortables sur des valeurs intermédiaires qui ne veulent rien dire.
+
+En pratique : les stories estimées à 13 ou 21 devraient presque toujours être découpées ou clarifiées avant d'entrer dans un sprint.
+
+## Quels sont les bénéfices réels du planning poker ?
+
+### Suppression structurelle du biais d'ancrage
+
+Quand un senior donne son estimation en premier, les autres convergent vers ce chiffre, consciemment ou non. C'est le biais d'ancrage, documenté par Kahneman et Tversky dans leurs travaux sur les heuristiques cognitives. Le vote simultané le supprime structurellement : chacun estime indépendamment avant d'être exposé aux choix des autres.
+
+### La divergence comme signal, pas comme problème
+
+Une équipe qui trouve consensus immédiat sur toutes les stories devrait s'interroger. Soit les stories sont parfaitement spécifiées (rare), soit les membres ne challengent pas leurs propres hypothèses (plus courant). La divergence forcée par le planning poker fait apparaître les hypothèses implicites que chaque membre fait sur la story, sans le savoir.
+
+### Estimation relative, plus fiable qu'estimation absolue
+
+Les humains sont bons pour comparer ("c'est deux fois plus complexe que l'autre story") et mauvais pour estimer des durées absolues sur des tâches cognitives. Estimer en story points (relatif) produit des prévisions plus précises sur la durée qu'estimer en heures-homme. Mike Cohn documente cet effet dans *Agile Estimating and Planning*.
+
+## Comment lancer une session en ligne, gratuitement, sans inscription
+
+Prérequis : un product owner, une équipe de 3 à 12 personnes, une liste de stories à estimer.
+
+Sur [pokrr.app](https://pokrr.app), aucun compte n'est demandé. Pas d'email, pas de lien de confirmation, pas d'approbation IT.
+
+1. Aller sur [pokrr.app](https://pokrr.app/fr)
+2. Cliquer sur "Créer une salle"
+3. Partager le code ou le lien QR dans Slack, Teams ou par SMS
+4. Choisir le deck (Fibonacci par défaut, T-Shirt, puissances de 2 ou deck custom)
+5. Présenter la première story, lancer le vote
+
+Les votes restent masqués jusqu'à la révélation par l'admin. Un minuteur intégré limite la durée par story. Plusieurs admins peuvent gérer la session simultanément, et le rôle se transfère en un clic.
+
+Les salles expirent après 4 heures d'inactivité. Aucune donnée personnelle n'est stockée.
+
+## Comment adapter le planning poker en équipe remote ?
+
+Le planning poker fonctionne bien à distance. L'outil en ligne remplace les cartes physiques, l'appel vidéo remplace la salle.
+
+Ce qui change concrètement :
+
+**Ne pas partager l'écran de l'outil avant la révélation.** Chaque participant voit ses propres cartes. Sur pokrr.app, les votes des autres sont masqués jusqu'au reveal.
+
+**Faciliter la discussion explicitement.** En présentiel, la conversation s'auto-organise. En remote, nommer la personne qui prend la parole : "Thomas, tu as voté 13, qu'est-ce que tu as vu dans cette story ?"
+
+**Limiter la durée.** Les sessions remote s'essoufflent plus vite. 45 minutes maximum, 8 à 10 stories. Au-delà, la concentration baisse et les votes deviennent mécaniques.
+
+**Préparer les stories à l'écrit.** Chaque story doit être lisible par l'équipe avant l'appel, pas seulement décrite à l'oral pendant la session. Un lien Jira ou un message Slack avec le détail, envoyé 30 minutes avant, fait une différence visible sur la qualité des estimations.
+
+## Planning poker vs autres méthodes d'estimation agile
+
+| Méthode | Format | Quand l'utiliser |
+|---|---|---|
+| Planning poker | Cartes + vote simultané | Stories de sprint, backlogs actifs |
+| T-Shirt sizing | XS, S, M, L, XL | Roadmap produit, estimation d'epics |
+| Affinity estimation | Tri silencieux de post-its | Grands backlogs, tri rapide |
+| Dot voting | Points alloués | Priorisation, pas estimation |
+
+Le planning poker est calibré pour les stories qui entrent en sprint dans les 1 à 3 prochaines semaines. Le T-Shirt sizing est meilleur pour les horizons à 3 à 6 mois, où la précision des story points n'a pas de sens.
+
+## 7 erreurs courantes en planning poker
+
+1. **Le senior donne son avis avant le vote.** Une estimation verbale avant la révélation déclenche l'ancrage. La règle est simple : on vote, puis on parle.
+
+2. **Passer sans discuter les écarts extrêmes.** Si quelqu'un vote 2 et quelqu'un vote 21, ignorer l'écart annule l'intérêt de la session. La conversation entre les outliers est le moment de valeur.
+
+3. **Estimer en heures.** "Combien d'heures pour développer ça ?" est la mauvaise question. "C'est plus ou moins complexe que la story de référence ?" est la bonne.
+
+4. **Session de plus de 90 minutes.** Les votes se dégradent. Couper, faire une pause, reprendre le lendemain si le backlog est long.
+
+5. **Estimer chaque micro-tâche.** Le planning poker est fait pour les stories avec une réelle incertitude. Une tâche de 30 minutes ne mérite pas 10 minutes de discussion.
+
+6. **Ignorer la carte ?** Si quelqu'un joue ?, la story est mal définie. Continuer à voter ne sert à rien.
+
+7. **Traiter l'estimation comme un engagement.** Les story points mesurent la complexité relative, pas une durée contractuelle. Une story à 8 points peut prendre 3 heures ou 2 jours selon le contexte et l'équipe.
+
+## Questions fréquentes sur le planning poker
+
+### Combien de temps dure une session de planning poker ?
+
+Pour 8 à 10 stories avec une équipe de 5 à 7 personnes : 45 à 60 minutes. Une session de backlog refinement complète (20 à 25 stories) dure 90 à 120 minutes. Au-delà, la qualité des estimations baisse.
+
+### Qui doit participer au planning poker ?
+
+L'équipe de développement : développeurs, QA, designers impliqués dans les stories. Le product owner participe pour répondre aux questions de clarification mais ne vote généralement pas, pour ne pas influencer les estimations. Le scrum master facilite sans voter.
+
+### Le product owner doit-il voter ?
+
+La pratique varie selon les équipes. La recommandation courante : non, car le PO peut inconsciemment orienter les votes vers sa propre estimation. Si le PO choisit de voter, il révèle sa carte en même temps que l'équipe, comme les autres.
+
+### Que faire si l'équipe ne trouve pas de consensus ?
+
+Deux options : adopter la médiane et avancer, ou fractionner la story. Si après deux tours de discussion l'écart reste fort, la story est probablement trop grande ou trop ambiguë pour être estimée telle quelle.
+
+### Quelle est la différence entre story points et jours-homme ?
+
+Les story points mesurent la complexité relative d'une story par rapport aux autres. Une story à 5 points signifie qu'elle est deux fois et demi plus complexe qu'une story à 2 points, pas qu'elle prend 5 heures ou 5 jours. Les jours-homme mesurent le temps passé par un individu, ce qui varie selon la personne et le contexte.
+
+### Peut-on faire du planning poker sans inscription ?
+
+Oui. [pokrr.app](https://pokrr.app) ne demande ni compte ni email. Un code de salle partagé dans Slack ou Teams, et chaque participant rejoint en moins de 30 secondes depuis n'importe quel navigateur.
+
+### Peut-on faire du planning poker en asynchrone ?
+
+Oui. Certains outils permettent de voter sans que tout le monde soit connecté simultanément. Cela convient aux équipes distribuées sur plusieurs fuseaux horaires. La limite : la discussion après révélation perd sa spontanéité et doit se faire par écrit, ce qui allonge le cycle.
