@@ -1,0 +1,92 @@
+# T-Shirt sizing vs Fibonacci : lequel choisir pour estimer vos stories ?
+
+Deux équipes agiles, même contexte, pratiques opposées. L'une estime en XS, S, M, L, XL. L'autre en 1, 2, 3, 5, 8, 13.
+
+Aucune des deux n'a tort. Elles répondent à deux questions différentes.
+
+## Ce que les deux méthodes ont en commun
+
+T-Shirt sizing et Fibonacci sont deux échelles d'estimation relative. Aucune des deux ne mesure des heures ni des jours. Toutes les deux cherchent à répondre à la question : "Cette story est-elle plus ou moins complexe que les autres ?"
+
+Les deux s'utilisent en session de planning poker : on vote simultanément, on révèle, on discute les écarts.
+
+La différence est dans ce que chaque échelle force l'équipe à faire.
+
+## Ce que le T-Shirt sizing fait bien
+
+L'échelle T-Shirt (XS, S, M, L, XL) n'a pas de valeur numérique. C'est un avantage précis : elle coupe court aux discussions "c'est un 4 ou un 5 ?", parce que la question n'a pas de sens sur une échelle de lettres.
+
+**Quand l'utiliser :**
+
+Elle convient particulièrement aux estimations à haut niveau : roadmap produit à 3 à 6 mois, epics, features dont le découpage n'est pas encore finalisé. À ce niveau, prétendre distinguer 8 de 13 story points n'a aucun sens. Un M ou un L suffit à signaler la taille relative.
+
+Elle est aussi plus accessible pour les équipes qui débutent avec l'estimation relative, ou pour les participants non techniques (product managers, designers, stakeholders) qui votent pour la première fois. XS-S-M-L-XL parle à tout le monde sans avoir à expliquer ce que signifie un "5 points".
+
+**Sa limite :**
+
+Elle ne permet pas de calculer une vélocité précise. Si les stories sont estimées en T-Shirt, vous pouvez comptabiliser le nombre de stories complétées par sprint, mais pas une vélocité en points. Pour les équipes Scrum qui pilotent leur capacité en story points, ça bloque.
+
+## Ce que Fibonacci fait bien
+
+L'échelle Fibonacci (1, 2, 3, 5, 8, 13, 21...) donne des valeurs numériques. Ce qui permet de calculer une vélocité en story points et de faire des prévisions de release planning.
+
+Les gaps croissants de la suite ont un rôle précis : ils forcent l'équipe à des choix clairs plutôt qu'à des compromis. Impossible de voter 10 quand le deck ne propose que 8 ou 13. C'est intentionnel.
+
+**Quand l'utiliser :**
+
+Pour les stories qui entrent en sprint dans les 1 à 3 semaines. À ce niveau de détail, l'équipe a une vue suffisamment précise pour distinguer une story à 5 d'une story à 8. La différence a du sens et nourrit la vélocité.
+
+Elle est aussi le standard de fait dans la majorité des équipes Scrum. Si votre équipe rejoint un contexte client ou une organisation plus grande, Fibonacci sera probablement déjà en place.
+
+**Sa limite :**
+
+Elle devient absurde sur les grandes stories. Estimer un epic à 89 points n'apporte aucune information utile. Les valeurs élevées (21, 34, 40...) sont des signaux de découpage, pas des estimations réelles.
+
+## Comparaison directe
+
+| Critère | T-Shirt sizing | Fibonacci |
+|---|---|---|
+| Calcul de vélocité | Non | Oui |
+| Accessibilité pour les non-tech | Bonne | Moyenne |
+| Horizon d'estimation adapté | Roadmap, epics | Stories de sprint |
+| Discussions parasites sur la précision | Rares | Possibles sur les valeurs proches |
+| Standard dans les équipes Scrum | Non | Oui |
+| Intégration avec les outils (Jira, Linear) | Difficile | Nativement supporté |
+
+## La stratégie des deux niveaux
+
+Beaucoup d'équipes matures utilisent les deux — pas en parallèle, mais à deux horizons différents.
+
+**T-Shirt pour la roadmap.** Quand l'équipe fait du quarterly planning ou priorise des features sur 3 à 6 mois, elle estime en T-Shirt. Les stories ne sont pas encore assez précises pour mériter des story points.
+
+**Fibonacci pour les sprints.** Quand ces features sont découpées en stories et entrent dans le backlog refinement, l'équipe réévalue en Fibonacci. C'est à ce stade que la vélocité en points prend tout son sens.
+
+Ce n'est pas une incohérence. C'est deux outils pour deux niveaux de granularité différents.
+
+## Lequel choisir si vous démarrez ?
+
+Si votre équipe fait du Scrum et veut mesurer la vélocité : commencez par Fibonacci. C'est le standard, vos outils de suivi le supportent nativement, et l'apprentissage est rapide.
+
+Si votre équipe fait de la roadmap produit, gère des epics ou inclut des participants non techniques dans les sessions : utilisez le T-Shirt sizing pour ces exercices, et Fibonacci pour le niveau story.
+
+Si vous ne savez pas encore : le T-Shirt sizing est plus simple à adopter. Vous pourrez migrer vers Fibonacci quand l'équipe sera à l'aise avec l'estimation relative.
+
+[pokrr](https://pokrr.app) propose les deux échelles sans inscription. Fibonacci et T-Shirt sizing sont disponibles dès la création de la salle.
+
+## Questions fréquentes
+
+### Peut-on convertir des estimations T-Shirt en story points ?
+
+Oui, avec une table de correspondance fixée par l'équipe (par exemple XS=1, S=2, M=3, L=5, XL=8). Mais cette conversion introduit de l'arbitraire. Mieux vaut réévaluer les stories en Fibonacci au moment où elles entrent dans le sprint.
+
+### Le T-Shirt sizing fonctionne-t-il en planning poker ?
+
+Oui, dans le même format : présenter la story, voter simultanément, révéler, discuter les écarts. Le vote simultané s'applique quelle que soit l'échelle.
+
+### Quelle est la différence entre T-Shirt sizing et affinity estimation ?
+
+Le T-Shirt sizing s'utilise en vote simultané (planning poker). L'affinity estimation est un exercice de tri silencieux où les participants placent les stories sur une table physique ou virtuelle par ordre de taille, sans voter individuellement. Les deux sont des méthodes d'estimation relative, mais avec des dynamiques très différentes.
+
+### Fibonacci ou Modified Fibonacci ?
+
+Le deck commercial Mountain Goat utilise 0, ½, 1, 2, 3, 5, 8, 13, **20**, 40, 100 (20 à la place de 21, pour éviter la fausse précision). Dans la pratique, la différence entre 20 et 21 est négligeable. Ce qui compte, c'est que l'échelle force des choix clairs entre des valeurs suffisamment espacées.

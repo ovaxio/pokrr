@@ -43,6 +43,13 @@ export async function generateMetadata({
       publishedTime: post.publishedAt,
       modifiedTime: post.updatedAt,
       url: `${SITE_URL}/${lang}/blog/${slug}`,
+      images: [{ url: `${SITE_URL}/${lang}/blog/${slug}/opengraph-image`, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.description,
+      images: [`${SITE_URL}/${lang}/blog/${slug}/opengraph-image`],
     },
     alternates: {
       canonical: `${SITE_URL}/${lang}/blog/${slug}`,
@@ -135,9 +142,11 @@ export default async function BlogPostPage({
       )}
 
       <article className="space-y-8">
-        <p className="text-sm text-muted">
+        <div className="flex items-center gap-3 text-sm text-muted">
           <time dateTime={post.updatedAt}>{dateLabel}</time>
-        </p>
+          <span aria-hidden>·</span>
+          <span>Guillaume Chambard</span>
+        </div>
 
         <div className="prose prose-neutral dark:prose-invert prose-headings:font-bold prose-headings:tracking-tight prose-a:text-accent prose-a:no-underline hover:prose-a:underline max-w-none">
           <Post components={mdxComponents} />

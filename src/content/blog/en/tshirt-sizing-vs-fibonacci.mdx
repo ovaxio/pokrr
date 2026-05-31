@@ -1,0 +1,92 @@
+# T-Shirt Sizing vs Fibonacci: Which Should You Use for Story Estimation?
+
+Two agile teams, same context, opposite practices. One estimates in XS, S, M, L, XL. The other in 1, 2, 3, 5, 8, 13.
+
+Neither is wrong. They answer two different questions.
+
+## What both methods have in common
+
+T-shirt sizing and Fibonacci are both relative estimation scales. Neither measures hours or days. Both try to answer: "Is this story more or less complex than the others?"
+
+Both are used in planning poker sessions: vote simultaneously, reveal, discuss divergence.
+
+The difference is in what each scale forces the team to do.
+
+## Where T-shirt sizing works well
+
+The T-shirt scale (XS, S, M, L, XL) has no numeric values. That's a specific advantage: it cuts off "is this a 4 or a 5?" discussions, because the question doesn't make sense on a letter scale.
+
+**When to use it:**
+
+It's especially suited for high-level estimation: 3-to-6-month product roadmaps, epics, features whose decomposition isn't finalized yet. At that level, claiming to distinguish 8 from 13 story points makes no sense. An M or an L is enough to signal relative size.
+
+It's also more accessible for teams new to relative estimation, or for non-technical participants (product managers, designers, stakeholders) voting for the first time. XS-S-M-L-XL is intuitive without explaining what a "5-pointer" means.
+
+**Its limit:**
+
+It doesn't allow precise velocity tracking. If stories are estimated in T-shirts, you can count the number of stories completed per sprint, but not a point-based velocity. For Scrum teams managing capacity in story points, that's a blocker.
+
+## Where Fibonacci works well
+
+The Fibonacci scale (1, 2, 3, 5, 8, 13, 21...) gives numeric values, which makes it possible to calculate a story point velocity and do release planning forecasts.
+
+The growing gaps serve a specific purpose: they force the team to make clear choices rather than comfortable compromises. You can't vote 10 when the deck only offers 8 or 13. That's intentional.
+
+**When to use it:**
+
+For stories entering a sprint in the next 1 to 3 weeks. At that level of detail, the team has enough visibility to distinguish a 5-pointer from an 8-pointer. The difference is meaningful and feeds into velocity tracking.
+
+It's also the de facto standard in most Scrum teams. If your team is joining a client engagement or a larger organization, Fibonacci will likely already be in place.
+
+**Its limit:**
+
+It becomes meaningless on large stories. Estimating an epic at 89 points provides no useful information. High values (21, 34, 40...) are splitting signals, not real estimates.
+
+## Direct comparison
+
+| Criterion | T-shirt sizing | Fibonacci |
+|---|---|---|
+| Velocity tracking | No | Yes |
+| Accessibility for non-tech | Good | Moderate |
+| Appropriate estimation horizon | Roadmap, epics | Sprint stories |
+| Noise from precision debates | Rare | Possible on close values |
+| Scrum team standard | No | Yes |
+| Tool integration (Jira, Linear) | Difficult | Natively supported |
+
+## The two-level strategy
+
+Many mature teams use both — not in parallel, but at two different horizons.
+
+**T-shirt sizing for the roadmap.** When the team does quarterly planning or prioritizes features over 3 to 6 months, they estimate in T-shirts. Stories aren't precise enough yet to warrant story points.
+
+**Fibonacci for sprints.** When those features are broken down into stories and enter backlog refinement, the team re-estimates in Fibonacci. That's when point-based velocity becomes meaningful.
+
+This isn't inconsistency. It's two tools for two different levels of granularity.
+
+## Which to choose if you're starting out
+
+If your team does Scrum and wants to measure velocity: start with Fibonacci. It's the standard, your tracking tools support it natively, and the learning curve is short.
+
+If your team does product roadmapping, manages epics, or includes non-technical participants in sessions: use T-shirt sizing for those exercises, and Fibonacci at the story level.
+
+If you're not sure yet: T-shirt sizing is easier to adopt first. You can migrate to Fibonacci when the team is comfortable with relative estimation.
+
+[pokrr](https://pokrr.app) supports both scales without signup. Fibonacci and T-shirt sizing are available from room creation.
+
+## Frequently asked questions
+
+### Can T-shirt estimates be converted to story points?
+
+Yes, with a fixed conversion table set by the team (for example XS=1, S=2, M=3, L=5, XL=8). But this conversion introduces arbitrariness. Better to re-estimate stories in Fibonacci when they enter the sprint.
+
+### Does T-shirt sizing work in planning poker?
+
+Yes, same format: present the story, vote simultaneously, reveal, discuss divergence. Simultaneous voting applies regardless of the scale used.
+
+### What's the difference between T-shirt sizing and affinity estimation?
+
+T-shirt sizing uses simultaneous voting (planning poker style). Affinity estimation is a silent sorting exercise where participants place stories on a physical or virtual table in order of size, without voting individually. Both are relative estimation methods, but with very different group dynamics.
+
+### Fibonacci or Modified Fibonacci?
+
+The commercial Mountain Goat deck uses 0, ½, 1, 2, 3, 5, 8, 13, **20**, 40, 100 (20 instead of 21, to avoid false precision). In practice, the difference between 20 and 21 is negligible. What matters is that the scale forces clear choices between values spaced far enough apart.

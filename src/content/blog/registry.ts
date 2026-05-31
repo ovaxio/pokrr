@@ -19,6 +19,29 @@ export type Lang = "fr" | "en";
 export const registry: Record<Lang, PostEntry[]> = {
   fr: [
     {
+      slug: "tshirt-sizing-vs-fibonacci",
+      title: "T-Shirt sizing vs Fibonacci : lequel choisir pour estimer vos stories ?",
+      description: "Deux échelles d'estimation agile, deux usages différents. Comparaison directe, tableau, et stratégie pour utiliser les deux selon l'horizon : roadmap ou sprint.",
+      publishedAt: "2026-05-31",
+      updatedAt: "2026-05-31",
+      translations: { en: "tshirt-sizing-vs-fibonacci" },
+      faq: [
+        {
+          q: "Peut-on convertir des estimations T-Shirt en story points ?",
+          a: "Oui, avec une table de correspondance fixée par l'équipe (XS=1, S=2, M=3, L=5, XL=8 par exemple). Mais cette conversion introduit de l'arbitraire. Mieux vaut réévaluer les stories en Fibonacci quand elles entrent dans le sprint.",
+        },
+        {
+          q: "Le T-Shirt sizing fonctionne-t-il en planning poker ?",
+          a: "Oui, dans le même format : présenter la story, voter simultanément, révéler, discuter les écarts. Le vote simultané s'applique quelle que soit l'échelle.",
+        },
+        {
+          q: "Quelle est la différence entre T-Shirt sizing et affinity estimation ?",
+          a: "Le T-Shirt sizing s'utilise en vote simultané (planning poker). L'affinity estimation est un exercice de tri silencieux. Les deux sont des méthodes d'estimation relative avec des dynamiques de groupe très différentes.",
+        },
+      ],
+      load: () => import("./fr/tshirt-sizing-vs-fibonacci.mdx"),
+    },
+    {
       slug: "fibonacci-planning-poker",
       title: "Pourquoi le planning poker utilise la suite de Fibonacci (et pas 1-2-3-4-5) ?",
       description: "Fibonacci, Modified Fibonacci, 20 ou 21 ? Le raisonnement derrière l'échelle des cartes de planning poker — et pourquoi une suite linéaire n'aurait aucun sens.",
@@ -158,6 +181,29 @@ export const registry: Record<Lang, PostEntry[]> = {
         },
       ],
       load: () => import("./en/fibonacci-planning-poker.mdx"),
+    },
+    {
+      slug: "tshirt-sizing-vs-fibonacci",
+      title: "T-Shirt Sizing vs Fibonacci: Which Should You Use for Story Estimation?",
+      description: "Two agile estimation scales, two different uses. Direct comparison, table, and strategy for using both depending on the horizon: roadmap or sprint.",
+      publishedAt: "2026-05-31",
+      updatedAt: "2026-05-31",
+      translations: { fr: "tshirt-sizing-vs-fibonacci" },
+      faq: [
+        {
+          q: "Can T-shirt estimates be converted to story points?",
+          a: "Yes, with a fixed conversion table (e.g. XS=1, S=2, M=3, L=5, XL=8). But this introduces arbitrariness. Better to re-estimate in Fibonacci when stories enter the sprint.",
+        },
+        {
+          q: "Does T-shirt sizing work in planning poker?",
+          a: "Yes, same format: present the story, vote simultaneously, reveal, discuss divergence. Simultaneous voting applies regardless of the scale used.",
+        },
+        {
+          q: "What's the difference between T-shirt sizing and affinity estimation?",
+          a: "T-shirt sizing uses simultaneous voting (planning poker). Affinity estimation is a silent sorting exercise. Both are relative estimation methods with very different group dynamics.",
+        },
+      ],
+      load: () => import("./en/tshirt-sizing-vs-fibonacci.mdx"),
     },
     {
       slug: "best-free-planning-poker-tools-comparison",

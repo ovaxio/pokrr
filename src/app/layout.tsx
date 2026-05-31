@@ -46,6 +46,16 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${SITE_URL}/#website`,
+  name: "pokrr",
+  url: SITE_URL,
+  inLanguage: ["fr-FR", "en-US"],
+  publisher: { "@id": `${SITE_URL}/#organization` },
+};
+
 const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
@@ -84,6 +94,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html lang={lang} className={`h-full antialiased ${geist.variable}`} suppressHydrationWarning>
       <head>
         <ThemeScript />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
