@@ -19,6 +19,33 @@ export type Lang = "fr" | "en";
 export const registry: Record<Lang, PostEntry[]> = {
   fr: [
     {
+      slug: "fibonacci-planning-poker",
+      title: "Pourquoi le planning poker utilise la suite de Fibonacci (et pas 1-2-3-4-5) ?",
+      description: "Fibonacci, Modified Fibonacci, 20 ou 21 ? Le raisonnement derrière l'échelle des cartes de planning poker — et pourquoi une suite linéaire n'aurait aucun sens.",
+      publishedAt: "2026-05-31",
+      updatedAt: "2026-05-31",
+      translations: { en: "fibonacci-planning-poker" },
+      faq: [
+        {
+          q: "Pourquoi certains decks vont jusqu'à 100 et d'autres s'arrêtent à 21 ?",
+          a: "Les decks qui incluent 40, 100 ou ∞ permettent de traiter les epics et les stories trop grandes sans les découper arbitrairement pendant la session. Les decks qui s'arrêtent à 13 ou 21 obligent à replanifier si une story s'avère trop grande.",
+        },
+        {
+          q: "Faut-il obligatoirement utiliser Fibonacci ?",
+          a: "Non. Certaines équipes préfèrent le T-Shirt sizing, les puissances de 2 ou des échelles personnalisées. L'important est que l'échelle force des choix entre des valeurs suffisamment espacées pour refléter l'incertitude réelle.",
+        },
+        {
+          q: "Est-ce que la valeur Fibonacci correspond à des heures ou des jours ?",
+          a: "Non. Les story points Fibonacci mesurent la complexité relative d'une story par rapport aux autres, pas une durée absolue. C'est la vélocité de l'équipe sur plusieurs sprints qui donne la valeur prédictive.",
+        },
+        {
+          q: "Pourquoi la carte ? est-elle importante ?",
+          a: "Parce qu'elle est honnête. Quand un membre ne dispose pas des informations nécessaires pour estimer, jouer ? signale ce manque explicitement. Voter une valeur inventée pour ne pas ralentir la session est ce qui produit les mauvaises estimations.",
+        },
+      ],
+      load: () => import("./fr/fibonacci-planning-poker.mdx"),
+    },
+    {
       slug: "comparatif-outils-planning-poker-gratuit",
       title: "Planning poker gratuit sans inscription : comparatif 2026 (pokrr, PlanITPoker, PointingPoker et autres)",
       description: "Tableau comparatif des 5 principaux outils de planning poker gratuits en ligne : inscription, limites, decks, pubs. Verdict par contexte d'équipe.",
@@ -105,6 +132,33 @@ export const registry: Record<Lang, PostEntry[]> = {
     },
   ],
   en: [
+    {
+      slug: "fibonacci-planning-poker",
+      title: "Why Planning Poker Uses Fibonacci (and Not a Linear Scale)",
+      description: "Fibonacci vs linear scale, the 20 vs 21 debate, modified Fibonacci. The real reasoning behind planning poker card values — and what each range means in practice.",
+      publishedAt: "2026-05-31",
+      updatedAt: "2026-05-31",
+      translations: { fr: "fibonacci-planning-poker" },
+      faq: [
+        {
+          q: "Why do some decks go up to 100 and others stop at 21?",
+          a: "Decks with 40, 100, or ∞ handle epics and oversized stories without forcing a split during the session. Decks stopping at 13 or 21 require rescheduling if a story is too large.",
+        },
+        {
+          q: "Do we have to use Fibonacci?",
+          a: "No. T-shirt sizing, powers of 2, and custom scales all work. What matters is that the scale forces choices between values spaced far enough apart to reflect genuine estimation uncertainty.",
+        },
+        {
+          q: "Do Fibonacci values correspond to hours or days?",
+          a: "No. Story points measure relative complexity compared to other stories — not absolute duration. The team's velocity across multiple sprints is what gives estimates predictive value.",
+        },
+        {
+          q: "Why does the ? card matter?",
+          a: "Because it's honest. When a team member lacks information to estimate, playing ? signals that gap explicitly. Inventing a number to avoid slowing the session is what produces bad estimates.",
+        },
+      ],
+      load: () => import("./en/fibonacci-planning-poker.mdx"),
+    },
     {
       slug: "best-free-planning-poker-tools-comparison",
       title: "Free Planning Poker With No Signup: 2026 Comparison (pokrr, PlanITPoker, PointingPoker and more)",

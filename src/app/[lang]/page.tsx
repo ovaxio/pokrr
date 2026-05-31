@@ -151,7 +151,37 @@ export default async function LangHome({ params }: { params: Promise<Record<stri
         </div>
       </section>
 
-      <section id="faq" aria-label={d.faqTitle} className="border-t border-token bg-surface px-6 py-24">
+      <section className="border-t border-token bg-surface px-6 py-16">
+        <div className="mx-auto max-w-2xl space-y-6">
+          <h2 className="text-lg font-semibold tracking-tight">
+            {locale === "fr" ? "Guides" : "Guides"}
+          </h2>
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 text-sm">
+            <li>
+              <a href={`/${locale}/planning-poker-remote`} className="block rounded-lg border border-token px-4 py-3 hover:border-accent hover:text-accent transition-colors">
+                {locale === "fr" ? "Planning poker en remote →" : "Remote planning poker →"}
+              </a>
+            </li>
+            <li>
+              <a href={`/${locale}/planning-poker-scrum`} className="block rounded-lg border border-token px-4 py-3 hover:border-accent hover:text-accent transition-colors">
+                {locale === "fr" ? "Planning poker Scrum →" : "Scrum planning poker →"}
+              </a>
+            </li>
+            <li>
+              <a href={`/${locale}/blog/${locale === "fr" ? "guide-complet-planning-poker" : "complete-guide-planning-poker"}`} className="block rounded-lg border border-token px-4 py-3 hover:border-accent hover:text-accent transition-colors">
+                {locale === "fr" ? "Guide complet du planning poker →" : "Complete planning poker guide →"}
+              </a>
+            </li>
+            <li>
+              <a href={`/${locale}/blog`} className="block rounded-lg border border-token px-4 py-3 hover:border-accent hover:text-accent transition-colors">
+                {locale === "fr" ? "Tous les articles →" : "All articles →"}
+              </a>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="faq" aria-label={d.faqTitle} className="border-t border-token bg-bg px-6 py-24">
         <div className="mx-auto max-w-lg space-y-10">
           <h2 className="text-2xl font-bold tracking-tight text-balance">{d.faqTitle}</h2>
           <dl className="divide-y divide-token">

@@ -22,6 +22,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
+  const landingPages: MetadataRoute.Sitemap = (
+    ["planning-poker-remote", "planning-poker-scrum"] as const
+  ).flatMap((slug) =>
+    locales.map((lang) => ({
+      url: `${SITE_URL}/${lang}/${slug}`,
+      lastModified: new Date("2026-05-31"),
+      changeFrequency: "monthly" as const,
+      priority: 0.9,
+    })),
+  );
+
   const blogPostPages: MetadataRoute.Sitemap = locales.flatMap((lang) =>
     (registry[lang] ?? []).map((post) => ({
       url: `${SITE_URL}/${lang}/blog/${post.slug}`,
@@ -31,5 +42,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   );
 
-  return [...homePages, ...blogIndexPages, ...blogPostPages];
+  return [...homePages, ...landingPages, ...blogIndexPages, ...blogPostPages];
 }

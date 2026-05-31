@@ -1,0 +1,101 @@
+# Pourquoi le planning poker utilise la suite de Fibonacci (et pas 1-2-3-4-5) ?
+
+La réponse n'est pas mathématique.
+
+Les équipes qui utilisent Fibonacci ne le font pas parce que 1, 2, 3, 5, 8, 13 est une suite élégante. Elles le font parce qu'une échelle linéaire encourage un type de précision que personne ne peut fournir sur des estimations logicielles.
+
+Voilà le problème qu'elle résout, et pourquoi ça fonctionne.
+
+## Le piège de l'échelle linéaire
+
+Imaginez un deck de cartes avec les valeurs 1, 2, 3, 4, 5, 6, 7, 8, 9, 10.
+
+Quand quelqu'un vote 7 sur une user story, les autres supposent qu'il peut distinguer cette story d'une story à 6 ou à 8. Que ses 7 ont une signification précise. Que la différence entre "6 jours de travail" et "7 jours de travail" est réelle et utile.
+
+Elle ne l'est pas.
+
+Sur les petites stories (1, 2, 3), cette précision est accessible. Sur les stories moyennes et grandes, l'incertitude est trop forte pour que ces distinctions aient du sens. Estimer 9 vs 10 revient à prétendre une certitude que personne dans l'équipe n't a sur une story qui prendra deux semaines à explorer.
+
+L'échelle linéaire donne l'illusion de la précision. Elle encourage des discussions sur la différence entre 6 et 7 qui ne produisent aucune information utile.
+
+## Ce que les grands écarts de Fibonacci forcent à faire
+
+La suite de Fibonacci est : 1, 2, 3, 5, 8, 13, 21...
+
+Au-delà de 3, les gaps grandissent rapidement. Entre 5 et 8, il y a 3 points d'écart. Entre 8 et 13, il y en a 5. Entre 13 et 21, il y en a 8.
+
+Ces grands écarts jouent un rôle précis : ils forcent l'équipe à choisir entre deux positions claires plutôt que de se réfugier dans une valeur intermédiaire confortable.
+
+Quand quelqu'un hésite entre 8 et 13 sur une story, il ne peut pas voter 10 pour couper la poire en deux. Il doit trancher : "je suis suffisamment confiant pour dire 8" ou "cette story a trop d'inconnues, je vote 13". Ce forçage est intentionnel et utile.
+
+Mike Cohn, qui a popularisé la méthode dans *Agile Estimating and Planning* (2005), formule cet argument directement : les gaps grandissants reflètent le fait qu'on ne peut pas distinguer de façon fiable 9 de 10 sur une grande story, alors qu'on peut distinguer 8 de 13.
+
+## Le deck réel : 20 ou 21 ?
+
+Un détail que la plupart des articles passent sous silence : le deck commercial standard de Mountain Goat Software n'utilise pas 21.
+
+Il utilise **20**.
+
+La séquence complète du deck Mountain Goat est : 0, ½, 1, 2, 3, 5, 8, 13, **20**, 40, 100, ?, ∞.
+
+Cohn a délibérément remplacé 21 par 20. Son explication : lors de tests avec des équipes, quelqu'un lui a dit "vous devez être très sûrs de vous pour estimer 21 plutôt que 20". Cette confusion entre précision mathématique et précision d'estimation l'a convaincu d'arrondir.
+
+Le résultat : deux variantes coexistent dans la pratique.
+
+**Fibonacci pure** : 1, 2, 3, 5, 8, 13, 21 (et parfois 34, 55, 89). Utilisée par de nombreuses équipes et outils.
+
+**Modified Fibonacci (deck Mountain Goat)** : 0, ½, 1, 2, 3, 5, 8, 13, 20, 40, 100. Les grandes valeurs sont arrondies pour éviter la fausse précision.
+
+Sur pokrr, le deck Fibonacci utilise les valeurs classiques. Les deux approches remplissent le même rôle.
+
+## Ce que chaque plage de valeurs signifie en pratique
+
+**0** : tâche triviale, sans effort réel. Ticket de documentation d'une ligne, correction de typo.
+
+**½ ou 1** : tâche très simple, bien définie, aucune incertitude.
+
+**2 à 3** : story petite, bonne compréhension, peu de dépendances.
+
+**5** : story standard, quelques inconnues, réalisable dans la journée ou deux.
+
+**8** : story significative. Des questions subsistent. L'équipe a une bonne idée de ce qu'elle fait, mais des surprises sont possibles.
+
+**13 ou 20/21** : story complexe. L'équipe commence à voir des risques d'intégration, des dépendances non résolues, des ambiguïtés fonctionnelles. C'est le seuil à partir duquel la discussion sur le découpage devient productive.
+
+**40, 100, ∞** : story trop grande pour entrer dans un sprint tel quel. Ce n'est pas une estimation, c'est un signal. La story doit être découpée avant la prochaine session.
+
+**?** : "Je ne peux pas estimer cette story." Elle manque d'informations. Voter ? est plus honnête que voter une valeur inventée.
+
+## Quand Fibonacci ne convient pas
+
+Fibonacci est calibré pour estimer la complexité de stories qui entrent en sprint dans les 1 à 3 semaines. Pour d'autres contextes, d'autres échelles sont mieux adaptées.
+
+**T-Shirt sizing (XS, S, M, L, XL)** : plus accessible pour les équipes qui découvrent l'estimation relative, ou pour des livrables hétérogènes difficiles à comparer en points. Bien adapté à la roadmap produit à 3-6 mois.
+
+**Puissances de 2 (1, 2, 4, 8, 16, 32)** : utile pour les équipes qui raisonnent en doublement de complexité. Moins courant.
+
+**Entiers naturels (1 à 10)** : lisible, mais encourage la fausse précision décrite plus haut. À éviter si l'équipe est mature.
+
+Le choix de l'échelle dépend de l'équipe, de son niveau de maturité agile, et du type de backlog. Fibonacci reste le standard de facto dans la majorité des équipes Scrum.
+
+## Questions fréquentes
+
+### Pourquoi certains decks vont jusqu'à 100 et d'autres s'arrêtent à 21 ?
+
+Les decks qui incluent 40, 100 ou ∞ permettent de traiter les epics et les stories trop grandes sans les refuser ou les découper arbitrairement pendant la session. Les decks qui s'arrêtent à 13 ou 21 obligent à replanifier la session si une story s'avère trop grande. Les deux approches fonctionnent.
+
+### Faut-il obligatoirement utiliser Fibonacci ?
+
+Non. Certaines équipes préfèrent le T-Shirt sizing, les puissances de 2 ou des échelles personnalisées. L'important est que l'échelle force des choix entre des valeurs suffisamment espacées pour refléter l'incertitude réelle de l'estimation.
+
+### Est-ce que la valeur Fibonacci correspond à des heures ou des jours ?
+
+Non. Les story points Fibonacci mesurent la complexité relative d'une story par rapport aux autres, pas une durée absolue. Une story à 8 points peut prendre 2 heures ou 3 jours selon le contexte. La valeur utile n'est pas le chiffre lui-même mais la vélocité de l'équipe calculée sur plusieurs sprints.
+
+### Pourquoi la carte "?" est-elle importante ?
+
+Parce qu'elle est honnête. Quand un membre de l'équipe ne dispose pas des informations nécessaires pour estimer, jouer ? signale ce manque explicitement. Voter une valeur inventée pour ne pas ralentir la session est le comportement qui produit les mauvaises estimations.
+
+### Le planning poker Fibonacci est-il lié à Scrum ?
+
+La méthode a été décrite dans le contexte de l'XP (eXtreme Programming) par James Grenning en 2002. Elle s'est diffusée dans les équipes Scrum avec la publication du livre de Mike Cohn. Elle n'est pas spécifique à Scrum et fonctionne dans n'importe quel cadre agile qui utilise des estimations relatives.

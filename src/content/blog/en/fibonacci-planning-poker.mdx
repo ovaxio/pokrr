@@ -1,0 +1,101 @@
+# Why Planning Poker Uses Fibonacci (and Not a Linear Scale)
+
+The answer isn't mathematical.
+
+Teams that use Fibonacci don't do it because 1, 2, 3, 5, 8, 13 is an elegant sequence. They do it because a linear scale encourages a type of precision that no one can provide when estimating software.
+
+Here's the problem it solves, and why it works.
+
+## The linear scale trap
+
+Picture a card deck with values 1, 2, 3, 4, 5, 6, 7, 8, 9, 10.
+
+When someone votes 7 on a user story, everyone else assumes they can distinguish that story from a 6 or an 8. That their 7 carries precise meaning. That the difference between "6 days of work" and "7 days of work" is real and useful.
+
+It isn't.
+
+On small stories (1, 2, 3), that precision is accessible. On medium and large stories, the uncertainty is too high for those distinctions to mean anything. Estimating 9 vs 10 amounts to claiming a certainty that nobody in the room has on a story that will take weeks to untangle.
+
+A linear scale creates the illusion of precision. It generates discussions about the difference between 6 and 7 that produce no useful information.
+
+## What Fibonacci's large gaps force you to do
+
+The Fibonacci sequence is: 1, 2, 3, 5, 8, 13, 21...
+
+Beyond 3, the gaps grow quickly. Between 5 and 8, there are 3 points. Between 8 and 13, there are 5. Between 13 and 21, there are 8.
+
+Those growing gaps serve a specific purpose: they force the team to choose between two clear positions rather than settling for a comfortable middle value.
+
+When someone hesitates between 8 and 13, they can't vote 10 to split the difference. They have to decide: "I'm confident enough to say 8" or "this story has too many unknowns, I'm voting 13." That forcing function is intentional and useful.
+
+Mike Cohn, who popularized the method in *Agile Estimating and Planning* (2005), states this directly: the growing gaps reflect the fact that you can't reliably distinguish 9 from 10 on a large story, while you can distinguish 8 from 13.
+
+## The actual deck: 20 or 21?
+
+A detail most articles skip: the standard commercial deck from Mountain Goat Software doesn't use 21.
+
+It uses **20**.
+
+The full Mountain Goat deck sequence is: 0, ½, 1, 2, 3, 5, 8, 13, **20**, 40, 100, ?, ∞.
+
+Cohn deliberately replaced 21 with 20. His reasoning: during testing with teams, someone said "you must be very confident to estimate 21 rather than 20." That confusion between mathematical precision and estimation precision convinced him to round it down.
+
+The result: two variants coexist in practice.
+
+**Pure Fibonacci**: 1, 2, 3, 5, 8, 13, 21 (and sometimes 34, 55, 89). Used by many teams and tools.
+
+**Modified Fibonacci (Mountain Goat deck)**: 0, ½, 1, 2, 3, 5, 8, 13, 20, 40, 100. Larger values are rounded to avoid false precision.
+
+Both serve the same purpose.
+
+## What each value range means in practice
+
+**0**: trivial task, no real effort. One-line documentation fix, typo correction.
+
+**½ or 1**: very small, well-defined, no uncertainty.
+
+**2 to 3**: small story, good understanding, few dependencies.
+
+**5**: standard story, a few unknowns, completable in a day or two.
+
+**8**: significant story. Some questions remain. The team has a good idea of what they're doing, but surprises are possible.
+
+**13 or 20/21**: complex story. Integration risks, unresolved dependencies, functional ambiguity. The point at which discussion about splitting becomes productive.
+
+**40, 100, ∞**: story too large to fit in a sprint as written. Not an estimate — a signal. The story needs to be split before the next session.
+
+**?**: "I can't estimate this story." It lacks information. Playing ? is more honest than inventing a number to avoid slowing the session down.
+
+## When Fibonacci doesn't fit
+
+Fibonacci is calibrated for estimating the complexity of stories entering a sprint in the next 1 to 3 weeks. Other contexts call for other scales.
+
+**T-shirt sizing (XS, S, M, L, XL)**: more accessible for teams new to relative estimation, or for heterogeneous deliverables that are hard to compare in points. Well-suited to 3-to-6-month product roadmaps.
+
+**Powers of 2 (1, 2, 4, 8, 16, 32)**: useful for teams that think in terms of doubling complexity. Less common in practice.
+
+**Natural numbers (1 to 10)**: readable but encourages the false precision described above. Better avoided once the team has estimation experience.
+
+The choice of scale depends on the team, its agile maturity, and the type of backlog. Fibonacci remains the de facto standard in the majority of Scrum teams.
+
+## Frequently asked questions
+
+### Why do some decks go up to 100 and others stop at 21?
+
+Decks that include 40, 100, or ∞ handle epics and oversized stories without forcing an arbitrary split during the session. Decks that stop at 13 or 21 require rescheduling if a story turns out to be too large. Both approaches work.
+
+### Do we have to use Fibonacci?
+
+No. Some teams prefer T-shirt sizing, powers of 2, or custom scales. What matters is that the scale forces choices between values spaced far enough apart to reflect genuine estimation uncertainty.
+
+### Do Fibonacci values correspond to hours or days?
+
+No. Fibonacci story points measure the relative complexity of a story compared to others — not an absolute duration. An 8-point story might take 2 hours or 3 days depending on context. The useful signal isn't the number itself but the team's velocity calculated across several sprints.
+
+### Why does the ? card matter?
+
+Because it's honest. When a team member doesn't have enough information to estimate, playing ? signals that gap explicitly. Voting an invented number to avoid slowing the session is the behavior that produces bad estimates.
+
+### Is Fibonacci planning poker specific to Scrum?
+
+The technique was described in an XP (eXtreme Programming) context by James Grenning in 2002. It spread into Scrum teams with the publication of Mike Cohn's book. It isn't Scrum-specific and works in any agile framework that uses relative estimation.
