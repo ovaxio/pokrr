@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import type { ComponentPropsWithoutRef } from "react";
-import type { MDXProps } from "mdx/types";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { registry, getPost, type Lang } from "@/content/blog/registry";
@@ -119,10 +118,15 @@ export default async function BlogPostPage({
       }
     : null;
 
+  const isUpdated = post.updatedAt !== post.publishedAt;
+  const datePrefix = locale === "fr"
+    ? (isUpdated ? "Mis à jour le" : "Publié le")
+    : (isUpdated ? "Updated" : "Published");
   const dateLabel = new Date(post.updatedAt).toLocaleDateString(
     locale === "fr" ? "fr-FR" : "en-US",
     { year: "numeric", month: "long", day: "numeric" },
   );
+  const authorPrefix = locale === "fr" ? "par" : "by";
 
   return (
     <>
@@ -143,9 +147,9 @@ export default async function BlogPostPage({
 
       <article className="space-y-8">
         <div className="flex items-center gap-3 text-sm text-muted">
-          <time dateTime={post.updatedAt}>{dateLabel}</time>
+          <time dateTime={post.updatedAt}>{datePrefix} {dateLabel}</time>
           <span aria-hidden>·</span>
-          <span>Guillaume Chambard</span>
+          <span aria-label={`${authorPrefix} Guillaume Chambard`}>Guillaume Chambard</span>
         </div>
 
         <div className="prose prose-neutral dark:prose-invert prose-headings:font-bold prose-headings:tracking-tight prose-a:text-accent prose-a:no-underline hover:prose-a:underline max-w-none">

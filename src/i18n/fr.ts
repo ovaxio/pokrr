@@ -186,6 +186,6 @@ export const fr: Dict = {
   blogSubtitle: "Guides sur le planning poker pour les équipes agiles.",
   blogEmpty: "Bientôt.",
   blogBackLink: "Tous les articles",
-  blogCta: "Essaie pokrr avec ton équipe : gratuit, sans inscription.",
+  blogCta: "Essaie pokrr avec ton équipe. Gratuit, sans inscription.",
   blogCtaButton: "Créer une salle →",
 };

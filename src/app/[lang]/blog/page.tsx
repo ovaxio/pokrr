@@ -90,6 +90,10 @@ export default async function BlogIndexPage({
         ) : (
           <ul className="space-y-8">
             {langPosts.map((post) => {
+              const isUpdated = post.updatedAt !== post.publishedAt;
+              const datePrefix = locale === "fr"
+                ? (isUpdated ? "Mis à jour le" : "Publié le")
+                : (isUpdated ? "Updated" : "Published");
               const dateLabel = new Date(post.updatedAt).toLocaleDateString(
                 locale === "fr" ? "fr-FR" : "en-US",
                 { year: "numeric", month: "long", day: "numeric" },
@@ -106,7 +110,7 @@ export default async function BlogIndexPage({
                       </Link>
                     </h2>
                     <p className="text-xs text-faint">
-                      <time dateTime={post.updatedAt}>{dateLabel}</time>
+                      <time dateTime={post.updatedAt}>{datePrefix} {dateLabel}</time>
                     </p>
                     <p className="text-sm text-muted leading-relaxed">{post.description}</p>
                   </article>

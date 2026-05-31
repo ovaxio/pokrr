@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { locales } from "@/i18n/shared";
 import type { Locale } from "@/i18n/types";
+import LocaleToggle from "../../_LocaleToggle";
+import ThemeToggle from "../../_ThemeToggle";
 
 const SITE_URL = "https://pokrr.app";
 
@@ -195,6 +198,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: c.metaTitle,
       description: c.metaDescription,
       url: `${SITE_URL}/${locale}/planning-poker-remote`,
+      images: [{ url: `${SITE_URL}/${locale}/planning-poker-remote/opengraph-image`, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: c.metaTitle,
+      description: c.metaDescription,
+      images: [`${SITE_URL}/${locale}/planning-poker-remote/opengraph-image`],
     },
   };
 }
@@ -258,39 +268,46 @@ export default async function RemotePage({ params }: Props) {
       />
 
       <div className="min-h-screen bg-bg text-fg">
-        <div className="absolute top-4 right-4 flex items-center gap-2">
-          <Link
-            href={locale === "fr" ? "/en/planning-poker-remote" : "/fr/planning-poker-remote"}
-            aria-label={locale === "fr" ? "Switch to English" : "Passer en français"}
-            className="text-xs text-muted hover:text-fg transition-colors px-2 py-1 rounded border border-token"
-          >
-            {locale === "fr" ? "EN" : "FR"}
-          </Link>
-        </div>
+        <header className="sticky top-0 z-10 border-b border-token bg-bg/80 backdrop-blur">
+          <div className="mx-auto flex max-w-2xl items-center justify-between px-6 py-3">
+            <Link href={`/${locale}`} className="font-bold tracking-tight text-fg hover:text-accent transition-colors">
+              pokrr
+            </Link>
+            <div className="flex items-center gap-2">
+              <LocaleToggle />
+              <ThemeToggle />
+            </div>
+          </div>
+        </header>
 
-        <main className="mx-auto max-w-2xl px-6 py-20 space-y-20">
+        <main className="mx-auto max-w-2xl px-6 py-14 space-y-20">
 
           {/* Hero */}
           <section className="space-y-6">
-            <h1 className="text-4xl font-bold tracking-tight text-balance sm:text-5xl">
+            <h1
+              className="anim-fade-up text-4xl font-bold tracking-tight text-balance sm:text-5xl"
+              style={{ "--delay": "0ms" } as CSSProperties}
+            >
               {c.title}
             </h1>
-            <div className="space-y-3 text-lg text-fg-soft">
+            <div className="anim-fade-up space-y-3 text-lg text-fg-soft" style={{ "--delay": "80ms" } as CSSProperties}>
               <p>{c.lead1}</p>
               <p>{c.lead2}</p>
               <p className="text-fg font-medium">{c.lead3}</p>
             </div>
-            <Link
-              href={`/${locale}`}
-              className="inline-block rounded-xl bg-accent px-6 py-3 font-semibold text-white hover:opacity-90 transition-opacity"
-            >
-              {c.cta}
-            </Link>
-            <p className="text-xs text-faint">
-              {locale === "fr"
-                ? "Sans inscription · Aucune donnée stockée · RGPD-friendly"
-                : "No signup · No data stored · GDPR-friendly"}
-            </p>
+            <div className="anim-fade-up flex flex-col gap-3 sm:flex-row sm:items-center" style={{ "--delay": "160ms" } as CSSProperties}>
+              <Link
+                href={`/${locale}`}
+                className="inline-block rounded-lg bg-accent px-6 py-3 font-semibold text-white hover:opacity-90 transition-opacity"
+              >
+                {c.cta}
+              </Link>
+              <p className="text-xs text-faint">
+                {locale === "fr"
+                  ? "Sans inscription · Aucune donnée stockée · RGPD-friendly"
+                  : "No signup · No data stored · GDPR-friendly"}
+              </p>
+            </div>
           </section>
 
           {/* Features */}
@@ -321,7 +338,7 @@ export default async function RemotePage({ params }: Props) {
             </ol>
             <Link
               href={`/${locale}`}
-              className="inline-block rounded-xl bg-accent px-6 py-3 font-semibold text-white hover:opacity-90 transition-opacity"
+              className="inline-block rounded-lg bg-accent px-6 py-3 font-semibold text-white hover:opacity-90 transition-opacity"
             >
               {c.cta}
             </Link>
@@ -342,22 +359,16 @@ export default async function RemotePage({ params }: Props) {
 
           {/* Internal link to blog */}
           <div className="border-t border-token pt-8">
-            <Link
-              href={c.blogHref}
-              className="text-sm text-accent hover:underline"
-            >
+            <Link href={c.blogHref} className="text-sm text-accent hover:underline">
               {c.blogLinkLabel} →
             </Link>
           </div>
 
-          {/* Footer nav */}
-          <div className="text-sm text-muted">
-            <Link href={`/${locale}`} className="hover:text-fg transition-colors">
-              ← pokrr
-            </Link>
-          </div>
-
         </main>
+
+        <footer className="border-t border-token py-8 text-center text-xs text-muted">
+          <Link href={`/${locale}`} className="hover:text-fg transition-colors">← pokrr</Link>
+        </footer>
       </div>
     </>
   );
