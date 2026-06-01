@@ -11,6 +11,6 @@ const script = `(function() {
   } catch (e) {}
 })();`;
 
-export default function ThemeScript() {
-  return <script dangerouslySetInnerHTML={{ __html: script }} />;
+export default function ThemeScript({ nonce }: { nonce?: string | null }) {
+  return <script nonce={nonce ?? undefined} dangerouslySetInnerHTML={{ __html: script }} />;
 }

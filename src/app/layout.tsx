@@ -89,11 +89,12 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const h = await headers();
   const xLocale = h.get("x-locale");
   const lang = xLocale && (locales as string[]).includes(xLocale) ? xLocale : defaultLocale;
+  const nonce = h.get("x-nonce");
 
   return (
     <html lang={lang} className={`h-full antialiased ${geist.variable}`} suppressHydrationWarning>
       <head>
-        <ThemeScript />
+        <ThemeScript nonce={nonce} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}

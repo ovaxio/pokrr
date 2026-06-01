@@ -14,6 +14,28 @@ function detectLocale(acceptLanguage: string | null): Locale {
 
 const SKIP_PATTERN = /^\/(api\/|_next\/|favicon\.ico|robots\.txt|sitemap\.xml|llms\.txt|icon\.svg|.*opengraph-image)/;
 
+function buildCsp(nonce: string): string {
+  const isDev = process.env.NODE_ENV === "development";
+  const partyKitHost = process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "localhost:1999";
+  const isLocalPK = partyKitHost.startsWith("localhost");
+  const partyKitWS = `${isLocalPK ? "ws" : "wss"}://${partyKitHost}`;
+  const impeccableDev = isDev ? " http://localhost:8400" : "";
+
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}${impeccableDev}`,
+    `style-src 'self' 'nonce-${nonce}'${isDev ? " 'unsafe-inline'" : ""}`,
+    "img-src 'self' data: blob:",
+    "font-src 'self' data:",
+    `connect-src 'self' ${partyKitWS} https://vitals.vercel-insights.com${isDev ? " ws://localhost:* http://localhost:*" : ""}`,
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "object-src 'none'",
+    "upgrade-insecure-requests",
+  ].join("; ");
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const host = request.headers.get("host") ?? "";
@@ -22,10 +44,16 @@ export function proxy(request: NextRequest) {
     (l) => pathname === `/${l}` || pathname.startsWith(`/${l}/`),
   );
 
-  // Forward locale to server components via request header
+  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+  const csp = buildCsp(nonce);
+
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-locale", pathLocale ?? defaultLocale);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("Content-Security-Policy", csp);
+
   const response = NextResponse.next({ request: { headers: requestHeaders } });
+  response.headers.set("Content-Security-Policy", csp);
 
   if (host.endsWith(".vercel.app")) {
     response.headers.set("X-Robots-Tag", "noindex, nofollow");
@@ -43,5 +71,13 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: "/((?!_next/static|_next/image|favicon.ico).*)",
+  matcher: [
+    {
+      source: "/((?!_next/static|_next/image|favicon.ico).*)",
+      missing: [
+        { type: "header", key: "next-router-prefetch" },
+        { type: "header", key: "purpose", value: "prefetch" },
+      ],
+    },
+  ],
 };
