@@ -134,6 +134,9 @@ class PokrrRoom implements Party.Server {
   private adminElectionTimer: ReturnType<typeof setTimeout> | null = null;
   private deckId: string = DEFAULT_DECK_ID;
   private timer: TimerInfo | null = null;
+  // Première connexion WebSocket à la salle (avant tout join).
+  // Permet de donner la priorité admin au CP même s'il valide son modal après le dev.
+  private firstConnectionId: string | null = null;
 
   private isCardInCurrentDeck(value: unknown): value is Card {
     if (typeof value !== "string") return false;
@@ -145,6 +148,11 @@ class PokrrRoom implements Party.Server {
 
   onConnect(conn: Party.Connection<ConnState>) {
     conn.setState({ voterId: null });
+    // Mémoriser la première connexion à la salle (room vide, pas encore de joueurs).
+    // Sert à redonner l'admin au CP même s'il valide son JoinModal après un dev.
+    if (this.players.size === 0 && this.firstConnectionId === null) {
+      this.firstConnectionId = conn.id;
+    }
     this.sendState(conn);
   }
 
@@ -198,6 +206,10 @@ class PokrrRoom implements Party.Server {
 
   onClose(conn: Party.Connection<ConnState>) {
     const voterId = conn.state?.voterId;
+    // Si la première connexion part sans avoir rejoint → libérer le slot.
+    if (conn.id === this.firstConnectionId && (!voterId || !this.players.has(voterId))) {
+      this.firstConnectionId = null;
+    }
     if (!voterId) return;
     const conns = this.connsByVoter.get(voterId);
     if (conns) {
@@ -253,9 +265,21 @@ class PokrrRoom implements Party.Server {
         joinedAt: Date.now(),
         isViewer: asViewer,
       });
-      // Le premier joueur devient admin (viewer ou pas).
+      // Le premier joueur devient admin.
       if (isFirst) {
         this.adminVoterIds.add(voterId);
+        if (conn.id === this.firstConnectionId) {
+          this.firstConnectionId = null;
+        }
+      } else if (this.firstConnectionId !== null && conn.id === this.firstConnectionId) {
+        // La "première connexion" rejoint après quelqu'un d'autre (CP qui partageait le
+        // lien avant de valider son modal). On lui accorde aussi l'admin (multi-admin).
+        this.adminVoterIds.add(voterId);
+        this.firstConnectionId = null;
+        log("admin_granted_first_connection", {
+          room: this.room.id,
+          voter: truncId(voterId),
+        });
       }
       log("player_joined", {
         room: this.room.id,

@@ -36,6 +36,9 @@ jobs:
       - name: npm audit (prod deps, high+)
         run: npm audit --omit=dev --audit-level=high
 
+      - name: Knip (unused exports / files)
+        run: npm run knip
+
   smoke:
     name: Backend smokes (room / election / security)
     runs-on: ubuntu-latest

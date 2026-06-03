@@ -15,7 +15,8 @@
     "smoke": "node scripts/smoke-room.mjs",
     "smoke:election": "POKRR_ADMIN_GRACE_MS=2000 node scripts/smoke-admin-election.mjs",
     "smoke:security": "node scripts/smoke-security.mjs",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "prepare": "husky"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",
@@ -42,6 +43,7 @@
     "concurrently": "^9.2.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "husky": "^9.1.7",
     "knip": "^5.88.1",
     "partykit": "^0.0.115",
     "tailwindcss": "^4",

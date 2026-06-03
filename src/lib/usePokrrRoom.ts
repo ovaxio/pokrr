@@ -25,23 +25,45 @@ export function usePokrrRoom(roomId: string, name: string | null, asViewer = fal
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [mySelectedVote, setMySelectedVote] = useState<Card | null>(null);
   const socketRef = useRef<PartySocket | null>(null);
+  // Refs pour accéder aux valeurs courantes dans les callbacks sans les mettre en deps.
+  const nameRef = useRef(name);
+  const asViewerRef = useRef(asViewer);
+  // Évite le double-envoi de join sur la même connexion.
+  const joinSentRef = useRef(false);
 
   useEffect(() => {
-    if (!name || !voterId) return;
+    nameRef.current = name;
+    asViewerRef.current = asViewer;
+  });
+
+  // Ouvrir le socket dès le mount (indépendamment du nom) :
+  // - pré-chauffe le DO Cloudflare pour accélérer le chargement
+  // - établit la "première connexion" côté serveur pour la priorité admin
+  useEffect(() => {
+    if (!voterId) return;
     const host = process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "localhost:1999";
     const socket = new PartySocket({ host, room: roomId });
     socketRef.current = socket;
+    joinSentRef.current = false;
 
-    const onOpen = () => {
+    const sendJoin = (n: string) => {
+      if (joinSentRef.current) return;
+      joinSentRef.current = true;
       setStatus("joining");
       socket.send(
         JSON.stringify({
           type: "join",
           voterId,
-          name,
-          ...(asViewer ? { asViewer: true } : {}),
+          name: n,
+          ...(asViewerRef.current ? { asViewer: true } : {}),
         } satisfies ClientMessage),
       );
+    };
+
+    const onOpen = () => {
+      const n = nameRef.current;
+      if (n) sendJoin(n);
+      // Sans nom : join envoyé via l'effet ci-dessous quand l'utilisateur valide le modal.
     };
 
     const onMessage = (event: MessageEvent) => {
@@ -70,7 +92,10 @@ export function usePokrrRoom(roomId: string, name: string | null, asViewer = fal
       }
     };
 
-    const onClose = () => setStatus("connecting");
+    const onClose = () => {
+      setStatus("connecting");
+      joinSentRef.current = false; // Permettre le re-join sur reconnexion automatique.
+    };
 
     socket.addEventListener("open", onOpen);
     socket.addEventListener("message", onMessage);
@@ -83,7 +108,26 @@ export function usePokrrRoom(roomId: string, name: string | null, asViewer = fal
       socket.close();
       socketRef.current = null;
     };
-  }, [roomId, name, voterId, asViewer]);
+  }, [roomId, voterId]);
+
+  // Envoyer join quand le nom devient disponible et que le socket est déjà ouvert
+  // (cas : utilisateur valide le JoinModal alors que la connexion est déjà établie).
+  useEffect(() => {
+    if (!name || !voterId) return;
+    if (joinSentRef.current) return;
+    const socket = socketRef.current;
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    joinSentRef.current = true;
+    setStatus("joining");
+    socket.send(
+      JSON.stringify({
+        type: "join",
+        voterId,
+        name,
+        ...(asViewer ? { asViewer: true } : {}),
+      } satisfies ClientMessage),
+    );
+  }, [name, asViewer, voterId]);
 
   const send = (msg: ClientMessage) => {
     const socket = socketRef.current;
