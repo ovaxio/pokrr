@@ -5,7 +5,7 @@
 // sont parsés comme nombre côté stats si la deck l'indique). La carte "?" est toujours
 // présente (vote "je ne sais pas"). "☕" optionnel selon préférence.
 
-export type Deck = {
+type Deck = {
   id: string;
   label: string;
   cards: readonly string[];
@@ -47,11 +47,7 @@ export const DECKS: Record<string, Deck> = {
 
 export const DEFAULT_DECK_ID = "fibonacci";
 
-// Compat : DECK = cartes du deck par défaut, NUMERIC_CARDS idem.
-// Utilisé par les anciens imports (useRoomShortcuts, smoke tests).
-export const DECK = DECKS[DEFAULT_DECK_ID].cards;
 export type Card = string;
-export const NUMERIC_CARDS: ReadonlyArray<string> = DECKS[DEFAULT_DECK_ID].numericCards;
 
 // Parse une carte d'un deck "hours" ou "powers-of-2" en nombre. Retourne null si non parseable.
 export function cardToNumber(deck: Deck, card: string): number | null {

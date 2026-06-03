@@ -6,9 +6,9 @@ import {
   type PlayerView,
 } from "../../party/types";
 
-export type DistributionEntry = { card: Card; count: number };
+type DistributionEntry = { card: Card; count: number };
 
-export type Stats = {
+type Stats = {
   voteCount: number; // votes effectifs (toutes cartes confondues, sauf null)
   numericCount: number; // votes numériques seulement (selon deck)
   mean: number | null;

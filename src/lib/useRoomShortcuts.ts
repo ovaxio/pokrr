@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { DECKS, DEFAULT_DECK_ID, type ClientMessage, type RoomState } from "../../party/types";
 
-export type RoomShortcutsConfig = {
+type RoomShortcutsConfig = {
   state: RoomState | null;
   isAdmin: boolean;
   sendAction: (msg: ClientMessage) => void;

@@ -2,8 +2,6 @@ import { fr } from "./fr";
 import { en } from "./en";
 import type { Locale, Dict } from "./types";
 
-export type { Locale, Dict };
-
 export const locales: Locale[] = ["fr", "en"];
 export const defaultLocale: Locale = "fr";
 

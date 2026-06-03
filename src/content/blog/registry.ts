@@ -1,9 +1,9 @@
 import type { ComponentType } from "react";
 import type { MDXProps } from "mdx/types";
 
-export type FaqItem = { q: string; a: string };
+type FaqItem = { q: string; a: string };
 
-export type PostEntry = {
+type PostEntry = {
   slug: string;
   title: string;
   description: string;

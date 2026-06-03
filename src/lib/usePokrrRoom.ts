@@ -5,9 +5,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { Card, ClientMessage, RoomState, ServerMessage } from "../../party/types";
 import { getOrCreateVoterId } from "./voterId";
 
-export type RoomStatus = "connecting" | "joining" | "joined" | "kicked" | "error";
+type RoomStatus = "connecting" | "joining" | "joined" | "kicked" | "error";
 
-export type UseRoom = {
+type UseRoom = {
   state: RoomState | null;
   status: RoomStatus;
   errorMsg: string | null;
