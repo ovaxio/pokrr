@@ -1,110 +1,19 @@
 import type * as Party from "partykit/server";
-import {
-  type Card,
-  type ClientMessage,
-  DECKS,
-  DEFAULT_DECK_ID,
-  type ErrorCode,
-  LIMITS,
-  type Phase,
-  type PlayerView,
-  type RoomState,
-  type ServerMessage,
-  type TimerInfo,
-} from "./types";
-
-type ServerPlayer = {
-  voterId: string;
-  name: string;
-  vote: Card | null;
-  joinedAt: number;
-  isViewer: boolean;
-};
+import type { ClientMessage, ErrorCode, ServerMessage } from "./types";
+import { GameRoom } from "./domain/GameRoom";
+import { GameError } from "./domain/GameError";
+import { sanitizeName, sanitizeStory, sanitizeVoterId } from "./sanitize";
+import { isOriginAllowed, isRateLimited, clientIp } from "./security";
+import { log, truncId } from "./log";
 
 type ConnState = { voterId: string | null };
 
-// ---------- Rate limit (par IP, in-memory, par isolate Worker) ----------
-const RATE_WINDOW_MS = 60_000;
-const RATE_MAX_CONNECTIONS = 30;
-const ipConnections = new Map<string, number[]>();
-
-function isRateLimited(ip: string | null): boolean {
-  if (!ip) return false;
-  const now = Date.now();
-  const recent = (ipConnections.get(ip) ?? []).filter((t) => now - t < RATE_WINDOW_MS);
-  if (recent.length >= RATE_MAX_CONNECTIONS) {
-    ipConnections.set(ip, recent);
-    return true;
-  }
-  recent.push(now);
-  ipConnections.set(ip, recent);
-  if (ipConnections.size > 10_000) {
-    for (const [key, ts] of ipConnections) {
-      if (ts.length === 0 || now - ts[ts.length - 1] > RATE_WINDOW_MS) {
-        ipConnections.delete(key);
-      }
-    }
-  }
-  return false;
-}
-
-// ---------- Structured logs ----------
-function log(event: string, data: Record<string, unknown> = {}): void {
-  const line = JSON.stringify({ ts: new Date().toISOString(), event, ...data });
-  console.log(line);
-}
-
-function truncId(id: string | null | undefined): string {
-  return id ? id.slice(0, 8) : "—";
-}
-
-function clientIp(req: Party.Request): string | null {
-  const cfIp = req.headers.get("cf-connecting-ip");
-  if (cfIp) return cfIp;
-  const xff = req.headers.get("x-forwarded-for");
-  if (xff) return xff.split(",")[0]?.trim() ?? null;
-  return null;
-}
-
-// ---------- Origin allowlist (anti CSWSH) ----------
-function isOriginAllowed(req: Party.Request): boolean {
-  const origin = req.headers.get("origin");
-  if (!origin) return true;
-  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return true;
-  if (/^https:\/\/[^/]+\.vercel\.app$/.test(origin)) return true;
-  if (/^https:\/\/(www\.)?pokrr\.app$/.test(origin)) return true;
-  if (process.env.POKRR_ALLOWED_ORIGINS) {
-    const allowed = process.env.POKRR_ALLOWED_ORIGINS.split(",").map((o) => o.trim());
-    if (allowed.includes(origin)) return true;
-  }
-  return false;
-}
-
-// ---------- Admin election ----------
 const DEFAULT_ADMIN_GRACE_MS = 15 * 60 * 1000;
 
 function readAdminGraceMs(env: unknown): number {
   if (!env || typeof env !== "object") return DEFAULT_ADMIN_GRACE_MS;
   const raw = Number((env as Record<string, unknown>).POKRR_ADMIN_GRACE_MS);
   return Number.isFinite(raw) && raw > 0 ? raw : DEFAULT_ADMIN_GRACE_MS;
-}
-
-function sanitizeName(raw: unknown): string | null {
-  if (typeof raw !== "string") return null;
-  const trimmed = raw.trim().replace(/[<>]/g, "");
-  if (trimmed.length === 0 || trimmed.length > LIMITS.maxNameLength) return null;
-  return trimmed;
-}
-
-function sanitizeStory(raw: unknown): string | null {
-  if (typeof raw !== "string") return null;
-  return raw.replace(/[<>]/g, "").slice(0, LIMITS.maxStoryLength);
-}
-
-function sanitizeVoterId(raw: unknown): string | null {
-  if (typeof raw !== "string") return null;
-  if (!/^[a-zA-Z0-9_-]{1,64}$/.test(raw)) return null;
-  return raw;
 }
 
 class PokrrRoom implements Party.Server {
@@ -123,566 +32,218 @@ class PokrrRoom implements Party.Server {
     return req;
   }
 
-  private story = "";
-  private phase: Phase = "voting";
-  private autoReveal = true;
-  private version = 0;
-  // Set de tous les admins courants (plusieurs admins possibles).
-  private adminVoterIds = new Set<string>();
-  private players = new Map<string, ServerPlayer>();
-  private connsByVoter = new Map<string, Set<string>>();
-  private adminElectionTimer: ReturnType<typeof setTimeout> | null = null;
-  private deckId: string = DEFAULT_DECK_ID;
-  private timer: TimerInfo | null = null;
-  // Première connexion WebSocket à la salle (avant tout join).
-  // Permet de donner la priorité admin au CP même s'il valide son modal après le dev.
-  private firstConnectionId: string | null = null;
-
-  private isCardInCurrentDeck(value: unknown): value is Card {
-    if (typeof value !== "string") return false;
-    const deck = DECKS[this.deckId] ?? DECKS[DEFAULT_DECK_ID];
-    return (deck.cards as readonly string[]).includes(value);
-  }
+  private game = new GameRoom();
+  private electionTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(readonly room: Party.Room) {}
 
-  onConnect(conn: Party.Connection<ConnState>) {
+  onConnect(conn: Party.Connection<ConnState>): void {
     conn.setState({ voterId: null });
-    // Mémoriser la première connexion à la salle (room vide, pas encore de joueurs).
-    // Sert à redonner l'admin au CP même s'il valide son JoinModal après un dev.
-    if (this.players.size === 0 && this.firstConnectionId === null) {
-      this.firstConnectionId = conn.id;
-    }
-    this.sendState(conn);
+    this.game.trackConnection(conn.id);
+    conn.send(JSON.stringify(this.game.snapshot(this.room.id)));
   }
 
-  onMessage(raw: string, sender: Party.Connection<ConnState>) {
+  onMessage(raw: string, sender: Party.Connection<ConnState>): void {
     let msg: ClientMessage;
     try {
       msg = JSON.parse(raw) as ClientMessage;
     } catch {
-      return this.sendError(sender, "invalid", "JSON invalide");
+      this.sendError(sender, "invalid", "JSON invalide");
+      return;
     }
 
-    switch (msg.type) {
-      case "join":
-        return this.handleJoin(sender, msg.voterId, msg.name, msg.asViewer);
-      case "set_name":
-        return this.handleSetName(sender, msg.name);
-      case "vote":
-        return this.handleVote(sender, msg.value);
-      case "unvote":
-        return this.handleUnvote(sender);
-      case "reveal":
-        return this.handleReveal(sender);
-      case "reset":
-        return this.handleReset(sender);
-      case "next_story":
-        return this.handleNextStory(sender, msg.story);
-      case "set_story":
-        return this.handleSetStory(sender, msg.story);
-      case "set_auto_reveal":
-        return this.handleSetAutoReveal(sender, msg.enabled);
-      case "kick":
-        return this.handleKick(sender, msg.voterId);
-      case "transfer_admin":
-        return this.handleTransferAdmin(sender, msg.voterId);
-      case "grant_admin":
-        return this.handleGrantAdmin(sender, msg.voterId);
-      case "revoke_admin":
-        return this.handleRevokeAdmin(sender, msg.voterId);
-      case "set_viewer":
-        return this.handleSetViewer(sender, msg.isViewer);
-      case "set_deck":
-        return this.handleSetDeck(sender, msg.deckId);
-      case "start_timer":
-        return this.handleStartTimer(sender, msg.durationSec);
-      case "stop_timer":
-        return this.handleStopTimer(sender);
-      default:
-        return this.sendError(sender, "invalid", "Type de message inconnu");
+    const voterId = sender.state?.voterId ?? null;
+
+    try {
+      this.dispatch(msg, sender, voterId);
+      this.broadcastWithAutoReveal(msg.type);
+    } catch (e) {
+      if (e instanceof GameError) this.sendError(sender, e.code, e.message);
     }
   }
 
-  onClose(conn: Party.Connection<ConnState>) {
-    const voterId = conn.state?.voterId;
-    // Si la première connexion part sans avoir rejoint → libérer le slot.
-    if (conn.id === this.firstConnectionId && (!voterId || !this.players.has(voterId))) {
-      this.firstConnectionId = null;
-    }
+  onClose(conn: Party.Connection<ConnState>): void {
+    const voterId = conn.state?.voterId ?? null;
+    const { needsElection } = this.game.untrackConnection(conn.id, voterId);
+
     if (!voterId) return;
-    const conns = this.connsByVoter.get(voterId);
-    if (conns) {
-      conns.delete(conn.id);
-      if (conns.size === 0) {
-        this.connsByVoter.delete(voterId);
-      }
+
+    if (needsElection) this.scheduleElection();
+    this.room.broadcast(JSON.stringify(this.game.snapshot(this.room.id)));
+
+    if (this.game.shouldAutoReveal()) {
+      this.game.doAutoReveal();
+      log("revealed_auto", { room: this.room.id });
+      this.room.broadcast(JSON.stringify(this.game.snapshot(this.room.id)));
     }
-    // Si un admin vient de passer offline et qu'aucun admin n'est plus en ligne,
-    // programmer l'élection automatique.
-    if (this.adminVoterIds.has(voterId) && !this.isOnline(voterId)) {
-      const anyAdminOnline = [...this.adminVoterIds].some((id) => this.isOnline(id));
-      if (!anyAdminOnline) {
-        this.scheduleAdminElection();
-      }
-    }
-    this.bumpAndBroadcast();
-    this.maybeAutoReveal();
   }
 
-  // ---------- handlers ----------
+  // --- Message dispatch ---
 
-  private handleJoin(
-    conn: Party.Connection<ConnState>,
-    voterIdRaw: unknown,
-    nameRaw: unknown,
-    asViewerRaw?: unknown,
-  ) {
-    const voterId = sanitizeVoterId(voterIdRaw);
-    if (!voterId) return this.sendError(conn, "invalid", "voterId invalide");
-
-    const name = sanitizeName(nameRaw);
-    if (!name) return this.sendError(conn, "invalid", "Pseudo invalide (1-24 caractères)");
-
-    const isFirst = this.players.size === 0;
-    // Premier à rejoindre = admin → viewer par défaut (rôle facilitateur).
-    // Peut être surchargé en passant explicitement asViewer: false depuis le modal.
-    const asViewer = isFirst ? asViewerRaw !== false : asViewerRaw === true;
-
-    const isReconnect = this.players.has(voterId);
-    if (!isReconnect && this.players.size >= LIMITS.maxPlayersPerRoom) {
-      return this.sendError(conn, "room_full", "Salle pleine (max 50 voters)");
-    }
-
-    if (isReconnect) {
-      log("player_rejoined", { room: this.room.id, voter: truncId(voterId) });
-    } else {
-      const finalName = this.dedupeName(name, voterId);
-      this.players.set(voterId, {
-        voterId,
-        name: finalName,
-        vote: null,
-        joinedAt: Date.now(),
-        isViewer: asViewer,
-      });
-      // Le premier joueur devient admin.
-      if (isFirst) {
-        this.adminVoterIds.add(voterId);
-        if (conn.id === this.firstConnectionId) {
-          this.firstConnectionId = null;
+  private dispatch(msg: ClientMessage, conn: Party.Connection<ConnState>, voterId: string | null): void {
+    switch (msg.type) {
+      case "join": {
+        const cleanId = this.valid(sanitizeVoterId(msg.voterId), "voterId invalide");
+        const cleanName = this.valid(sanitizeName(msg.name), "Pseudo invalide (1-24 caractères)");
+        this.game.join(conn.id, cleanId, cleanName, msg.asViewer);
+        conn.setState({ voterId: cleanId });
+        if (this.electionTimer && this.game.isAdminReturning(cleanId)) {
+          clearTimeout(this.electionTimer);
+          this.electionTimer = null;
         }
-      } else if (this.firstConnectionId !== null && conn.id === this.firstConnectionId) {
-        // La "première connexion" rejoint après quelqu'un d'autre (CP qui partageait le
-        // lien avant de valider son modal). On lui accorde aussi l'admin (multi-admin).
-        this.adminVoterIds.add(voterId);
-        this.firstConnectionId = null;
-        log("admin_granted_first_connection", {
+        log("player_joined", {
           room: this.room.id,
-          voter: truncId(voterId),
+          voter: truncId(cleanId),
+          is_admin: this.game.isAdmin(cleanId),
+          players: this.game.playerCount(),
         });
+        break;
       }
-      log("player_joined", {
-        room: this.room.id,
-        voter: truncId(voterId),
-        is_admin: this.adminVoterIds.has(voterId),
-        is_viewer: asViewer,
-        players: this.players.size,
-      });
-    }
-
-    conn.setState({ voterId });
-    const conns = this.connsByVoter.get(voterId) ?? new Set<string>();
-    conns.add(conn.id);
-    this.connsByVoter.set(voterId, conns);
-
-    // Un admin revient en ligne → annuler l'élection programmée.
-    if (this.adminVoterIds.has(voterId) && this.adminElectionTimer) {
-      clearTimeout(this.adminElectionTimer);
-      this.adminElectionTimer = null;
-    }
-
-    this.bumpAndBroadcast();
-  }
-
-  private handleSetName(conn: Party.Connection<ConnState>, nameRaw: unknown) {
-    const voterId = conn.state?.voterId;
-    if (!voterId) return this.sendError(conn, "not_joined", "Pas encore joint");
-    const player = this.players.get(voterId);
-    if (!player) return this.sendError(conn, "not_joined", "Joueur introuvable");
-
-    const name = sanitizeName(nameRaw);
-    if (!name) return this.sendError(conn, "invalid", "Pseudo invalide");
-    player.name = this.dedupeName(name, voterId);
-    this.bumpAndBroadcast();
-  }
-
-  private handleVote(conn: Party.Connection<ConnState>, value: unknown) {
-    const player = this.requirePlayer(conn);
-    if (!player) return;
-    if (player.isViewer) {
-      return this.sendError(conn, "forbidden", "Les spectateurs ne peuvent pas voter");
-    }
-    if (this.phase !== "voting") {
-      return this.sendError(conn, "forbidden", "Vote impossible après reveal");
-    }
-    if (!this.isCardInCurrentDeck(value)) {
-      return this.sendError(conn, "invalid", "Carte hors deck");
-    }
-    player.vote = value;
-    log("vote_cast", { room: this.room.id, voter: truncId(player.voterId), value });
-    this.bumpAndBroadcast();
-    this.maybeAutoReveal();
-  }
-
-  private handleUnvote(conn: Party.Connection<ConnState>) {
-    const player = this.requirePlayer(conn);
-    if (!player) return;
-    if (player.isViewer) return;
-    if (this.phase !== "voting") {
-      return this.sendError(conn, "forbidden", "Pas de unvote après reveal");
-    }
-    if (player.vote === null) return;
-    player.vote = null;
-    this.bumpAndBroadcast();
-  }
-
-  private handleReveal(conn: Party.Connection<ConnState>) {
-    if (!this.requireAdmin(conn)) return;
-    if (this.phase === "revealed") return;
-    this.phase = "revealed";
-    const voted = [...this.players.values()].filter((p) => !p.isViewer && p.vote !== null).length;
-    log("revealed_manual", { room: this.room.id, voted, total: this.players.size });
-    this.bumpAndBroadcast();
-  }
-
-  private handleReset(conn: Party.Connection<ConnState>) {
-    if (!this.requireAdmin(conn)) return;
-    this.clearVotes();
-    this.phase = "voting";
-    this.timer = null;
-    log("round_reset", { room: this.room.id });
-    this.bumpAndBroadcast();
-  }
-
-  private handleSetDeck(conn: Party.Connection<ConnState>, deckIdRaw: unknown) {
-    if (!this.requireAdmin(conn)) return;
-    if (typeof deckIdRaw !== "string" || !(deckIdRaw in DECKS)) {
-      return this.sendError(conn, "invalid", "deckId inconnu");
-    }
-    if (deckIdRaw === this.deckId) return;
-    const hasVote = [...this.players.values()].some((p) => p.vote !== null);
-    if (hasVote) {
-      return this.sendError(
-        conn,
-        "forbidden",
-        "Impossible de changer le deck après le premier vote — reset ou story suivante d'abord",
-      );
-    }
-    this.deckId = deckIdRaw;
-    log("deck_changed", { room: this.room.id, deck: this.deckId });
-    this.bumpAndBroadcast();
-  }
-
-  private handleStartTimer(conn: Party.Connection<ConnState>, durationRaw: unknown) {
-    if (!this.requireAdmin(conn)) return;
-    const duration = typeof durationRaw === "number" ? Math.floor(durationRaw) : NaN;
-    if (
-      !Number.isFinite(duration) ||
-      duration < LIMITS.minTimerSec ||
-      duration > LIMITS.maxTimerSec
-    ) {
-      return this.sendError(
-        conn,
-        "invalid",
-        `Durée invalide (entre ${LIMITS.minTimerSec}s et ${LIMITS.maxTimerSec}s)`,
-      );
-    }
-    this.timer = { startedAt: Date.now(), durationSec: duration };
-    log("timer_started", { room: this.room.id, duration });
-    this.bumpAndBroadcast();
-  }
-
-  private handleStopTimer(conn: Party.Connection<ConnState>) {
-    if (!this.requireAdmin(conn)) return;
-    if (!this.timer) return;
-    this.timer = null;
-    log("timer_stopped", { room: this.room.id });
-    this.bumpAndBroadcast();
-  }
-
-  private handleNextStory(conn: Party.Connection<ConnState>, storyRaw: unknown) {
-    if (!this.requireAdmin(conn)) return;
-    const story = sanitizeStory(storyRaw);
-    if (story === null) return this.sendError(conn, "invalid", "Story invalide");
-    this.story = story;
-    this.clearVotes();
-    this.phase = "voting";
-    this.timer = null;
-    log("next_story", { room: this.room.id, len: story.length });
-    this.bumpAndBroadcast();
-  }
-
-  private handleSetStory(conn: Party.Connection<ConnState>, storyRaw: unknown) {
-    if (!this.requireAdmin(conn)) return;
-    const story = sanitizeStory(storyRaw);
-    if (story === null) return this.sendError(conn, "invalid", "Story invalide");
-    if (this.story === story) return;
-    this.story = story;
-    this.bumpAndBroadcast();
-  }
-
-  private handleSetAutoReveal(conn: Party.Connection<ConnState>, enabled: unknown) {
-    if (!this.requireAdmin(conn)) return;
-    const value = typeof enabled === "boolean" ? enabled : null;
-    if (value === null) return this.sendError(conn, "invalid", "Valeur booléenne attendue");
-    if (this.autoReveal === value) return;
-    this.autoReveal = value;
-    this.bumpAndBroadcast();
-    this.maybeAutoReveal();
-  }
-
-  private handleKick(conn: Party.Connection<ConnState>, targetRaw: unknown) {
-    if (!this.requireAdmin(conn)) return;
-    const target = sanitizeVoterId(targetRaw);
-    if (!target) return this.sendError(conn, "invalid", "voterId cible invalide");
-    const senderVoterId = conn.state?.voterId;
-    if (target === senderVoterId) {
-      return this.sendError(conn, "forbidden", "Impossible de se kicker soi-même");
-    }
-    if (!this.players.has(target)) return;
-    this.adminVoterIds.delete(target);
-    this.players.delete(target);
-    this.kickConnections(target, "Vous avez été retiré de la salle par un admin");
-    this.connsByVoter.delete(target);
-    log("player_kicked", { room: this.room.id, target: truncId(target) });
-    this.bumpAndBroadcast();
-    this.maybeAutoReveal();
-  }
-
-  private handleSetViewer(conn: Party.Connection<ConnState>, isViewerRaw: unknown) {
-    const player = this.requirePlayer(conn);
-    if (!player) return;
-    if (typeof isViewerRaw !== "boolean") {
-      return this.sendError(conn, "invalid", "Valeur booléenne attendue");
-    }
-    if (player.isViewer === isViewerRaw) return;
-    // Si le joueur repasse en voter, on efface son vote hypothétique (null de toute façon).
-    player.isViewer = isViewerRaw;
-    if (isViewerRaw) player.vote = null;
-    log("viewer_toggled", {
-      room: this.room.id,
-      voter: truncId(player.voterId),
-      is_viewer: isViewerRaw,
-    });
-    this.bumpAndBroadcast();
-    this.maybeAutoReveal();
-  }
-
-  private handleTransferAdmin(conn: Party.Connection<ConnState>, targetRaw: unknown) {
-    if (!this.requireAdmin(conn)) return;
-    const sender = conn.state?.voterId;
-    const target = sanitizeVoterId(targetRaw);
-    if (!target) return this.sendError(conn, "invalid", "voterId cible invalide");
-    if (!this.players.has(target)) return this.sendError(conn, "invalid", "Joueur cible introuvable");
-    if (this.adminVoterIds.has(target)) return this.sendError(conn, "invalid", "Ce joueur est déjà admin");
-    log("admin_transferred", { room: this.room.id, from: truncId(sender), to: truncId(target) });
-    this.adminVoterIds.add(target);
-    if (sender) this.adminVoterIds.delete(sender);
-    this.bumpAndBroadcast();
-  }
-
-  private handleGrantAdmin(conn: Party.Connection<ConnState>, targetRaw: unknown) {
-    if (!this.requireAdmin(conn)) return;
-    const target = sanitizeVoterId(targetRaw);
-    if (!target) return this.sendError(conn, "invalid", "voterId cible invalide");
-    const targetPlayer = this.players.get(target);
-    if (!targetPlayer) {
-      return this.sendError(conn, "invalid", "Joueur cible introuvable");
-    }
-    if (this.adminVoterIds.has(target)) return;
-    log("admin_granted", {
-      room: this.room.id,
-      by: truncId(conn.state?.voterId),
-      to: truncId(target),
-    });
-    this.adminVoterIds.add(target);
-    this.bumpAndBroadcast();
-  }
-
-  private handleRevokeAdmin(conn: Party.Connection<ConnState>, targetRaw: unknown) {
-    if (!this.requireAdmin(conn)) return;
-    const target = sanitizeVoterId(targetRaw);
-    if (!target) return this.sendError(conn, "invalid", "voterId cible invalide");
-    if (!this.adminVoterIds.has(target)) {
-      return this.sendError(conn, "invalid", "Ce joueur n'est pas admin");
-    }
-    if (this.adminVoterIds.size <= 1) {
-      return this.sendError(conn, "forbidden", "Impossible de révoquer le dernier admin");
-    }
-    log("admin_revoked", {
-      room: this.room.id,
-      by: truncId(conn.state?.voterId),
-      from: truncId(target),
-    });
-    this.adminVoterIds.delete(target);
-    this.bumpAndBroadcast();
-  }
-
-  // ---------- helpers ----------
-
-  private requirePlayer(conn: Party.Connection<ConnState>): ServerPlayer | null {
-    const voterId = conn.state?.voterId;
-    if (!voterId) {
-      this.sendError(conn, "not_joined", "Pas encore joint");
-      return null;
-    }
-    const player = this.players.get(voterId);
-    if (!player) {
-      this.sendError(conn, "not_joined", "Joueur introuvable");
-      return null;
-    }
-    return player;
-  }
-
-  private requireAdmin(conn: Party.Connection<ConnState>): boolean {
-    const player = this.requirePlayer(conn);
-    if (!player) return false;
-    if (!this.adminVoterIds.has(player.voterId)) {
-      this.sendError(conn, "forbidden", "Action réservée aux admins");
-      return false;
-    }
-    return true;
-  }
-
-  private dedupeName(name: string, ownerVoterId: string): string {
-    const taken = new Set<string>();
-    for (const [voterId, p] of this.players) {
-      if (voterId !== ownerVoterId) taken.add(p.name);
-    }
-    if (!taken.has(name)) return name;
-    let i = 2;
-    while (taken.has(`${name} (${i})`)) i++;
-    return `${name} (${i})`;
-  }
-
-  private clearVotes() {
-    for (const player of this.players.values()) {
-      player.vote = null;
+      case "set_name": {
+        const name = this.valid(sanitizeName(msg.name), "Pseudo invalide");
+        this.game.setName(this.joined(voterId), name);
+        break;
+      }
+      case "vote": {
+        this.game.vote(this.joined(voterId), msg.value);
+        log("vote_cast", { room: this.room.id, voter: truncId(voterId), value: msg.value });
+        break;
+      }
+      case "unvote": {
+        this.game.unvote(this.joined(voterId));
+        break;
+      }
+      case "reveal": {
+        this.game.reveal(this.joined(voterId));
+        log("revealed_manual", { room: this.room.id });
+        break;
+      }
+      case "reset": {
+        this.game.reset(this.joined(voterId));
+        log("round_reset", { room: this.room.id });
+        break;
+      }
+      case "next_story": {
+        const story = this.valid(sanitizeStory(msg.story), "Story invalide");
+        this.game.nextStory(this.joined(voterId), story);
+        log("next_story", { room: this.room.id, len: story.length });
+        break;
+      }
+      case "set_story": {
+        const story = this.valid(sanitizeStory(msg.story), "Story invalide");
+        this.game.setStory(this.joined(voterId), story);
+        break;
+      }
+      case "set_auto_reveal": {
+        if (typeof msg.enabled !== "boolean") throw new GameError("invalid", "Valeur booléenne attendue");
+        this.game.setAutoReveal(this.joined(voterId), msg.enabled);
+        break;
+      }
+      case "kick": {
+        const target = this.valid(sanitizeVoterId(msg.voterId), "voterId cible invalide");
+        const connIds = this.game.getConnectionIds(target);
+        this.game.kick(this.joined(voterId), target);
+        this.kickConnections(connIds, "Vous avez été retiré de la salle par un admin");
+        log("player_kicked", { room: this.room.id, target: truncId(target) });
+        break;
+      }
+      case "set_viewer": {
+        if (typeof msg.isViewer !== "boolean") throw new GameError("invalid", "Valeur booléenne attendue");
+        this.game.setViewer(this.joined(voterId), msg.isViewer);
+        log("viewer_toggled", { room: this.room.id, voter: truncId(voterId), is_viewer: msg.isViewer });
+        break;
+      }
+      case "set_deck": {
+        this.game.setDeck(this.joined(voterId), msg.deckId);
+        log("deck_changed", { room: this.room.id, deck: msg.deckId });
+        break;
+      }
+      case "start_timer": {
+        if (typeof msg.durationSec !== "number") throw new GameError("invalid", "Nombre attendu");
+        this.game.startTimer(this.joined(voterId), msg.durationSec);
+        log("timer_started", { room: this.room.id, duration: msg.durationSec });
+        break;
+      }
+      case "stop_timer": {
+        this.game.stopTimer(this.joined(voterId));
+        log("timer_stopped", { room: this.room.id });
+        break;
+      }
+      case "transfer_admin": {
+        const target = this.valid(sanitizeVoterId(msg.voterId), "voterId cible invalide");
+        this.game.transferAdmin(this.joined(voterId), target);
+        log("admin_transferred", { room: this.room.id, from: truncId(voterId), to: truncId(target) });
+        break;
+      }
+      case "grant_admin": {
+        const target = this.valid(sanitizeVoterId(msg.voterId), "voterId cible invalide");
+        this.game.grantAdmin(this.joined(voterId), target);
+        log("admin_granted", { room: this.room.id, by: truncId(voterId), to: truncId(target) });
+        break;
+      }
+      case "revoke_admin": {
+        const target = this.valid(sanitizeVoterId(msg.voterId), "voterId cible invalide");
+        this.game.revokeAdmin(this.joined(voterId), target);
+        log("admin_revoked", { room: this.room.id, by: truncId(voterId), from: truncId(target) });
+        break;
+      }
+      default:
+        throw new GameError("invalid", "Type de message inconnu");
     }
   }
 
-  private isOnline(voterId: string): boolean {
-    const conns = this.connsByVoter.get(voterId);
-    return conns ? conns.size > 0 : false;
+  // --- Infrastructure helpers ---
+
+  private broadcastWithAutoReveal(msgType: ClientMessage["type"]): void {
+    this.room.broadcast(JSON.stringify(this.game.snapshot(this.room.id)));
+
+    const autoRevealTriggers = new Set<ClientMessage["type"]>([
+      "vote", "unvote", "kick", "set_viewer", "set_auto_reveal",
+    ]);
+    if (autoRevealTriggers.has(msgType) && this.game.shouldAutoReveal()) {
+      this.game.doAutoReveal();
+      log("revealed_auto", { room: this.room.id });
+      this.room.broadcast(JSON.stringify(this.game.snapshot(this.room.id)));
+    }
   }
 
-  private scheduleAdminElection() {
-    if (this.adminElectionTimer) clearTimeout(this.adminElectionTimer);
+  private scheduleElection(): void {
+    if (this.electionTimer) clearTimeout(this.electionTimer);
     const graceMs = readAdminGraceMs(this.room.env);
-    this.adminElectionTimer = setTimeout(() => {
-      this.adminElectionTimer = null;
-      // Si un admin est revenu entre-temps, ne rien faire.
-      const anyAdminOnline = [...this.adminVoterIds].some((id) => this.isOnline(id));
-      if (anyAdminOnline) return;
-      // Élire le plus ancien joueur non-viewer non-admin en ligne.
-      const candidates = [...this.players.values()]
-        .filter(
-          (p) =>
-            this.isOnline(p.voterId) &&
-            !this.adminVoterIds.has(p.voterId) &&
-            !p.isViewer,
-        )
-        .sort((a, b) => a.joinedAt - b.joinedAt);
-      const next = candidates[0];
-      if (!next) return;
-      log("admin_elected", {
-        room: this.room.id,
-        to: truncId(next.voterId),
-        grace_ms: graceMs,
-      });
-      // Retirer les admins offline avant d'élire le nouveau.
-      for (const id of this.adminVoterIds) {
-        if (!this.isOnline(id)) this.adminVoterIds.delete(id);
-      }
-      this.adminVoterIds.add(next.voterId);
-      this.bumpAndBroadcast();
+    this.electionTimer = setTimeout(() => {
+      this.electionTimer = null;
+      const elected = this.game.electAdmin();
+      if (!elected) return;
+      log("admin_elected", { room: this.room.id, to: truncId(elected), grace_ms: graceMs });
+      this.room.broadcast(JSON.stringify(this.game.snapshot(this.room.id)));
     }, graceMs);
   }
 
-  private maybeAutoReveal() {
-    if (!this.autoReveal) return;
-    if (this.phase !== "voting") return;
-    // Seuls les voters en ligne comptent (pas les viewers).
-    const onlineVoters = [...this.players.values()].filter(
-      (p) => this.isOnline(p.voterId) && !p.isViewer,
-    );
-    if (onlineVoters.length === 0) return;
-    if (onlineVoters.every((p) => p.vote !== null)) {
-      this.phase = "revealed";
-      log("revealed_auto", {
-        room: this.room.id,
-        voted: onlineVoters.length,
-        total: this.players.size,
-      });
-      this.bumpAndBroadcast();
-    }
-  }
-
-  private buildState(): RoomState {
-    const players: PlayerView[] = [...this.players.values()]
-      .sort((a, b) => a.joinedAt - b.joinedAt)
-      .map((p) => ({
-        voterId: p.voterId,
-        name: p.name,
-        hasVoted: !p.isViewer && p.vote !== null,
-        vote: !p.isViewer && this.phase === "revealed" ? p.vote : null,
-        isAdmin: this.adminVoterIds.has(p.voterId),
-        isViewer: p.isViewer,
-        online: this.isOnline(p.voterId),
-      }));
-    return {
-      type: "room_state",
-      roomId: this.room.id,
-      story: this.story,
-      phase: this.phase,
-      autoReveal: this.autoReveal,
-      players,
-      deckId: this.deckId,
-      timer: this.timer,
-      version: this.version,
-    };
-  }
-
-  private bumpAndBroadcast() {
-    this.version++;
-    const state = this.buildState();
-    const payload = JSON.stringify(state);
-    this.room.broadcast(payload);
-  }
-
-  private sendState(conn: Party.Connection) {
-    const state = this.buildState();
-    conn.send(JSON.stringify(state));
-  }
-
-  private sendError(conn: Party.Connection, code: ErrorCode, message: string) {
-    const err: ServerMessage = { type: "error", code, message };
-    conn.send(JSON.stringify(err));
-  }
-
-  private kickConnections(voterId: string, reason: string) {
-    const conns = this.connsByVoter.get(voterId);
-    if (!conns) return;
-    for (const connId of conns) {
+  private kickConnections(connIds: Set<string>, reason: string): void {
+    for (const connId of connIds) {
       const conn = this.room.getConnection(connId);
       if (!conn) continue;
       try {
-        conn.send(JSON.stringify({ type: "kicked", reason }));
+        conn.send(JSON.stringify({ type: "kicked", reason } satisfies ServerMessage));
         conn.close();
       } catch {
-        // ignore
+        // connection already closed
       }
     }
+  }
+
+  private sendError(conn: Party.Connection, code: ErrorCode, message: string): void {
+    conn.send(JSON.stringify({ type: "error", code, message } satisfies ServerMessage));
+  }
+
+  private valid<T>(value: T | null, message: string): T {
+    if (value === null) throw new GameError("invalid", message);
+    return value;
+  }
+
+  private joined(voterId: string | null): string {
+    if (!voterId) throw new GameError("not_joined", "Pas encore joint");
+    return voterId;
   }
 }
 

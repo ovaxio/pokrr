@@ -2,7 +2,8 @@
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "entry": [
     "party/index.ts",
-    "scripts/*.mjs"
+    "scripts/*.mjs",
+    "tests/**/*.test.ts"
   ],
   "ignoreDependencies": [
     "postcss"
