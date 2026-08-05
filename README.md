@@ -96,9 +96,9 @@ src/app/
   room/[code]/
     page.tsx            # Server shell qui passe le code
     _RoomClient.tsx     # Hub UI (pre-rendered shell + JoinModal overlay)
-    _CardDeck.tsx       # 14 cartes Fibonacci + ∞ + ? + ☕, grille 4×4 mobile
+    _CardDeck.tsx       # Deck de cartes + ∞ + ? + ☕, grille responsive
     _PlayerList.tsx     # Cartes joueurs avec flip 3D 400ms au reveal
-    _ResultsPanel.tsx   # Moyenne, médiane, suggestion Fibonacci, distribution
+    _ResultsPanel.tsx   # Moyenne, médiane, suggestion, distribution
     _AdminBar.tsx       # Reveal / reset / next story / toggle auto-reveal
     _StoryHeader.tsx    # Édition titre story (admin)
     _JoinModal.tsx      # Pseudo first-time (overlay)

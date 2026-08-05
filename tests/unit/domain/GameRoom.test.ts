@@ -397,14 +397,21 @@ describe("GameRoom — deck", () => {
     expect(() => room.setDeck("alice", "magic-wand")).toThrow("deckId inconnu");
   });
 
-  it("is a no-op if deck unchanged", () => {
-    const room = new GameRoom();
-    join(room, "c1", "alice", "Alice", false);
-    const v1 = room.snapshot("test").version;
-    room.setDeck("alice", "fibonacci"); // default, no change
-    expect(room.snapshot("test").version).toBe(v1);
-  });
-});
+   it("is a no-op if deck unchanged", () => {
+     const room = new GameRoom();
+     join(room, "c1", "alice", "Alice", false);
+     const v1 = room.snapshot("test").version;
+     room.setDeck("alice", "fibonacci"); // default, no change
+     expect(room.snapshot("test").version).toBe(v1);
+   });
+
+   it("switches to fibonacci-half deck", () => {
+     const room = new GameRoom();
+     join(room, "c1", "alice", "Alice", false);
+     room.setDeck("alice", "fibonacci-half");
+     expect(room.snapshot("test").deckId).toBe("fibonacci-half");
+   });
+ });
 
 describe("GameRoom — timer", () => {
   it("starts a timer", () => {

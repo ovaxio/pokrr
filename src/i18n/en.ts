@@ -42,8 +42,8 @@ export const en: Dict = {
       desc: "No sign-up, no email. Create a room and start your sprint in 10 seconds.",
     },
     {
-      title: "5 voting scales",
-      desc: "Fibonacci, T-Shirt sizing, powers of 2, natural numbers, or a custom deck.",
+      title: "6 voting scales",
+      desc: "Fibonacci, Fibonacci + ½, T-Shirt sizing, powers of 2, natural numbers, or a custom deck.",
     },
     {
       title: "Built-in timer",
@@ -78,7 +78,7 @@ export const en: Dict = {
     },
     {
       q: "What voting scales are available?",
-      a: "Fibonacci (1, 2, 3, 5, 8, 13, 21…), T-Shirt (XS, S, M, L, XL), powers of 2, natural numbers, and a customizable deck.",
+      a: "Fibonacci (1, 2, 3, 5, 8, 13, 21…), Fibonacci + ½ (0, ½, 1, 2, 3, 5, 8, 13, 21…), T-Shirt (XS, S, M, L, XL), powers of 2, natural numbers, and a customizable deck.",
     },
     {
       q: "Is my data stored?",
@@ -87,6 +87,7 @@ export const en: Dict = {
   ],
 
   roomSrTitlePrefix: "Planning poker — Room",
+  copyRoomCode: "Copy room code",
   roomLabel: "Room",
   connecting: "Connecting…",
   voted: "voted",
@@ -100,6 +101,7 @@ export const en: Dict = {
   kicked: "You were removed from this room.",
 
   revealNow: "Reveal now",
+  resetConfirmHint: "Press R again to reset",
   revoteStory: "Re-vote this story",
   nextStoryPlaceholder: "Next story (title)…",
   nextStorySubmit: "Next story",
@@ -161,6 +163,7 @@ export const en: Dict = {
   promoteAdminTitle: "Promote to admin",
   kickTitle: "Kick",
   kickConfirm: "Remove {{name}} from the room?",
+  confirmLabel: "Confirm?",
   statusOnline: "online",
   statusOffline: "offline",
 
@@ -178,6 +181,8 @@ export const en: Dict = {
   helpReveal: "Reveal (voting phase)",
   helpRevote: "Re-vote this story (revealed phase)",
   helpCard: "Card",
+
+  timerExpired: "Time's up",
 
   themeSystem: "system",
   themeLight: "light",

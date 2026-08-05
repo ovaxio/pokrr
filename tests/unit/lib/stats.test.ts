@@ -134,11 +134,71 @@ describe("computeStats — hours deck", () => {
 });
 
 describe("computeStats — fibonacci-mod deck", () => {
-  it("does not count ½ as numeric (excluded from numericCards by design)", () => {
-    // ½ appears in cards[] for display but not in numericCards[], so it's treated non-numerically
+  it("counts ½ as numeric (0.5)", () => {
     const stats = computeStats([player("a", "½"), player("b", "1")], "fibonacci-mod");
+    expect(stats.numericCount).toBe(2);
+    expect(stats.mean).toBe(0.8);
+    expect(stats.median).toBe(0.8);
+  });
+});
+
+describe("computeStats — fibonacci-half deck", () => {
+  it("computes mean and median for numeric votes", () => {
+    const stats = computeStats([player("a", "5"), player("b", "8"), player("c", "5")], "fibonacci-half");
+    expect(stats.mean).toBe(6);
+    expect(stats.median).toBe(5);
+    expect(stats.numericCount).toBe(3);
+  });
+
+  it("handles even number of voters for median", () => {
+    const stats = computeStats([player("a", "5"), player("b", "8")], "fibonacci-half");
+    expect(stats.median).toBe(6.5);
+  });
+
+  it("handles single voter", () => {
+    const stats = computeStats([player("a", "21")], "fibonacci-half");
+    expect(stats.mean).toBe(21);
+    expect(stats.median).toBe(21);
+  });
+
+  it("detects consensus when all vote the same", () => {
+    const stats = computeStats([player("a", "8"), player("b", "8")], "fibonacci-half");
+    expect(stats.consensus).toBe(true);
+  });
+
+  it("counts ½ as numeric (0.5) when in numericCards", () => {
+    const stats = computeStats([player("a", "½"), player("b", "1")], "fibonacci-half");
+    expect(stats.numericCount).toBe(2);
+    expect(stats.mean).toBe(0.8);
+    expect(stats.median).toBe(0.8);
+  });
+
+  it("ignores non-numeric cards (? and ☕) in mean/median", () => {
+    const stats = computeStats([player("a", "5"), player("b", "?")], "fibonacci-half");
     expect(stats.numericCount).toBe(1);
-    expect(stats.mean).toBe(1);
+    expect(stats.mean).toBe(5);
+  });
+
+  it("identifies highest and lowest voters", () => {
+    const stats = computeStats([player("a", "3"), player("b", "34"), player("c", "8")], "fibonacci-half");
+    expect(stats.lowest?.value).toBe(3);
+    expect(stats.highest?.value).toBe(34);
+  });
+
+  it("computes spread as highest minus lowest", () => {
+    const stats = computeStats([player("a", "2"), player("b", "8")], "fibonacci-half");
+    expect(stats.spread).toBe(6);
+  });
+
+  it("snaps consensusSuggestion to nearest deck card", () => {
+    // Mean of 5 and 8 is 6.5 → nearest fibonacci-half is 8 (or 5 on tie)
+    const stats = computeStats([player("a", "5"), player("b", "8")], "fibonacci-half");
+    expect(["5", "8"]).toContain(stats.consensusSuggestion);
+  });
+
+  it("marks fibonacci-half as numericDeck", () => {
+    const stats = computeStats([], "fibonacci-half");
+    expect(stats.numericDeck).toBe(true);
   });
 });
 

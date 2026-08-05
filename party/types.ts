@@ -19,11 +19,17 @@ export const DECKS: Record<string, Deck> = {
     cards: ["0", "1", "2", "3", "5", "8", "13", "21", "34", "55", "89", "∞", "?", "☕"] as const,
     numericCards: ["0", "1", "2", "3", "5", "8", "13", "21", "34", "55", "89"] as const,
   },
+  "fibonacci-half": {
+    id: "fibonacci-half",
+    label: "Fibonacci + ½",
+    cards: ["0", "½", "1", "2", "3", "5", "8", "13", "21", "34", "55", "89", "∞", "?", "☕"] as const,
+    numericCards: ["0", "½", "1", "2", "3", "5", "8", "13", "21", "34", "55", "89"] as const,
+  },
   "fibonacci-mod": {
     id: "fibonacci-mod",
     label: "Fibonacci modifiée",
     cards: ["0", "½", "1", "2", "3", "5", "8", "13", "20", "40", "100", "∞", "?", "☕"] as const,
-    numericCards: ["0", "1", "2", "3", "5", "8", "13", "20", "40", "100"] as const,
+    numericCards: ["0", "½", "1", "2", "3", "5", "8", "13", "20", "40", "100"] as const,
   },
   tshirt: {
     id: "tshirt",

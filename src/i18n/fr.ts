@@ -42,8 +42,8 @@ export const fr: Dict = {
       desc: "Aucun compte, aucun email. Crée une salle et lance ton sprint en 10 secondes.",
     },
     {
-      title: "5 échelles de vote",
-      desc: "Fibonacci, T-Shirt sizing, puissances de 2, entiers naturels, ou ton deck sur mesure.",
+      title: "6 échelles de vote",
+      desc: "Fibonacci, Fibonacci + ½, T-Shirt sizing, puissances de 2, entiers naturels, ou ton deck sur mesure.",
     },
     {
       title: "Minuteur intégré",
@@ -78,7 +78,7 @@ export const fr: Dict = {
     },
     {
       q: "Quelles échelles de vote sont disponibles ?",
-      a: "Fibonacci (1, 2, 3, 5, 8, 13, 21…), T-Shirt (XS, S, M, L, XL), puissances de 2, entiers naturels, et un deck personnalisable.",
+      a: "Fibonacci (1, 2, 3, 5, 8, 13, 21…), Fibonacci + ½ (0, ½, 1, 2, 3, 5, 8, 13, 21…), T-Shirt (XS, S, M, L, XL), puissances de 2, entiers naturels, et un deck personnalisable.",
     },
     {
       q: "Les données sont-elles stockées ?",
@@ -87,6 +87,7 @@ export const fr: Dict = {
   ],
 
   roomSrTitlePrefix: "Planning poker — Salle",
+  copyRoomCode: "Copier le code de la salle",
   roomLabel: "Salle",
   connecting: "Connexion en cours…",
   voted: "ont voté",
@@ -100,6 +101,7 @@ export const fr: Dict = {
   kicked: "Vous avez été retiré de la salle.",
 
   revealNow: "Révéler maintenant",
+  resetConfirmHint: "R à nouveau pour réinitialiser",
   revoteStory: "Re-voter cette story",
   nextStoryPlaceholder: "Story suivante (titre)…",
   nextStorySubmit: "Story suivante",
@@ -161,6 +163,7 @@ export const fr: Dict = {
   promoteAdminTitle: "Promouvoir admin",
   kickTitle: "Kick",
   kickConfirm: "Retirer {{name}} de la salle ?",
+  confirmLabel: "Confirmer ?",
   statusOnline: "en ligne",
   statusOffline: "hors ligne",
 
@@ -178,6 +181,8 @@ export const fr: Dict = {
   helpReveal: "Révéler (phase voting)",
   helpRevote: "Re-voter cette story (phase revealed)",
   helpCard: "Carte",
+
+  timerExpired: "Temps écoulé",
 
   themeSystem: "système",
   themeLight: "clair",
