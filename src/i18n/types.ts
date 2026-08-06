@@ -22,6 +22,7 @@ export type Dict = {
 
   // Room shell
   roomSrTitlePrefix: string;
+  copyRoomCode: string;
   roomLabel: string;
   connecting: string;
   voted: string;
@@ -35,6 +36,7 @@ export type Dict = {
 
   // AdminBar
   revealNow: string;
+  resetConfirmHint: string;
   revoteStory: string;
   nextStoryPlaceholder: string;
   nextStorySubmit: string;
@@ -103,6 +105,7 @@ export type Dict = {
   kickTitle: string;
   // "Retirer {{name}} de la salle ?"
   kickConfirm: string;
+  confirmLabel: string;
   statusOnline: string;
   statusOffline: string;
 
@@ -124,6 +127,9 @@ export type Dict = {
   helpReveal: string;
   helpRevote: string;
   helpCard: string;
+
+  // TimerDisplay
+  timerExpired: string;
 
   // ThemeToggle
   themeSystem: string;

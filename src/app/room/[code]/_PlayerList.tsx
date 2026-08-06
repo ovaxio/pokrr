@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
-import { Check, Eye, Minus, Star, X } from "lucide-react";
+import { Check, Eye, Minus, Pencil, Star, X } from "lucide-react";
 import type { Phase, PlayerView } from "../../../../party/types";
 import { useDict } from "@/i18n/DictContext";
 import { interpolate } from "@/i18n/shared";
@@ -27,6 +27,14 @@ export default function PlayerList({
   onRenameAction: (name: string) => void;
 }) {
   const d = useDict();
+  const [initialIds, setInitialIds] = useState<Set<string> | null>(null);
+  useEffect(() => {
+    if (initialIds === null && players.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setInitialIds(new Set(players.map((p) => p.voterId)));
+    }
+  }, [players, initialIds]);
+
   if (players.length === 0) {
     return (
       <p className="text-center text-sm text-muted py-6">
@@ -44,6 +52,7 @@ export default function PlayerList({
           phase={phase}
           isMe={p.voterId === meVoterId}
           amIAdmin={amIAdmin}
+          isInitialPlayer={initialIds?.has(p.voterId) ?? true}
           onKick={() => onKickAction(p.voterId)}
           onGrantAdmin={() => onGrantAdminAction(p.voterId)}
           onRevokeAdmin={() => onRevokeAdminAction(p.voterId)}
@@ -59,6 +68,7 @@ function PlayerCard({
   phase,
   isMe,
   amIAdmin,
+  isInitialPlayer,
   onKick,
   onGrantAdmin,
   onRevokeAdmin,
@@ -68,6 +78,7 @@ function PlayerCard({
   phase: Phase;
   isMe: boolean;
   amIAdmin: boolean;
+  isInitialPlayer: boolean;
   onKick: () => void;
   onGrantAdmin: () => void;
   onRevokeAdmin: () => void;
@@ -77,6 +88,27 @@ function PlayerCard({
   const revealed = phase === "revealed";
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(player.name);
+  const [pendingAction, setPendingAction] = useState<"kick" | "revoke" | "grant" | null>(null);
+  const [pendingTimerId, setPendingTimerId] = useState<number | null>(null);
+
+  const requestAction = (action: "kick" | "revoke" | "grant") => {
+    if (pendingAction === action) {
+      if (pendingTimerId !== null) clearTimeout(pendingTimerId);
+      setPendingAction(null);
+      setPendingTimerId(null);
+      if (action === "kick") onKick();
+      else if (action === "revoke") onRevokeAdmin();
+      else onGrantAdmin();
+    } else {
+      if (pendingTimerId !== null) clearTimeout(pendingTimerId);
+      const id = window.setTimeout(() => {
+        setPendingAction(null);
+        setPendingTimerId(null);
+      }, 2000);
+      setPendingAction(action);
+      setPendingTimerId(id);
+    }
+  };
 
   const startEdit = () => {
     setDraft(player.name);
@@ -90,7 +122,7 @@ function PlayerCard({
   };
 
   return (
-    <div className="anim-fade-up flex w-20 flex-col items-center gap-1.5" style={{ '--dur': '320ms' } as CSSProperties}>
+    <div className={isInitialPlayer ? "anim-fade-up flex w-20 flex-col items-center gap-1.5" : "flex w-20 flex-col items-center gap-1.5"} style={{ '--dur': '320ms' } as CSSProperties}>
       <div className="relative h-24 w-16">
         {player.isViewer ? (
           <div className="h-24 w-16 flex items-center justify-center rounded-xl border-2 border-dashed border-token-strong bg-surface/20">
@@ -123,7 +155,7 @@ function PlayerCard({
         <span
           role="img"
           className={
-            "absolute top-1 right-1 h-2 w-2 rounded-full ring-2 ring-bg " +
+            "absolute top-1 right-1 h-2.5 w-2.5 rounded-full ring-[1.5px] ring-bg " +
             (player.online ? "bg-emerald-500" : "bg-neutral-400 dark:bg-neutral-600")
           }
           aria-label={player.online ? d.statusOnline : d.statusOffline}
@@ -157,20 +189,29 @@ function PlayerCard({
           </form>
         ) : (
           <>
-            <button
-              type="button"
-              onClick={isMe ? startEdit : undefined}
-              disabled={!isMe}
-              title={isMe ? d.editNameAriaLabel : undefined}
-              className={
-                "max-w-full truncate text-xs font-medium text-fg " +
-                (isMe ? "cursor-pointer rounded px-1 hover:bg-surface-2" : "cursor-default")
-              }
-            >
-              {player.name}
-            </button>
+            <div className={isMe ? "group relative w-full flex justify-center" : "w-full flex justify-center"}>
+              <button
+                type="button"
+                onClick={isMe ? startEdit : undefined}
+                disabled={!isMe}
+                title={isMe ? d.editNameAriaLabel : player.name}
+                className={
+                  "max-w-full line-clamp-3 whitespace-normal break-words text-xs font-medium text-fg " +
+                  (isMe ? "cursor-pointer rounded px-1 pr-3.5 hover:bg-surface-2" : "cursor-default")
+                }
+              >
+                {player.name}
+              </button>
+              {isMe && (
+                <Pencil
+                  size={8}
+                  aria-hidden="true"
+                  className="pointer-events-none absolute right-0 top-0.5 text-muted opacity-0 transition-opacity [@media(hover:hover)]:group-hover:opacity-50"
+                />
+              )}
+            </div>
             {isMe && (
-              <span className="text-xs text-muted leading-none">{d.youLabel}</span>
+              <span className="text-xs text-fg-soft leading-none">{d.youLabel}</span>
             )}
           </>
         )}
@@ -190,34 +231,45 @@ function PlayerCard({
               {player.isAdmin ? (
                 <button
                   type="button"
-                  onClick={() => {
-                    if (confirm(interpolate(d.revokeAdminConfirm, { name: player.name }))) onRevokeAdmin();
-                  }}
-                  title={d.revokeAdminTitle}
+                  onClick={() => requestAction("revoke")}
+                  title={pendingAction === "revoke" ? d.confirmLabel : d.revokeAdminTitle}
                   aria-label={interpolate(d.revokeAdminConfirm, { name: player.name })}
-                  className="flex h-8 w-8 items-center justify-center rounded border border-token text-indigo-500 hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-700 dark:hover:text-red-300"
+                  className={
+                    "flex h-11 w-11 items-center justify-center rounded border transition " +
+                    (pendingAction === "revoke"
+                      ? "border-red-400 bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300"
+                      : "border-token text-indigo-500 hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-700 dark:hover:text-red-300")
+                  }
                 >
-                  <Star size={12} className="fill-current" />
+                  <Star size={12} className={pendingAction === "revoke" ? "" : "fill-current"} />
                 </button>
               ) : (
                 <button
                   type="button"
-                  onClick={onGrantAdmin}
-                  title={d.promoteAdminTitle}
+                  onClick={() => requestAction("grant")}
+                  title={pendingAction === "grant" ? d.confirmLabel : d.promoteAdminTitle}
                   aria-label={`${d.promoteAdminTitle} ${player.name}`}
-                  className="flex h-8 w-8 items-center justify-center rounded border border-token text-muted hover:bg-surface-2"
+                  className={
+                    "flex h-11 w-11 items-center justify-center rounded border transition " +
+                    (pendingAction === "grant"
+                      ? "border-indigo-400 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300"
+                      : "border-token text-muted hover:bg-surface-2")
+                  }
                 >
                   <Star size={12} />
                 </button>
               )}
               <button
                 type="button"
-                onClick={() => {
-                  if (confirm(interpolate(d.kickConfirm, { name: player.name }))) onKick();
-                }}
-                title={d.kickTitle}
+                onClick={() => requestAction("kick")}
+                title={pendingAction === "kick" ? d.confirmLabel : d.kickTitle}
                 aria-label={interpolate(d.kickConfirm, { name: player.name })}
-                className="flex h-8 w-8 items-center justify-center rounded border border-token text-muted hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-700 dark:hover:text-red-300"
+                className={
+                  "flex h-11 w-11 items-center justify-center rounded border transition " +
+                  (pendingAction === "kick"
+                    ? "border-red-400 bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300"
+                    : "border-token text-muted hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-700 dark:hover:text-red-300")
+                }
               >
                 <X size={12} />
               </button>

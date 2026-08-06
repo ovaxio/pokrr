@@ -16,6 +16,7 @@ export default function AdminBar({
   autoReveal,
   deckId,
   timerActive,
+  resetPending,
   onRevealAction,
   onResetAction,
   onNextStoryAction,
@@ -28,6 +29,7 @@ export default function AdminBar({
   autoReveal: boolean;
   deckId: string;
   timerActive: boolean;
+  resetPending: boolean;
   onRevealAction: () => void;
   onResetAction: () => void;
   onNextStoryAction: (story: string) => void;
@@ -54,9 +56,14 @@ export default function AdminBar({
           <button
             type="button"
             onClick={onResetAction}
-            className="rounded-lg border border-token-strong bg-surface-2 px-4 py-2 text-sm font-medium text-fg hover:bg-surface"
+            className={
+              "rounded-lg border px-4 py-2 text-sm font-medium transition " +
+              (resetPending
+                ? "border-amber-400 bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200"
+                : "border-token-strong bg-surface-2 text-fg hover:bg-surface")
+            }
           >
-            {d.revoteStory}
+            {resetPending ? d.resetConfirmHint : d.revoteStory}
           </button>
         )}
 
@@ -118,7 +125,7 @@ export default function AdminBar({
               key={p.sec}
               type="button"
               onClick={() => onStartTimerAction(p.sec)}
-              className="rounded border border-token bg-surface px-2 py-1.5 text-xs text-fg hover:bg-surface-2"
+              className="rounded border border-token bg-surface px-2 py-2 text-xs text-fg hover:bg-surface-2"
             >
               {p.label}
             </button>

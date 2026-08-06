@@ -27,6 +27,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
   const [asViewer, setAsViewer] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -47,7 +48,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
   const room = usePokrrRoom(roomId, name, asViewer);
   const isAdmin = room.me?.isAdmin ?? false;
   const amIViewer = room.me?.isViewer ?? false;
-  useRoomShortcuts({ state: room.state, isAdmin, sendAction: room.send });
+  const { resetPending } = useRoomShortcuts({ state: room.state, isAdmin, sendAction: room.send });
 
   const players = room.state?.players ?? [];
   const voters = players.filter((p) => !p.isViewer);
@@ -94,9 +95,25 @@ export default function RoomClient({ roomId }: { roomId: string }) {
               </button>
             )}
             <span className="hidden sm:inline">{d.roomLabel}</span>
-            <code className="rounded bg-surface px-2 py-1 font-mono text-fg-soft">
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(roomId);
+                  setCodeCopied(true);
+                  window.setTimeout(() => setCodeCopied(false), 1500);
+                } catch { /* clipboard indisponible */ }
+              }}
+              title={codeCopied ? d.linkCopied : d.copyRoomCode}
+              className={
+                "rounded px-2 py-1 font-mono text-xs transition " +
+                (codeCopied
+                  ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300"
+                  : "bg-surface text-fg-soft hover:bg-surface-2 cursor-pointer")
+              }
+            >
               {roomId}
-            </code>
+            </button>
             <button
               type="button"
               onClick={() => setShareOpen(true)}
@@ -113,8 +130,10 @@ export default function RoomClient({ roomId }: { roomId: string }) {
             >
               ?
             </button>
-            <LocaleToggle />
-            <ThemeToggle />
+            <span className="hidden sm:contents">
+              <LocaleToggle />
+              <ThemeToggle />
+            </span>
           </div>
         </header>
 
@@ -178,6 +197,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
             autoReveal={room.state.autoReveal}
             deckId={deckId}
             timerActive={timer !== null}
+            resetPending={resetPending}
             onRevealAction={() => room.send({ type: "reveal" })}
             onResetAction={() => room.send({ type: "reset" })}
             onNextStoryAction={(story) => room.send({ type: "next_story", story })}
@@ -189,7 +209,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
         )}
 
         {!amIViewer && (
-          <div className="mt-auto pt-2">
+          <div className="sticky bottom-0 border-t border-token/40 bg-bg/95 pt-3 [padding-bottom:max(12px,env(safe-area-inset-bottom))] backdrop-blur-sm sm:static sm:mt-auto sm:border-t-0 sm:bg-transparent sm:pt-2 sm:pb-0 sm:[backdrop-filter:none]">
             <CardDeck
               selected={room.mySelectedVote}
               phase={phase}

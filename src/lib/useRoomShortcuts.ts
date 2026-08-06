@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DECKS, DEFAULT_DECK_ID, type ClientMessage, type RoomState } from "../../party/types";
 
 type RoomShortcutsConfig = {
@@ -13,9 +13,12 @@ type RoomShortcutsConfig = {
 // - 0..9 : sélectionne la carte à la position correspondante du deck courant
 // - ?    : sélectionne la carte "?" (si présente dans le deck)
 // - Space (admin, phase voting) : reveal
-// - R    (admin, phase revealed) : re-voter cette story
+// - R    (admin, phase revealed) : re-voter cette story — double presse requise (anti-reset accidentel)
 // Inactif si focus dans un input/textarea/contenteditable.
-export function useRoomShortcuts({ state, isAdmin, sendAction }: RoomShortcutsConfig) {
+export function useRoomShortcuts({ state, isAdmin, sendAction }: RoomShortcutsConfig): { resetPending: boolean } {
+  const [resetPending, setResetPending] = useState(false);
+  const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     if (!state) return;
 
@@ -62,14 +65,29 @@ export function useRoomShortcuts({ state, isAdmin, sendAction }: RoomShortcutsCo
         return;
       }
 
-      // R → reset (re-vote) après reveal.
+      // R → reset (re-vote) après reveal. Double presse requise dans les 2s.
       if ((e.key === "r" || e.key === "R") && state.phase === "revealed") {
         e.preventDefault();
-        sendAction({ type: "reset" });
+        if (resetTimerRef.current) {
+          // Deuxième presse : exécuter
+          clearTimeout(resetTimerRef.current);
+          resetTimerRef.current = null;
+          setResetPending(false);
+          sendAction({ type: "reset" });
+        } else {
+          // Première presse : entrer en état pending
+          setResetPending(true);
+          resetTimerRef.current = setTimeout(() => {
+            resetTimerRef.current = null;
+            setResetPending(false);
+          }, 2000);
+        }
       }
     };
 
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [state, isAdmin, sendAction]);
+
+  return { resetPending: resetPending && state?.phase === "revealed" };
 }

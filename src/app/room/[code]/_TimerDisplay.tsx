@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { AlarmClock, Timer } from "lucide-react";
 import type { TimerInfo } from "../../../../party/types";
+import { useDict } from "@/i18n/DictContext";
 
 export default function TimerDisplay({ timer }: { timer: TimerInfo | null }) {
+  const d = useDict();
   const [now, setNow] = useState<number>(() => Date.now());
 
   useEffect(() => {
@@ -40,7 +42,7 @@ export default function TimerDisplay({ timer }: { timer: TimerInfo | null }) {
       }
     >
       <span className="inline-flex items-center gap-1.5 font-mono text-base font-semibold tabular-nums">
-        {expired ? <><AlarmClock size={16} /> Temps écoulé</> : <><Timer size={16} /> {formatted}</>}
+        {expired ? <><AlarmClock size={16} /> {d.timerExpired}</> : <><Timer size={16} /> {formatted}</>}
       </span>
       {!expired && (
         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-2">
