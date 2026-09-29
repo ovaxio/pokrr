@@ -1,0 +1,23 @@
+version: 2
+updates:
+  # Dépendances npm : alertes CVE via PRs automatiques hebdo
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      # Les bumps mineurs/patch ensemble, une seule PR : moins de bruit
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    # Security updates toujours créées indépendamment (comportement par défaut)
+    open-pull-requests-limit: 10
+    reviewers:
+      - "ovaxio"
+
+  # Actions GitHub (actions/checkout, setup-node) : hebdo aussi
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
