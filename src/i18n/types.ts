@@ -105,7 +105,9 @@ export type Dict = {
   kickTitle: string;
   // "Retirer {{name}} de la salle ?"
   kickConfirm: string;
-  confirmLabel: string;
+  kickConfirmAction: string;
+  promoteConfirmAction: string;
+  revokeConfirmAction: string;
   statusOnline: string;
   statusOffline: string;
 

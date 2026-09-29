@@ -220,15 +220,27 @@ describe("GameRoom — auto-reveal", () => {
     const room = new GameRoom();
     join(room, "c1", "alice", "Alice", false);
     join(room, "c2", "bob", "Bob");
+    room.setAutoReveal("alice", true);
     room.vote("alice", "5");
     expect(room.shouldAutoReveal()).toBe(false);
     room.vote("bob", "8");
     expect(room.shouldAutoReveal()).toBe(true);
   });
 
+  it("is disabled by default", () => {
+    const room = new GameRoom();
+    join(room, "c1", "alice", "Alice", false);
+    join(room, "c2", "bob", "Bob");
+    room.vote("alice", "5");
+    room.vote("bob", "8");
+    expect(room.shouldAutoReveal()).toBe(false);
+    expect(room.snapshot("test").autoReveal).toBe(false);
+  });
+
   it("does not trigger for rooms with only viewers", () => {
     const room = new GameRoom();
     join(room, "c1", "alice", "Alice"); // viewer by default (first player)
+    room.setAutoReveal("alice", true);
     expect(room.shouldAutoReveal()).toBe(false);
   });
 
@@ -246,6 +258,7 @@ describe("GameRoom — auto-reveal", () => {
     const room = new GameRoom();
     join(room, "c1", "alice", "Alice", false);
     join(room, "c2", "bob", "Bob");
+    room.setAutoReveal("alice", true);
     room.vote("alice", "5");
     room.vote("bob", "8");
     room.doAutoReveal();

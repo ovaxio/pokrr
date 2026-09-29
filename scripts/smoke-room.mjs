@@ -80,7 +80,7 @@ console.log("\n→ Bob essaie de définir la story (doit être refusé)");
 send(bob, { type: "set_story", story: "Tentative non-admin" });
 await sleep(120);
 
-console.log("\n→ Bob vote 5, Carol vote 8 (pas encore auto-reveal : Alice n'a pas voté)");
+console.log("\n→ Bob vote 5, Carol vote 8 (pas encore de reveal : auto-reveal désactivé par défaut ET Alice n'a pas voté)");
 send(bob, { type: "vote", value: "5" });
 await sleep(80);
 send(carol, { type: "vote", value: "8" });
@@ -95,6 +95,11 @@ expect(
   stateBeforeReveal.players.find((p) => p.voterId === "voter-carol")?.name === "Alice (2)",
   "carol renommée 'Alice (2)' (déduplication)",
 );
+
+console.log("\n→ Alice active l'auto-reveal explicitement (le défaut est maintenant false)");
+send(alice, { type: "set_auto_reveal", enabled: true });
+await sleep(120);
+expect(alice.lastState.autoReveal === true, "auto-reveal activé explicitement");
 
 console.log("\n→ Alice vote 13 (auto-reveal devrait déclencher)");
 send(alice, { type: "vote", value: "13" });
@@ -125,6 +130,34 @@ await sleep(120);
 expect(alice.lastState.phase === "voting", "phase = voting (nouveau round)");
 expect(alice.lastState.story === "Migration DB", "story mise à jour");
 expect(alice.lastState.players.every((p) => !p.hasVoted), "tous les votes effacés");
+
+console.log("\n→ Alice désactive l'auto-reveal (mode manuel)");
+send(alice, { type: "set_auto_reveal", enabled: false });
+await sleep(120);
+expect(alice.lastState.autoReveal === false, "auto-reveal désactivé");
+
+console.log("\n→ Les 3 votent (pas de reveal auto quand désactivé)");
+send(bob, { type: "vote", value: "5" });
+await sleep(80);
+send(carol, { type: "vote", value: "8" });
+await sleep(80);
+send(alice, { type: "vote", value: "13" });
+await sleep(200);
+expect(alice.lastState.phase === "voting", "phase = voting (auto-reveal désactivé)");
+
+console.log("\n→ Alice révèle manuellement");
+send(alice, { type: "reveal" });
+await sleep(120);
+expect(alice.lastState.phase === "revealed", "phase = revealed (reveal manuel admin)");
+expect(
+  alice.lastState.players.find((p) => p.voterId === "voter-alice")?.vote === "13",
+  "vote alice visible = 13 (reveal manuel)",
+);
+
+console.log("\n→ Alice reset (retour en voting pour la suite du scénario)");
+send(alice, { type: "reset" });
+await sleep(120);
+expect(alice.lastState.phase === "voting", "phase = voting (après reset)");
 
 console.log("\n→ Alice transfert admin à Bob");
 send(alice, { type: "transfer_admin", voterId: "voter-bob" });

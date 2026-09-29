@@ -1,7 +1,7 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
 
 test.describe("Room flow — 3 voters happy path", () => {
-  test("create / join / vote / auto-reveal / next story", async ({ browser }) => {
+  test("create / join / vote / manual reveal / next story", async ({ browser }) => {
     test.setTimeout(60_000);
 
     const alice = await openClient(browser);
@@ -19,6 +19,10 @@ test.describe("Room flow — 3 voters happy path", () => {
 
     // 2. Alice rentre son pseudo via la JoinModal.
     await alice.joinAs("Alice");
+
+    // 2bis. Le créateur rejoint en spectateur (pattern facilitateur) : Alice reprend le statut de votant.
+    await alice.page.getByRole("button", { name: /rejoindre le vote/i }).click();
+    await expect(alice.page.getByRole("radio", { name: "Vote 5", exact: true })).toBeVisible({ timeout: 10_000 });
 
     // 3. Bob et Carol rejoignent en collant le lien.
     await bob.page.goto(`/room/${roomCode}`);
@@ -43,7 +47,10 @@ test.describe("Room flow — 3 voters happy path", () => {
     await bob.page.getByRole("radio", { name: "Vote 8", exact: true }).click();
     await carol.page.getByRole("radio", { name: "Vote 13", exact: true }).click();
 
-    // 7. Auto-reveal déclenche quand tous ont voté.
+    // 7. Pas d'auto-reveal par défaut : Alice révèle manuellement.
+    await expect(alice.page.getByText(/résultats/i)).toBeHidden();
+    await alice.page.waitForTimeout(1_000);
+    await alice.page.getByRole("button", { name: /révéler maintenant/i }).click();
     await expect(alice.page.getByText(/résultats/i)).toBeVisible({ timeout: 5_000 });
     await expect(bob.page.getByText(/résultats/i)).toBeVisible({ timeout: 5_000 });
 

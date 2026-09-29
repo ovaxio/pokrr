@@ -21,7 +21,7 @@ type ServerPlayer = {
 export class GameRoom {
   private story = "";
   private phase: Phase = "voting";
-  private autoReveal = true;
+  private autoReveal = false;
   private version = 0;
   private adminVoterIds = new Set<string>();
   private players = new Map<string, ServerPlayer>();

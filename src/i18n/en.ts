@@ -163,7 +163,9 @@ export const en: Dict = {
   promoteAdminTitle: "Promote to admin",
   kickTitle: "Kick",
   kickConfirm: "Remove {{name}} from the room?",
-  confirmLabel: "Confirm?",
+  kickConfirmAction: "Confirm kicking {{name}}",
+  promoteConfirmAction: "Confirm promoting {{name}}",
+  revokeConfirmAction: "Confirm removing admin from {{name}}",
   statusOnline: "online",
   statusOffline: "offline",
 
