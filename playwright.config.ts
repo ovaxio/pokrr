@@ -23,7 +23,12 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        // Le proxy redirige vers le locale détecté via Accept-Language ; les
+        // locateurs du test sont FR : forcer fr-FR quel que soit l'OS hôte.
+        locale: "fr-FR",
+      },
     },
   ],
 });
