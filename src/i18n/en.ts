@@ -1,7 +1,8 @@
 import type { Dict } from "./types";
 
 export const en: Dict = {
-  tagline: "Estimate sprint stories with your team: free, no account, no ads.",
+  tagline: "Free online planning poker, no sign-up. Estimate sprint stories with your team, no ads.",
+  trustLine: "No signup · No data stored · GDPR-friendly",
   createRoom: "Create a room",
   or: "or",
   joinRoomLabel: "Join a room",
