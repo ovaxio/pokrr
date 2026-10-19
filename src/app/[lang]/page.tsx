@@ -18,12 +18,26 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang } = await params;
   if (!(locales as string[]).includes(lang)) return {};
-  const d = getDict(lang as Locale);
+  // `absolute` : le titre contient déjà la marque, on évite le suffixe « · pokrr » du template.
+  const title = `pokrr — ${lang === "fr" ? "Planning Poker gratuit en ligne, sans inscription" : "Free Online Planning Poker, No Sign-up"}`;
+  const description =
+    lang === "fr"
+      ? "Planning poker en ligne gratuit et sans inscription : créez une salle, partagez le lien, votez en temps réel. Fibonacci, T-Shirt, heures. Sans pub."
+      : "Free online planning poker, no sign-up: create a room, share the link, vote in real time. Fibonacci, T-shirt sizing, hours. No ads.";
   return {
-    title: `pokrr — ${lang === "fr" ? "Planning Poker gratuit en ligne, sans inscription" : "Free Online Planning Poker, No Sign-up"}`,
-    description: d.tagline,
+    title: { absolute: title },
+    description,
     openGraph: {
+      title,
+      description,
+      url: `${SITE_URL}/${lang}`,
       images: [{ url: `${SITE_URL}/${lang}/opengraph-image`, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [`${SITE_URL}/${lang}/opengraph-image`],
     },
   };
 }

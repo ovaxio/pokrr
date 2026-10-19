@@ -16,11 +16,15 @@ const geist = Geist({
 const SITE_NAME = "pokrr";
 const SITE_URL = "https://pokrr.app";
 const SITE_DESCRIPTION =
-  "Planning poker en ligne gratuit, sans inscription, sans pub. Fibonacci, T-Shirt, decks custom. Crée une salle, partage le lien, vote.";
+  "Planning poker en ligne gratuit, sans inscription, sans pub. Fibonacci, T-Shirt, heures. Crée une salle, partage le lien, vote.";
 
+// En prod, VERCEL_URL est l'URL du déploiement (*.vercel.app), pas le domaine :
+// les og:image héritées pointaient vers une URL protégée. VERCEL_URL reste utile en preview.
 const metadataBaseUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : SITE_URL);
+  (process.env.VERCEL_ENV !== "production" && process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : SITE_URL);
 
 export const metadata: Metadata = {
   metadataBase: new URL(metadataBaseUrl),

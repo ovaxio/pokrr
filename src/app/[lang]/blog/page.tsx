@@ -12,14 +12,17 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang } = await params;
   const locale = (locales as string[]).includes(lang) ? lang : "fr";
-  const d = getDict(locale as Lang);
   const blogTitle =
     locale === "fr"
       ? "Blog Planning Poker : guides agile et Scrum pour équipes"
       : "Planning Poker Blog: Agile & Scrum guides for teams";
+  const description =
+    locale === "fr"
+      ? "Guides pratiques sur le planning poker : règles du vote, échelles Fibonacci et T-Shirt, comparatif d'outils gratuits, conseils pour équipes Scrum."
+      : "Practical planning poker guides: voting rules, Fibonacci and T-shirt scales, free tool comparisons and tips for Scrum and agile teams.";
   return {
     title: blogTitle,
-    description: d.blogSubtitle,
+    description,
     alternates: {
       canonical: `${SITE_URL}/${locale}/blog`,
       languages: {
@@ -27,6 +30,18 @@ export async function generateMetadata({
         en: `${SITE_URL}/en/blog`,
         "x-default": `${SITE_URL}/en/blog`,
       },
+    },
+    openGraph: {
+      title: blogTitle,
+      description,
+      url: `${SITE_URL}/${locale}/blog`,
+      images: [{ url: `${SITE_URL}/${locale}/opengraph-image`, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: blogTitle,
+      description,
+      images: [`${SITE_URL}/${locale}/opengraph-image`],
     },
   };
 }
