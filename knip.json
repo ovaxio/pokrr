@@ -1,11 +1,6 @@
 {
-  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
     "party/index.ts",
-    "scripts/*.mjs",
-    "tests/**/*.test.ts"
-  ],
-  "ignoreDependencies": [
-    "postcss"
   ]
 }

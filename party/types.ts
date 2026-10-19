@@ -115,13 +115,13 @@ export type ErrorCode =
   | "not_joined"
   | "rate_limited";
 
-export type ErrorMessage = {
+type ErrorMessage = {
   type: "error";
   code: ErrorCode;
   message: string;
 };
 
-export type KickedMessage = {
+type KickedMessage = {
   type: "kicked";
   reason: string;
 };
