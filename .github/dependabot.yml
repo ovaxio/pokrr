@@ -11,6 +11,11 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    # TypeScript 7 (portage natif) n'expose plus l'API JS : typescript-eslint
+    # (via eslint-config-next) ne le supporte pas encore. À retirer quand ce sera le cas.
+    ignore:
+      - dependency-name: "typescript"
+        versions: [">= 7"]
     # Security updates toujours créées indépendamment (comportement par défaut)
     open-pull-requests-limit: 10
     reviewers:
