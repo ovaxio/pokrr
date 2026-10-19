@@ -1,5 +1,24 @@
 # pokrr
 
+**Free real-time planning poker for agile teams. No sign-up, no install, no ads.**
+
+[pokrr.app](https://pokrr.app/en) · [Français](https://pokrr.app/fr) · [Planning poker guide](https://pokrr.app/en/blog/complete-guide-planning-poker)
+
+![pokrr: votes revealed with mean, median, suggested value and distribution](docs/screenshot-results.png)
+
+Create a room in one click, share the link or QR code, and estimate user stories together. Participants join with a nickname only: no account, no email. Votes stay hidden until the reveal, so nobody anchors on someone else's estimate.
+
+- Six card decks: Fibonacci, Fibonacci + ½, modified Fibonacci, T-shirt sizing, powers of 2, hours
+- Manual or automatic reveal, then mean, median, suggested value, distribution and a flag on the largest gap between voters
+- Story timer, several admins per room, admin transfer, spectator mode
+- Share by link or QR code, copy results as Markdown
+- Keyboard shortcuts, light and dark themes, English and French
+- No personal data stored server-side: rooms live in memory only
+
+---
+
+## Documentation technique (FR)
+
 Planning poker minimaliste : gratuit, sans pub, sans inscription. Stack Next.js 16 + PartyKit (Cloudflare Workers + Durable Objects). Coût d'hébergement cible 0 €/mois en restant dans les free tiers Cloudflare et Vercel.
 
 ## Stack
