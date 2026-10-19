@@ -48,7 +48,7 @@ const content = {
       },
       {
         title: "Aucune donnée stockée",
-        desc: "Les salles expirent après 4 heures d'inactivité. Aucun compte, aucun email, aucune donnée côté serveur. RGPD-friendly par conception.",
+        desc: "Une salle est effacée quelques minutes après le départ du dernier participant. Aucun compte, aucun email, aucune donnée côté serveur. RGPD-friendly par conception.",
       },
     ],
     howToTitle: "Comment lancer une session de planning poker en remote",
@@ -74,7 +74,7 @@ const content = {
       },
       {
         q: "Peut-on faire du planning poker en asynchrone ?",
-        a: "pokrr est conçu pour les sessions synchrones, mais une salle reste ouverte 4 heures. Si l'équipe vote à des moments différents dans cette fenêtre, les votes s'accumulent jusqu'à la révélation par l'admin.",
+        a: "pokrr est conçu pour les sessions synchrones. Une salle reste ouverte tant qu'au moins une personne y est connectée : si l'animateur garde l'onglet ouvert, chacun peut voter à son rythme jusqu'à la révélation.",
       },
       {
         q: "Combien de personnes peuvent rejoindre une session ?",
@@ -128,7 +128,7 @@ const content = {
       },
       {
         title: "No data stored",
-        desc: "Rooms expire after 4 hours of inactivity. No account, no email, no server-side data. GDPR-compliant by design.",
+        desc: "A room is deleted a few minutes after the last participant leaves. No account, no email, no server-side data. GDPR-compliant by design.",
       },
     ],
     howToTitle: "How to run a planning poker session with a remote team",
@@ -154,7 +154,7 @@ const content = {
       },
       {
         q: "Can planning poker be done asynchronously?",
-        a: "pokrr is designed for synchronous sessions, but a room stays open for 4 hours. If the team votes at different times within that window, votes accumulate until the admin reveals.",
+        a: "pokrr is designed for synchronous sessions. A room stays open as long as at least one person is connected: if the facilitator keeps the tab open, people can vote at their own pace until the reveal.",
       },
       {
         q: "How many people can join a session?",

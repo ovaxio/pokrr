@@ -22,7 +22,7 @@
 
 ## About
 
-pokrr is a minimalist planning poker tool built for Scrum and agile teams. Card decks: Fibonacci, Fibonacci + ½, modified Fibonacci, T-shirt sizing, powers of 2 and hours. Sessions are room-based with shareable links. No data is stored server-side: rooms expire after 4 hours of inactivity. Built with Next.js and PartyKit (Cloudflare Durable Objects) for real-time WebSocket sessions.
+pokrr is a minimalist planning poker tool built for Scrum and agile teams. Card decks: Fibonacci, Fibonacci + ½, modified Fibonacci, T-shirt sizing, powers of 2 and hours. Sessions are room-based with shareable links. No data is stored server-side: room state lives in memory only and is deleted a few minutes after the last participant leaves. Built with Next.js and PartyKit (Cloudflare Durable Objects) for real-time WebSocket sessions.
 
 ## Key features
 

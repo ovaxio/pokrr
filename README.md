@@ -25,7 +25,7 @@ Planning poker minimaliste : gratuit, sans pub, sans inscription. Stack Next.js 
 
 - **Front** : Next.js 16 App Router, Tailwind v4, React 19. Déployé sur Vercel Hobby.
 - **Backend temps réel** : PartyKit (= Cloudflare Workers + Durable Objects, un DO par roomId). Déployé sur ton compte Cloudflare.
-- **State** : in-memory dans le DO PartyKit (pas de DB). Les rooms hibernent quand inactives → coût ressources ≈ 0.
+- **State** : in-memory dans le DO PartyKit (pas de DB, pas de `room.storage`). Une room vit tant qu'une connexion WebSocket est ouverte, puis Cloudflare évince le DO 1 à 3 min après la dernière déconnexion et l'état est perdu → coût ressources ≈ 0. Un `npm run party:deploy` redémarre les DO et vide toutes les rooms en cours : éviter de déployer pendant une session.
 
 ## Lancer en local
 

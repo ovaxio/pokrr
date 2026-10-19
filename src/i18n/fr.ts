@@ -8,7 +8,7 @@ export const fr: Dict = {
   joinRoomLabel: "Rejoindre une salle",
   joinRoomPlaceholder: "Code de la salle",
   joinRoomSubmit: "Rejoindre",
-  pageFooter: "Aucune donnée stockée côté serveur. Les salles expirent après 4h d'inactivité.",
+  pageFooter: "Aucune donnée stockée côté serveur. Une salle est effacée quelques minutes après le départ du dernier participant.",
 
   howToTitle: "Comment organiser un planning poker en ligne",
   featuresTitle: "Pourquoi pokrr ?",
@@ -56,7 +56,7 @@ export const fr: Dict = {
     },
     {
       title: "RGPD-friendly",
-      desc: "Aucune donnée stockée côté serveur. Les salles expirent après 4h d'inactivité.",
+      desc: "Aucune donnée stockée côté serveur. Une salle est effacée quelques minutes après le départ du dernier participant.",
     },
   ],
 
@@ -83,7 +83,7 @@ export const fr: Dict = {
     },
     {
       q: "Les données sont-elles stockées ?",
-      a: "Non. Aucune donnée personnelle côté serveur. Les salles expirent après 4h d'inactivité. pokrr est conforme au RGPD.",
+      a: "Non. Aucune donnée personnelle côté serveur. Une salle est effacée quelques minutes après le départ du dernier participant. pokrr est conforme au RGPD.",
     },
   ],
 
