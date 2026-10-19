@@ -8,7 +8,7 @@ export const en: Dict = {
   joinRoomLabel: "Join a room",
   joinRoomPlaceholder: "Room code",
   joinRoomSubmit: "Join",
-  pageFooter: "No data stored server-side. Rooms expire after 4 hours of inactivity.",
+  pageFooter: "No data stored server-side. A room is deleted a few minutes after the last participant leaves.",
 
   howToTitle: "How to run a planning poker session online",
   featuresTitle: "Why pokrr?",
@@ -56,7 +56,7 @@ export const en: Dict = {
     },
     {
       title: "Privacy-first",
-      desc: "No personal data stored server-side. Rooms expire after 4 hours of inactivity.",
+      desc: "No personal data stored server-side. A room is deleted a few minutes after the last participant leaves.",
     },
   ],
 
@@ -83,7 +83,7 @@ export const en: Dict = {
     },
     {
       q: "Is my data stored?",
-      a: "No. No personal data is stored server-side. Rooms expire after 4 hours of inactivity. pokrr is GDPR-compliant.",
+      a: "No. No personal data is stored server-side. A room is deleted a few minutes after the last participant leaves. pokrr is GDPR-compliant.",
     },
   ],
 

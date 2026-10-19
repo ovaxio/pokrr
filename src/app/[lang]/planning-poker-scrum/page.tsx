@@ -101,7 +101,7 @@ const content = {
       },
       {
         q: "pokrr peut-il tracker la vélocité ?",
-        a: "Non. pokrr est un outil de session. Les salles expirent après 4 heures d'inactivité, aucune donnée n'est conservée. Le suivi de la vélocité se fait dans votre outil de gestion de projet (Jira, Linear, Notion).",
+        a: "Non. pokrr est un outil de session : une salle disparaît quelques minutes après le départ du dernier participant et aucune donnée n'est conservée. Le suivi de la vélocité se fait dans votre outil de gestion de projet (Jira, Linear, Notion).",
       },
       {
         q: "Est-ce que pokrr s'intègre à Jira ?",
@@ -199,7 +199,7 @@ const content = {
       },
       {
         q: "Can pokrr track velocity?",
-        a: "No. pokrr is a session tool. Rooms expire after 4 hours of inactivity and no data is retained. Sprint-by-sprint velocity tracking belongs in your project management tool (Jira, Linear, Notion).",
+        a: "No. pokrr is a session tool: a room disappears a few minutes after the last participant leaves and no data is retained. Sprint-by-sprint velocity tracking belongs in your project management tool (Jira, Linear, Notion).",
       },
       {
         q: "Does pokrr integrate with Jira?",
