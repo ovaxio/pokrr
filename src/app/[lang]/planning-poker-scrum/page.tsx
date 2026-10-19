@@ -47,7 +47,7 @@ const content = {
       },
       {
         title: "Fibonacci et T-Shirt dans le même outil",
-        desc: "Fibonacci pour les stories de sprint (story points). T-Shirt sizing pour les epics et la roadmap. Puissances de 2 et deck custom disponibles selon la pratique de l'équipe.",
+        desc: "Fibonacci pour les stories de sprint (story points). T-Shirt sizing pour les epics et la roadmap. Fibonacci modifiée, puissances de 2 et heures disponibles selon la pratique de l'équipe.",
       },
       {
         title: "Admin = rôle du Scrum Master",
@@ -145,7 +145,7 @@ const content = {
       },
       {
         title: "Fibonacci and T-Shirt in the same tool",
-        desc: "Fibonacci for sprint stories (story points). T-shirt sizing for epics and the roadmap. Powers of 2 and custom decks available to match the team's practice.",
+        desc: "Fibonacci for sprint stories (story points). T-shirt sizing for epics and the roadmap. Modified Fibonacci, powers of 2 and hours available to match the team's practice.",
       },
       {
         title: "Admin role = Scrum Master role",

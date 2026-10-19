@@ -73,7 +73,7 @@ export const registry: Record<Lang, PostEntry[]> = {
       title: "Planning poker gratuit sans inscription : comparatif 2026 (pokrr, PlanITPoker, PointingPoker et autres)",
       description: "Tableau comparatif des 5 principaux outils de planning poker gratuits en ligne : inscription, limites, decks, pubs. Verdict par contexte d'équipe.",
       publishedAt: "2026-05-31",
-      updatedAt: "2026-05-31",
+      updatedAt: "2026-10-19",
       translations: { en: "best-free-planning-poker-tools-comparison" },
       faq: [
         {
@@ -100,7 +100,7 @@ export const registry: Record<Lang, PostEntry[]> = {
       title: "Le guide complet du Planning Poker (2026) : méthode, règles et outil gratuit sans inscription",
       description: "Planning poker : définition, règles du vote, pourquoi Fibonacci, et comment lancer une session gratuite en ligne sans créer de compte. Le guide pratique pour équipes Scrum.",
       publishedAt: "2026-05-31",
-      updatedAt: "2026-05-31",
+      updatedAt: "2026-10-19",
       translations: { en: "complete-guide-planning-poker" },
       faq: [
         {
@@ -135,7 +135,7 @@ export const registry: Record<Lang, PostEntry[]> = {
       title: "Comment choisir son outil de planning poker en mission client",
       description: "Il existe 20 outils de planning poker. La plupart se ressemblent sur les features. Ils ne se ressemblent pas sur ce qui fait échouer une session.",
       publishedAt: "2026-05-30",
-      updatedAt: "2026-05-30",
+      updatedAt: "2026-10-19",
       translations: { en: "how-to-choose-planning-poker-tool" },
       faq: [
         {
@@ -210,7 +210,7 @@ export const registry: Record<Lang, PostEntry[]> = {
       title: "Free Planning Poker With No Signup: 2026 Comparison (pokrr, PlanITPoker, PointingPoker and more)",
       description: "Verified comparison of 5 free online planning poker tools: signup requirements, participant limits, decks, ads. Context-based verdict.",
       publishedAt: "2026-05-31",
-      updatedAt: "2026-05-31",
+      updatedAt: "2026-10-19",
       translations: { fr: "comparatif-outils-planning-poker-gratuit" },
       faq: [
         {
@@ -237,7 +237,7 @@ export const registry: Record<Lang, PostEntry[]> = {
       title: "The Complete Planning Poker Guide (2026): Rules, Method & Free Online Tool, No Signup",
       description: "Planning poker explained: definition, voting rules, why Fibonacci, and how to run a free online session with no account. The practical guide for Scrum and agile teams.",
       publishedAt: "2026-05-31",
-      updatedAt: "2026-05-31",
+      updatedAt: "2026-10-19",
       translations: { fr: "guide-complet-planning-poker" },
       faq: [
         {
@@ -272,7 +272,7 @@ export const registry: Record<Lang, PostEntry[]> = {
       title: "How to choose a planning poker tool for client projects",
       description: "There are 20+ planning poker tools. Most look the same on features. They don't look the same on what actually breaks a session.",
       publishedAt: "2026-05-30",
-      updatedAt: "2026-05-30",
+      updatedAt: "2026-10-19",
       translations: { fr: "choisir-outil-planning-poker-mission" },
       faq: [
         {

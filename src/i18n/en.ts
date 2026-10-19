@@ -44,7 +44,7 @@ export const en: Dict = {
     },
     {
       title: "6 voting scales",
-      desc: "Fibonacci, Fibonacci + ½, T-Shirt sizing, powers of 2, natural numbers, or a custom deck.",
+      desc: "Fibonacci, Fibonacci + ½, modified Fibonacci, T-Shirt sizing, powers of 2 and hours.",
     },
     {
       title: "Built-in timer",
@@ -79,7 +79,7 @@ export const en: Dict = {
     },
     {
       q: "What voting scales are available?",
-      a: "Fibonacci (1, 2, 3, 5, 8, 13, 21…), Fibonacci + ½ (0, ½, 1, 2, 3, 5, 8, 13, 21…), T-Shirt (XS, S, M, L, XL), powers of 2, natural numbers, and a customizable deck.",
+      a: "Fibonacci (1, 2, 3, 5, 8, 13, 21…), Fibonacci + ½ (0, ½, 1, 2, 3, 5, 8, 13, 21…), modified Fibonacci (0, ½, 1, 2, 3, 5, 8, 13, 20, 40, 100), T-Shirt (XS, S, M, L, XL, XXL), powers of 2 (1, 2, 4, 8, 16…) and hours (1h to 24h).",
     },
     {
       q: "Is my data stored?",
