@@ -3,6 +3,7 @@ export type Locale = "fr" | "en";
 export type Dict = {
   // Landing hero
   tagline: string;
+  trustLine: string;
   createRoom: string;
   or: string;
   joinRoomLabel: string;

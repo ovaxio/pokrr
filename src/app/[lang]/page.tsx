@@ -111,8 +111,8 @@ export default async function LangHome({ params }: { params: Promise<Record<stri
             <ThemeToggle />
           </div>
           <header className="space-y-3">
-            <h1 className="anim-fade-up text-5xl font-bold tracking-tight text-balance sm:text-6xl">pokrr</h1>
-            <p className="anim-fade-up text-fg-soft text-pretty" style={{ '--delay': '80ms' } as CSSProperties}>{d.tagline}</p>
+            <p className="anim-fade-up text-5xl font-bold tracking-tight text-balance sm:text-6xl">pokrr</p>
+            <h1 className="anim-fade-up text-fg-soft text-pretty" style={{ '--delay': '80ms' } as CSSProperties}>{d.tagline}</h1>
           </header>
           <section className="anim-fade-up space-y-6" style={{ '--delay': '160ms' } as CSSProperties}>
             <NewRoomButton />
@@ -123,7 +123,7 @@ export default async function LangHome({ params }: { params: Promise<Record<stri
             </div>
             <JoinRoomForm />
             <p className="text-xs text-faint text-center">
-              Sans inscription · Aucune donnée stockée · RGPD-friendly
+              {d.trustLine}
             </p>
           </section>
           <footer className="anim-fade-up text-xs text-muted" style={{ '--delay': '240ms' } as CSSProperties}>{d.pageFooter}</footer>

@@ -1,7 +1,8 @@
 import type { Dict } from "./types";
 
 export const fr: Dict = {
-  tagline: "Estimez vos stories en équipe : gratuit, sans compte, sans pub.",
+  tagline: "Planning poker en ligne, gratuit et sans inscription. Estimez vos stories en équipe, sans pub.",
+  trustLine: "Sans inscription · Aucune donnée stockée · RGPD-friendly",
   createRoom: "Créer une salle",
   or: "ou",
   joinRoomLabel: "Rejoindre une salle",
