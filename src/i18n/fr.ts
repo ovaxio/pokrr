@@ -44,7 +44,7 @@ export const fr: Dict = {
     },
     {
       title: "6 échelles de vote",
-      desc: "Fibonacci, Fibonacci + ½, T-Shirt sizing, puissances de 2, entiers naturels, ou ton deck sur mesure.",
+      desc: "Fibonacci, Fibonacci + ½, Fibonacci modifiée, T-Shirt sizing, puissances de 2 et heures.",
     },
     {
       title: "Minuteur intégré",
@@ -79,7 +79,7 @@ export const fr: Dict = {
     },
     {
       q: "Quelles échelles de vote sont disponibles ?",
-      a: "Fibonacci (1, 2, 3, 5, 8, 13, 21…), Fibonacci + ½ (0, ½, 1, 2, 3, 5, 8, 13, 21…), T-Shirt (XS, S, M, L, XL), puissances de 2, entiers naturels, et un deck personnalisable.",
+      a: "Fibonacci (1, 2, 3, 5, 8, 13, 21…), Fibonacci + ½ (0, ½, 1, 2, 3, 5, 8, 13, 21…), Fibonacci modifiée (0, ½, 1, 2, 3, 5, 8, 13, 20, 40, 100), T-Shirt (XS, S, M, L, XL, XXL), puissances de 2 (1, 2, 4, 8, 16…) et heures (1h à 24h).",
     },
     {
       q: "Les données sont-elles stockées ?",
