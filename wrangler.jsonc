@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "pokrr",
+  "main": "party/index.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "durable_objects": {
+    "bindings": [{ "name": "Main", "class_name": "PokrrRoom" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["PokrrRoom"] }],
+  "dev": { "port": 1999 }
+}

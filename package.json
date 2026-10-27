@@ -7,11 +7,13 @@
     "knip:production": "knip --production",
     "dev": "concurrently -n next,party -c cyan,magenta \"npm:dev:next\" \"npm:dev:party\"",
     "dev:next": "next dev --webpack",
-    "dev:party": "partykit dev",
+    "dev:party": "wrangler dev",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "party:deploy": "partykit deploy",
+    "party:deploy": "wrangler deploy",
+    "party:types": "wrangler types party/worker-configuration.d.ts",
+    "typecheck:party": "npm run party:types && tsc --noEmit -p party/tsconfig.json",
     "smoke": "node scripts/smoke-room.mjs",
     "smoke:election": "POKRR_ADMIN_GRACE_MS=2000 node scripts/smoke-admin-election.mjs",
     "smoke:security": "node scripts/smoke-security.mjs",
@@ -30,6 +32,7 @@
     "lucide-react": "^1.58.0",
     "nanoid": "6.0.2",
     "next": "16.4.2",
+    "partyserver": "^0.5.10",
     "partysocket": "^1.3.0",
     "qrcode.react": "^4.2.0",
     "react": "19.3.1",
@@ -47,10 +50,10 @@
     "eslint-config-next": "16.4.2",
     "husky": "^9.1.7",
     "knip": "^6.41.0",
-    "partykit": "^0.0.115",
     "tailwindcss": "^4",
     "typescript": "^6",
-    "vitest": "^5.0.5"
+    "vitest": "^5.0.5",
+    "wrangler": "^4.153.0"
   },
   "overrides": {
     "@tailwindcss/typography": {

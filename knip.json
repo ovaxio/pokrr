@@ -1,6 +1,4 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": [
-    "party/index.ts",
-  ]
+  "ignoreUnresolved": ["./worker-configuration.d.ts"]
 }

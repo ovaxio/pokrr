@@ -19,6 +19,7 @@ function buildCsp(nonce: string): string {
   const partyKitHost = process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "localhost:1999";
   const isLocalPK = partyKitHost.startsWith("localhost");
   const partyKitWS = `${isLocalPK ? "ws" : "wss"}://${partyKitHost}`;
+  const partyKitHttp = `${isLocalPK ? "http" : "https"}://${partyKitHost}`;
   const impeccableDev = isDev ? " http://localhost:8400" : "";
 
   return [
@@ -27,7 +28,7 @@ function buildCsp(nonce: string): string {
     `style-src 'self' 'nonce-${nonce}'${isDev ? " 'unsafe-inline'" : ""}`,
     "img-src 'self' data: blob:",
     "font-src 'self' data:",
-    `connect-src 'self' ${partyKitWS} https://vitals.vercel-insights.com${isDev ? " ws://localhost:* http://localhost:*" : ""}`,
+    `connect-src 'self' ${partyKitWS} ${partyKitHttp} https://vitals.vercel-insights.com${isDev ? " ws://localhost:* http://localhost:*" : ""}`,
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",

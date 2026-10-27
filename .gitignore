@@ -37,8 +37,13 @@ yarn-error.log*
 # vercel
 .vercel
 
-# partykit
+# partykit (ancien outillage, dossier local eventuel)
 /.partykit/
+
+# wrangler / Cloudflare Workers
+/.wrangler/
+.dev.vars*
+party/worker-configuration.d.ts
 
 # playwright
 /test-results/

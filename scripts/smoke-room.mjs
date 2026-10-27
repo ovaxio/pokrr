@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Smoke test du serveur PartyKit pokrr.
+// Smoke test du serveur PartyServer pokrr.
 // Connecte 3 clients, joue un round complet, vérifie l'état final.
-// Usage : npm run smoke  (PartyKit doit tourner sur localhost:1999)
+// Usage : npm run smoke  (`npm run dev:party`, wrangler dev, doit tourner sur localhost:1999)
 
 import { setTimeout as sleep } from "node:timers/promises";
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Smoke test de l'élection admin auto.
-// Prérequis : PartyKit dev lancé avec POKRR_ADMIN_GRACE_MS=2000 (ou autre valeur courte).
+// Prérequis : `npm run dev:party` (wrangler dev) lancé avec POKRR_ADMIN_GRACE_MS=2000 (ou autre valeur courte).
 
 import { setTimeout as sleep } from "node:timers/promises";
 

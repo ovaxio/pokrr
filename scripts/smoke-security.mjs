@@ -7,8 +7,9 @@
 // - Origin browser non-autorisé refusé (CSWSH)
 // - Carte hors whitelist refusée
 // - Rate-limit IP déclenche 429
+// - HTTP non WebSocket sur /parties/ : 404 "Not Found" sans solliciter de Durable Object
 //
-// Prérequis : PartyKit dev sur localhost:1999 (.env: POKRR_ADMIN_GRACE_MS=2000 ou défaut).
+// Prérequis : `npm run dev:party` (wrangler dev) sur localhost:1999 (.env: POKRR_ADMIN_GRACE_MS=2000 ou défaut).
 
 import { setTimeout as sleep } from "node:timers/promises";
 
@@ -187,6 +188,17 @@ console.log("\n→ Test 6 : Origin browser non-autorisé");
     setTimeout(() => resolve(false), 2000);
   });
   expect(allowed, "Origin localhost:3000 autorisé");
+}
+
+// 7. HTTP non WebSocket sur /parties/ : 404 sans DO
+console.log("\n→ Test 7 : HTTP non WebSocket sur /parties/");
+{
+  const httpProto = PROTO === "ws" ? "http" : "https";
+  const res = await fetch(`${httpProto}://${HOST}/parties/main/sec-http-${Date.now()}`);
+  const body = await res.text();
+  expect(res.status === 404, "GET HTTP sur /parties/ renvoie 404");
+  // "Not implemented" = la requête a atteint le DO ; "Not Found" = rejet en amont.
+  expect(body === "Not Found", "corps \"Not Found\" (le DO n'a pas été sollicité)");
 }
 
 console.log(`\n${fail === 0 ? "✅ OK" : "❌ FAIL"} — ${pass} passed, ${fail} failed`);

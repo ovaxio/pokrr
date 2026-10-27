@@ -1,5 +1,3 @@
-import type * as Party from "partykit/server";
-
 const RATE_WINDOW_MS = 60_000;
 const RATE_MAX_CONNECTIONS = 30;
 const ipConnections = new Map<string, number[]>();
@@ -24,7 +22,7 @@ export function isRateLimited(ip: string | null): boolean {
   return false;
 }
 
-export function isOriginAllowed(req: Party.Request): boolean {
+export function isOriginAllowed(req: Request): boolean {
   const origin = req.headers.get("origin");
   if (!origin) return true;
   if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return true;
@@ -37,7 +35,7 @@ export function isOriginAllowed(req: Party.Request): boolean {
   return false;
 }
 
-export function clientIp(req: Party.Request): string | null {
+export function clientIp(req: Request): string | null {
   const cfIp = req.headers.get("cf-connecting-ip");
   if (cfIp) return cfIp;
   const xff = req.headers.get("x-forwarded-for");

@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Etat local de wrangler dev et types generes par `npm run party:types` (hors git).
+    ".wrangler/**",
+    "party/worker-configuration.d.ts",
   ]),
 ]);
 
