@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["esnext"],
+    "types": ["./worker-configuration.d.ts", "node"],
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "isolatedModules": true
+  },
+  "include": ["./**/*.ts"]
+}

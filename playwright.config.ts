@@ -13,7 +13,7 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   // Pré-requis : lancer `npm run dev` dans un autre terminal avant.
-  // Playwright reprend les serveurs existants (next:3000 + partykit:1999).
+  // Playwright reprend les serveurs existants (next:3000 + wrangler dev:1999).
   webServer: {
     command: "npm run dev",
     url: "http://localhost:3000",

@@ -30,6 +30,9 @@ jobs:
       - name: TypeScript
         run: npx tsc --noEmit
 
+      - name: TypeScript (worker)
+        run: npm run typecheck:party
+
       - name: Build production
         run: npm run build
 
@@ -46,6 +49,8 @@ jobs:
     name: Backend smokes (room / election / security)
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      WRANGLER_SEND_METRICS: "false"
     steps:
       - uses: actions/checkout@v7
 
@@ -56,16 +61,16 @@ jobs:
 
       - run: npm ci
 
-      - name: Setup PartyKit env (short admin grace)
+      - name: Setup wrangler dev env (short admin grace)
         run: echo "POKRR_ADMIN_GRACE_MS=2000" > .env
 
-      - name: Start PartyKit dev in background
+      - name: Start wrangler dev in background
         run: |
-          npm run dev:party > /tmp/partykit.log 2>&1 &
-          echo $! > /tmp/partykit.pid
-          for i in $(seq 1 30); do
+          npm run dev:party > /tmp/wrangler-dev.log 2>&1 &
+          echo $! > /tmp/wrangler-dev.pid
+          for i in $(seq 1 60); do
             if nc -z localhost 1999 2>/dev/null; then
-              echo "partykit up after ${i}s"
+              echo "wrangler dev up after ${i}s"
               sleep 2
               break
             fi
@@ -81,10 +86,10 @@ jobs:
       - name: Smoke — admin election
         run: npm run smoke:election
 
-      - name: Dump PartyKit logs on failure
+      - name: Dump wrangler dev logs on failure
         if: failure()
-        run: tail -100 /tmp/partykit.log || true
+        run: tail -100 /tmp/wrangler-dev.log || true
 
       - name: Cleanup
         if: always()
-        run: kill $(cat /tmp/partykit.pid) 2>/dev/null || true
+        run: kill $(cat /tmp/wrangler-dev.pid) 2>/dev/null || true
