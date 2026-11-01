@@ -64,6 +64,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
   const adminOffline = adminPlayers.length > 0 && !anyAdminOnline;
   const isConnecting = !room.state;
   const isKicked = room.status === "kicked";
+  const isExpired = room.status === "expired";
   const needsName = nameHydrated && !name;
 
   return (
@@ -221,7 +222,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
         )}
       </main>
 
-      {needsName && (
+      {needsName && !isExpired && (
         <JoinModal
           roomId={roomId}
           defaultName=""
@@ -239,6 +240,35 @@ export default function RoomClient({ roomId }: { roomId: string }) {
           className="fixed inset-0 z-50 flex items-center justify-center bg-bg/95 backdrop-blur px-4 text-center text-red-700 dark:text-red-300"
         >
           {room.errorMsg ?? d.kicked}
+        </div>
+      )}
+
+      {isExpired && (
+        <div
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="session-expired-title"
+          aria-describedby="session-expired-body"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-bg/95 backdrop-blur px-4 text-center text-fg"
+        >
+          <div className="w-full max-w-md space-y-6">
+            <div className="space-y-2">
+              <h2 id="session-expired-title" className="text-2xl font-bold tracking-tight">
+                {d.sessionExpiredTitle}
+              </h2>
+              <p id="session-expired-body" className="text-sm text-muted">
+                {d.sessionExpiredBody}
+              </p>
+            </div>
+            <button
+              type="button"
+              autoFocus
+              onClick={() => window.location.reload()}
+              className="rounded-lg bg-indigo-600 px-5 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-indigo-500"
+            >
+              {d.sessionExpiredCta}
+            </button>
+          </div>
         </div>
       )}
 

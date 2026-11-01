@@ -46,7 +46,7 @@ jobs:
         run: npm run knip
 
   smoke:
-    name: Backend smokes (room / election / security)
+    name: Backend smokes (room / election / security / idle)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -61,8 +61,9 @@ jobs:
 
       - run: npm ci
 
-      - name: Setup wrangler dev env (short admin grace)
-        run: echo "POKRR_ADMIN_GRACE_MS=2000" > .env
+      # 8000 ms : aucun smoke ne doit rester silencieux plus de ~5 s dans une même salle.
+      - name: Setup wrangler dev env (short admin grace, short idle timeout)
+        run: printf 'POKRR_ADMIN_GRACE_MS=2000\nPOKRR_IDLE_TIMEOUT_MS=8000\n' > .env
 
       - name: Start wrangler dev in background
         run: |
@@ -85,6 +86,9 @@ jobs:
 
       - name: Smoke — admin election
         run: npm run smoke:election
+
+      - name: Smoke - idle expiry
+        run: npm run smoke:idle
 
       - name: Dump wrangler dev logs on failure
         if: failure()

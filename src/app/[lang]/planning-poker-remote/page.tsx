@@ -74,7 +74,7 @@ const content = {
       },
       {
         q: "Peut-on faire du planning poker en asynchrone ?",
-        a: "pokrr est conçu pour les sessions synchrones. Une salle reste ouverte tant qu'au moins une personne y est connectée : si l'animateur garde l'onglet ouvert, chacun peut voter à son rythme jusqu'à la révélation.",
+        a: "pokrr est conçu pour les sessions synchrones. Une salle reste ouverte tant qu'au moins une personne y est connectée, et se ferme après 2 h sans aucune action. Pendant la session, chacun peut voter à son rythme jusqu'à la révélation.",
       },
       {
         q: "Combien de personnes peuvent rejoindre une session ?",
@@ -154,7 +154,7 @@ const content = {
       },
       {
         q: "Can planning poker be done asynchronously?",
-        a: "pokrr is designed for synchronous sessions. A room stays open as long as at least one person is connected: if the facilitator keeps the tab open, people can vote at their own pace until the reveal.",
+        a: "pokrr is designed for synchronous sessions. A room stays open as long as at least one person is connected, and closes after 2 hours without any action. During the session, people can vote at their own pace until the reveal.",
       },
       {
         q: "How many people can join a session?",

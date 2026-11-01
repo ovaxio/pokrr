@@ -77,6 +77,10 @@ export const LIMITS = {
   maxTimerSec: 60 * 60, // 1h max
 } as const;
 
+// Code de fermeture WebSocket envoyé quand une salle expire faute d'activité.
+// Le client ne se reconnecte pas sur ce code (src/lib/usePokrrRoom.ts).
+export const ROOM_EXPIRED_CLOSE_CODE = 4001;
+
 // --- Timer ---
 export type TimerInfo = {
   startedAt: number; // epoch ms

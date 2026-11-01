@@ -25,7 +25,7 @@ Planning poker minimaliste : gratuit, sans pub, sans inscription. Stack Next.js 
 
 - **Front** : Next.js 16 App Router, Tailwind v4, React 19. Déployé sur Vercel Hobby.
 - **Backend temps réel** : PartyServer (= Cloudflare Workers + Durable Objects, un DO par roomId), déployé avec `wrangler` sur ton compte Cloudflare. La plateforme PartyKit hébergée a fermé le 23/10/2026.
-- **State** : in-memory dans le DO PartyServer (pas de DB, pas de `room.storage`). Une room vit tant qu'une connexion WebSocket est ouverte, puis Cloudflare évince le DO 1 à 3 min après la dernière déconnexion et l'état est perdu → coût ressources ≈ 0. Un `npm run party:deploy` redémarre les DO et vide toutes les rooms en cours : éviter de déployer pendant une session.
+- **State** : in-memory dans le DO PartyServer (pas de DB, pas de `room.storage`). Une room vit tant qu'une connexion WebSocket est ouverte, et se ferme après 2 h sans aucune action (code WebSocket 4001, le client ne se reconnecte pas), puis Cloudflare évince le DO 1 à 3 min après la dernière déconnexion et l'état est perdu → coût ressources ≈ 0. Un `npm run party:deploy` redémarre les DO et vide toutes les rooms en cours : éviter de déployer pendant une session.
 
 ## Lancer en local
 
@@ -48,6 +48,7 @@ Prérequis : `npm run dev` doit tourner dans un autre terminal (port 3000 + 1999
 npm run smoke           # 23 assertions backend (happy path)
 npm run smoke:election  # 7 assertions élection admin auto (POKRR_ADMIN_GRACE_MS=2000)
 npm run smoke:security  # 20 assertions sécurité (CSWSH, XSS, admin usurp, voterId, JSON, HTTP sur /parties/)
+npm run smoke:idle      # coupure d'inactivité (POKRR_IDLE_TIMEOUT_MS=8000, local uniquement)
 npm run test:e2e        # 1 test Playwright (3 voters, happy path complet)
 ```
 
@@ -102,7 +103,8 @@ Voir `.env.example`. Récap :
 |---|---|---|
 | `NEXT_PUBLIC_PARTYKIT_HOST` | Next | Hostname du Worker (sans protocole) |
 | `NEXT_PUBLIC_SITE_URL` | Next | URL canonique pour `metadataBase` OG/Twitter (optionnel) |
-| `POKRR_ADMIN_GRACE_MS` | Worker (`.env` en local ; en prod, aucune `vars` n'est définie dans `wrangler.jsonc`, donc défaut du code) | Fenêtre grâce avant élection admin auto (défaut 15 min) |
+| `POKRR_ADMIN_GRACE_MS` | Worker (`.env` en local ; en prod, aucune `vars` n'est définie dans `wrangler.jsonc`, donc défaut du code) | Fenêtre grâce avant élection admin auto (défaut 1 min) |
+| `POKRR_IDLE_TIMEOUT_MS` | Worker (`.env` en local ; en prod, aucune `vars` n'est définie dans `wrangler.jsonc`, donc défaut du code) | Fermeture d'une salle sans action (défaut 2 h) |
 
 ## Structure
 
@@ -143,7 +145,7 @@ src/lib/
   voterId.ts            # localStorage voterId nanoid 16
   stats.ts              # Calcul stats post-reveal
 party/                  # Worker PartyServer (tsconfig dédié)
-  index.ts              # Classe PokrrRoom + fetch du Worker (17 events tracés, garde d'accès, élection admin)
+  index.ts              # Classe PokrrRoom + fetch du Worker (18 events tracés, garde d'accès, élection admin)
   domain/GameRoom.ts    # Logique de jeu pure (votes, reveal, admins), GameError.ts
   security.ts           # Origine autorisée, IP client, rate limit
   sanitize.ts           # Validation pseudo / story / voterId
@@ -153,6 +155,7 @@ scripts/
   smoke-room.mjs        # Test bout-en-bout (23 assertions)
   smoke-security.mjs    # Test sécurité (20 assertions)
   smoke-admin-election.mjs # Test élection admin (7 assertions)
+  smoke-idle-expiry.mjs # Test coupure d'inactivité
 tests/unit/             # vitest (domain, lib, party)
 e2e/                    # Playwright
 wrangler.jsonc          # Config du Worker (binding Main, migration SQLite v1)

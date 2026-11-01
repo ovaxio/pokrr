@@ -1,5 +1,6 @@
 import { routePartykitRequest, Server, type Connection, type WSMessage } from "partyserver";
-import type { ClientMessage, ErrorCode, ServerMessage } from "./types";
+import { ROOM_EXPIRED_CLOSE_CODE, type ClientMessage, type ErrorCode, type ServerMessage } from "./types";
+import { DEFAULT_ADMIN_GRACE_MS, DEFAULT_IDLE_TIMEOUT_MS, readPositiveMs } from "./config";
 import { GameRoom } from "./domain/GameRoom";
 import { GameError } from "./domain/GameError";
 import { sanitizeName, sanitizeStory, sanitizeVoterId } from "./sanitize";
@@ -8,27 +9,24 @@ import { log, truncId } from "./log";
 
 type ConnState = { voterId: string | null };
 
-const DEFAULT_ADMIN_GRACE_MS = 15 * 60 * 1000;
-
-function readAdminGraceMs(env: unknown): number {
-  if (!env || typeof env !== "object") return DEFAULT_ADMIN_GRACE_MS;
-  const raw = Number((env as Record<string, unknown>).POKRR_ADMIN_GRACE_MS);
-  return Number.isFinite(raw) && raw > 0 ? raw : DEFAULT_ADMIN_GRACE_MS;
-}
-
 export class PokrrRoom extends Server<Env> {
   static options = { hibernate: false };
 
   private game = new GameRoom();
   private electionTimer: ReturnType<typeof setTimeout> | null = null;
+  private idleTimer: ReturnType<typeof setTimeout> | null = null;
 
   onConnect(conn: Connection<ConnState>): void {
     conn.setState({ voterId: null });
     this.game.trackConnection(conn.id);
+    // Armer sans repousser : une simple connexion ne compte pas comme une action.
+    if (!this.idleTimer) this.armIdleTimer();
     conn.send(JSON.stringify(this.game.snapshot(this.name)));
   }
 
   onMessage(sender: Connection<ConnState>, raw: WSMessage): void {
+    // Toute trame client compte comme une action, y compris JSON invalide ou message refusé.
+    this.armIdleTimer();
     let msg: ClientMessage;
     try {
       if (typeof raw !== "string") throw new Error("non-string message");
@@ -49,6 +47,7 @@ export class PokrrRoom extends Server<Env> {
   }
 
   onClose(conn: Connection<ConnState>): void {
+    this.clearIdleTimerIfEmpty(conn.id);
     const voterId = conn.state?.voterId ?? null;
     const { needsElection } = this.game.untrackConnection(conn.id, voterId);
 
@@ -62,6 +61,11 @@ export class PokrrRoom extends Server<Env> {
       log("revealed_auto", { room: this.name });
       this.broadcast(JSON.stringify(this.game.snapshot(this.name)));
     }
+  }
+
+  onError(conn: Connection<ConnState>, error: unknown): void {
+    console.error(conn.id, "connection error", error);
+    this.clearIdleTimerIfEmpty(conn.id);
   }
 
   // --- Message dispatch ---
@@ -195,7 +199,7 @@ export class PokrrRoom extends Server<Env> {
 
   private scheduleElection(): void {
     if (this.electionTimer) clearTimeout(this.electionTimer);
-    const graceMs = readAdminGraceMs(this.env);
+    const graceMs = readPositiveMs(this.env, "POKRR_ADMIN_GRACE_MS", DEFAULT_ADMIN_GRACE_MS);
     this.electionTimer = setTimeout(() => {
       this.electionTimer = null;
       const elected = this.game.electAdmin();
@@ -203,6 +207,46 @@ export class PokrrRoom extends Server<Env> {
       log("admin_elected", { room: this.name, to: truncId(elected), grace_ms: graceMs });
       this.broadcast(JSON.stringify(this.game.snapshot(this.name)));
     }, graceMs);
+  }
+
+  private armIdleTimer(): void {
+    if (this.idleTimer) clearTimeout(this.idleTimer);
+    const idleMs = readPositiveMs(this.env, "POKRR_IDLE_TIMEOUT_MS", DEFAULT_IDLE_TIMEOUT_MS);
+    this.idleTimer = setTimeout(() => this.expireRoom(idleMs), idleMs);
+  }
+
+  // Sans connexion, le timer est inutile et ne doit pas retenir le DO.
+  private clearIdleTimerIfEmpty(closingConnId: string): void {
+    if (!this.idleTimer) return;
+    const remaining = Array.from(this.getConnections()).filter((c) => c.id !== closingConnId);
+    if (remaining.length > 0) return;
+    clearTimeout(this.idleTimer);
+    this.idleTimer = null;
+  }
+
+  private expireRoom(idleMs: number): void {
+    this.idleTimer = null;
+    if (this.electionTimer) {
+      clearTimeout(this.electionTimer);
+      this.electionTimer = null;
+    }
+    const conns = Array.from(this.getConnections<ConnState>());
+    log("room_expired", { room: this.name, conns: conns.length, idle_ms: idleMs });
+    // Remise à zéro avant les close() : les onClose qui suivent ne voient plus
+    // ni joueur ni admin, donc pas d'élection ni de broadcast d'ancien état.
+    this.game = new GameRoom();
+    for (const conn of conns) {
+      try {
+        conn.setState({ voterId: null });
+      } catch {
+        // connexion déjà fermée entre le snapshot et le traitement
+      }
+      try {
+        conn.close(ROOM_EXPIRED_CLOSE_CODE, "room_expired");
+      } catch {
+        // idem, close déjà effectué
+      }
+    }
   }
 
   private kickConnections(connIds: Set<string>, reason: string): void {

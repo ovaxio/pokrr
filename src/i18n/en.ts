@@ -94,12 +94,16 @@ export const en: Dict = {
   voted: "voted",
   resultsLabel: "Results:",
   adminOffline:
-    "No admin online. The role will automatically transfer to the earliest voter after 15 min.",
+    "No admin online. The role will automatically transfer to the earliest voter after 1 min.",
   joinVote: "Join the vote",
   goSpectator: "Switch to spectator",
   share: "Share",
   shortcutsLabel: "Keyboard shortcuts",
   kicked: "You were removed from this room.",
+  sessionExpiredTitle: "Session expired",
+  sessionExpiredBody:
+    "No activity in this room for 2 hours, so it was closed and its content cleared. The same link opens a new, empty room.",
+  sessionExpiredCta: "Reopen the room",
 
   revealNow: "Reveal now",
   resetConfirmHint: "Press R again to reset",

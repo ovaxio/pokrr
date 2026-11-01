@@ -2,10 +2,16 @@
 
 import PartySocket from "partysocket";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Card, ClientMessage, RoomState, ServerMessage } from "../../party/types";
+import {
+  ROOM_EXPIRED_CLOSE_CODE,
+  type Card,
+  type ClientMessage,
+  type RoomState,
+  type ServerMessage,
+} from "../../party/types";
 import { getOrCreateVoterId } from "./voterId";
 
-type RoomStatus = "connecting" | "joining" | "joined" | "kicked" | "error";
+type RoomStatus = "connecting" | "joining" | "joined" | "kicked" | "expired" | "error";
 
 type UseRoom = {
   state: RoomState | null;
@@ -42,7 +48,11 @@ export function usePokrrRoom(roomId: string, name: string | null, asViewer = fal
   useEffect(() => {
     if (!voterId) return;
     const host = process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "localhost:1999";
-    const socket = new PartySocket({ host, room: roomId });
+    const socket = new PartySocket({
+      host,
+      room: roomId,
+      shouldReconnectOnClose: (e) => e.code !== ROOM_EXPIRED_CLOSE_CODE,
+    });
     socketRef.current = socket;
     joinSentRef.current = false;
 
@@ -92,7 +102,11 @@ export function usePokrrRoom(roomId: string, name: string | null, asViewer = fal
       }
     };
 
-    const onClose = () => {
+    const onClose = (event: CloseEvent) => {
+      if (event.code === ROOM_EXPIRED_CLOSE_CODE) {
+        setStatus("expired");
+        return;
+      }
       setStatus("connecting");
       joinSentRef.current = false; // Permettre le re-join sur reconnexion automatique.
     };
