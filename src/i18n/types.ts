@@ -34,6 +34,9 @@ export type Dict = {
   share: string;
   shortcutsLabel: string;
   kicked: string;
+  sessionExpiredTitle: string;
+  sessionExpiredBody: string;
+  sessionExpiredCta: string;
 
   // AdminBar
   revealNow: string;

@@ -18,7 +18,7 @@ Planning poker en ligne, gratuit, sans pub, sans inscription : https://pokrr.app
 
 - **Utilisateur réel en production** : l'équipe Boiron s'en sert pour ses refinements. Aucun changement visible (UX, textes, comportement d'une salle) sans accord explicite du mainteneur.
 - **Déployer le Worker vide toutes les salles en cours** (`npm run party:deploy` redémarre les Durable Objects). Ne jamais le lancer pendant une session Boiron. Un déploiement Vercel (front) ne touche pas aux salles.
-- **Promesses de la copy à respecter** : une salle vit tant qu'un onglet est connecté, puis disparaît 1 à 3 min après la dernière déconnexion. Ne jamais écrire « 4h », ne jamais promettre de vote asynchrone, aucune donnée côté serveur.
+- **Promesses de la copy à respecter** : une salle vit tant qu'un onglet est connecté, se ferme après 2 h sans aucune action (code WebSocket 4001, sans reconnexion), puis disparaît 1 à 3 min après la dernière déconnexion. Ne jamais écrire « 4h », ne jamais promettre de vote asynchrone, aucune donnée côté serveur.
 - **Pas de commit ni de push** sans demande explicite. Branches créées depuis `main`, sans tracking vers `origin/main`. `main` est protégée : on passe par une PR, mergée à la main par le mainteneur.
 - **Pas de tiret cadratin** dans les textes rédigés (copy, docs, commentaires, messages de commit).
 
@@ -51,7 +51,7 @@ src/app/api/health/          GET /api/health (statut + hôte du Worker)
 src/i18n/                    dictionnaires typés fr.ts / en.ts, DictContext
 src/content/blog/{fr,en}/    articles MDX
 src/lib/                     hook temps réel, stats, raccourcis, voterId, thème
-scripts/smoke-*.mjs          smokes WebSocket (room, security, admin-election)
+scripts/smoke-*.mjs          smokes WebSocket (room, security, admin-election, idle-expiry)
 tests/unit/                  vitest (domain, lib, party)
 e2e/                         Playwright
 wrangler.jsonc               config du Worker (binding Main, migration v1 SQLite)
@@ -71,10 +71,11 @@ npm run knip              # aussi lancé par le hook pre-commit husky
 npm run smoke             # nécessite npm run dev (ou POKRR_HOST=<hôte>)
 npm run smoke:security
 npm run smoke:election    # local uniquement (POKRR_ADMIN_GRACE_MS=2000)
+npm run smoke:idle        # local uniquement (POKRR_IDLE_TIMEOUT_MS=8000)
 npm run test:e2e          # Playwright, nécessite npm run dev
 ```
 
-**Avant de proposer un commit**, rejouer ce que fait la CI (`.github/workflows/ci.yml`) : lint, `tsc --noEmit`, `typecheck:party`, build, `npm audit --omit=dev --audit-level=high`, tests unitaires, knip, puis les trois smokes contre `wrangler dev`. Le critère est « 0 échec », pas un nombre d'assertions figé.
+**Avant de proposer un commit**, rejouer ce que fait la CI (`.github/workflows/ci.yml`) : lint, `tsc --noEmit`, `typecheck:party`, build, `npm audit --omit=dev --audit-level=high`, tests unitaires, knip, puis les quatre smokes contre `wrangler dev`. Le critère est « 0 échec », pas un nombre d'assertions figé.
 
 Node 24 (version de la CI ; aucun `.nvmrc` ni `engines` dans le repo). Sur ce poste, vérifier `node -v` : un `node` du PATH peut être une autre version.
 
@@ -83,8 +84,8 @@ Node 24 (version de la CI ; aucun `.nvmrc` ni `engines` dans le repo). Sur ce po
 - **Binding `Main`** dans `wrangler.jsonc` : il produit la route `/parties/main/<salle>` attendue par `partysocket`. Tout autre nom casse le client (400).
 - **Garde d'accès** : origine autorisée, IP (`CF-Connecting-IP`) et rate limit (30 connexions par minute et par IP, mémoire par isolate) passent par l'option `onBeforeConnect` de `routePartykitRequest`. Une requête sans en-tête `Origin` est acceptée (nécessaire aux smokes Node).
 - **`onBeforeRequest` répond toujours `404 Not Found`** : aucun client légitime ne fait de HTTP sur `/parties/`, et sans ce garde chaque GET créerait un Durable Object facturé. Le corps `Not Found` le distingue du 404 du DO (`Not implemented`), le smoke de sécurité s'en sert.
-- **Pas d'hibernation** (`hibernate: false`) : l'état est en mémoire, l'hibernation l'effacerait. Conséquence : une salle connectée consomme du quota en continu.
-- **Minuterie d'élection d'admin** (`POKRR_ADMIN_GRACE_MS`, 15 min par défaut) : à la déconnexion de l'admin, elle garde le DO actif 15 min (environ 112 GB-s par salle). Le smoke d'élection ne marche donc pas contre la prod.
+- **Pas d'hibernation** (`hibernate: false`) : l'état est en mémoire, l'hibernation l'effacerait. Conséquence : une salle connectée consomme du quota en continu, plafonné par la coupure d'inactivité (`POKRR_IDLE_TIMEOUT_MS`, 2 h par défaut, remise à zéro à chaque trame client, minuterie `setTimeout` annulée à la dernière déconnexion).
+- **Minuterie d'élection d'admin** (`POKRR_ADMIN_GRACE_MS`, 1 min par défaut) : à la déconnexion de l'admin, elle garde le DO actif 1 min (environ 8 GB-s par salle). Le smoke d'élection reste prévu pour le local ; contre la prod il faut passer `POKRR_ADMIN_GRACE_MS=60000` au script.
 - **Variables du Worker** : en local via `.env` (ne pas créer de `.dev.vars`, wrangler ignorerait alors `.env`) ; `process.env` fonctionne grâce à `nodejs_compat`. En prod, aucune `vars` n'est définie : défauts du code.
 - **Types** : `party/worker-configuration.d.ts` est généré par `npm run party:types` et hors git. Ne jamais remettre `party/index.ts` dans le `tsconfig.json` racine (les types Workers casseraient `next build`).
 - Tester un serveur local : arrêter ses propres process par PID, jamais `pkill` ni `killall` (d'autres projets tournent sur ce poste).
@@ -102,7 +103,7 @@ Node 24 (version de la CI ; aucun `.nvmrc` ni `engines` dans le repo). Sur ce po
 
 - Front : Vercel (déploiement automatique au merge sur `main`). Worker : `npm run party:deploy` (`wrangler deploy`) sur le compte Cloudflare du mainteneur, hôte `pokrr.codeblend.workers.dev`.
 - Plan Workers **gratuit** : environ 13 000 GB-s de durée par jour pour les Durable Objects. Un dépassement fait tomber les salles jusqu'à 00:00 UTC.
-- Surveillance hors repo (VPS du mainteneur) : une sonde de bout en bout toutes les 10 min (salle `__probe__`, sans `join` pour ne pas déclencher la minuterie d'élection) et un relevé horaire du quota, alertes Telegram. Ne pas renommer la salle `__probe__`, ni changer la réponse `not_joined` à un `set_name` sans `join`, sans mettre la sonde à jour.
+- Surveillance hors repo (VPS du mainteneur) : une sonde de bout en bout toutes les 10 min (salle `__probe__`, sans `join` pour ne pas déclencher la minuterie d'élection) et un relevé horaire du quota, alertes Telegram. Ne pas renommer la salle `__probe__`, ni changer la réponse `not_joined` à un `set_name` sans `join`, sans mettre la sonde à jour. La sonde ferme sa connexion en quelques secondes, donc la coupure d'inactivité de 2 h ne la concerne pas.
 - Vérifications rapides : `curl https://pokrr.app/api/health`, page `/fr/status`, `npx wrangler tail pokrr`.
 
 ## Références

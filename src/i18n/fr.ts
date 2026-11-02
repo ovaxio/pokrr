@@ -94,12 +94,16 @@ export const fr: Dict = {
   voted: "ont voté",
   resultsLabel: "Résultats :",
   adminOffline:
-    "Aucun admin en ligne. Le rôle passe automatiquement au plus ancien votant après 15 min.",
+    "Aucun admin en ligne. Le rôle passe automatiquement au plus ancien votant après 1 min.",
   joinVote: "Rejoindre le vote",
   goSpectator: "Passer en spectateur",
   share: "Partager",
   shortcutsLabel: "Raccourcis clavier",
   kicked: "Vous avez été retiré de la salle.",
+  sessionExpiredTitle: "Session expirée",
+  sessionExpiredBody:
+    "Aucune action dans cette salle depuis 2 h : elle a été fermée et son contenu effacé. Le même lien ouvre une nouvelle salle vide.",
+  sessionExpiredCta: "Rouvrir la salle",
 
   revealNow: "Révéler maintenant",
   resetConfirmHint: "R à nouveau pour réinitialiser",
