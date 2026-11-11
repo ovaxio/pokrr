@@ -2,7 +2,7 @@
 
 ## Overview
 
-Two-theme (light/dark) design system built on CSS custom properties bridged into Tailwind v4. The dark theme is the primary design surface; light mode inverts the ramp. Accent color: indigo. No custom typeface — system-ui stack for zero-latency rendering. Motion is minimal and purposeful: one flip animation, reduced-motion respected everywhere.
+Two-theme (light/dark) design system built on CSS custom properties bridged into Tailwind v4. The dark theme is the primary design surface; light mode inverts the ramp. Accent color: indigo. No custom typeface: system-ui stack for zero-latency rendering. Motion is minimal and purposeful: one flip animation and a short reaction projectile, reduced-motion respected everywhere.
 
 ---
 
@@ -130,13 +130,29 @@ No box-shadow utilities in use — elevation is expressed through border + backg
 }
 ```
 
-The flip is the only bespoke animation. Everything else uses Tailwind's default `transition` utility (150ms ease).
+The flip and the reaction projectile (below) are the only bespoke animations. Everything else uses Tailwind's default `transition` utility (150ms ease).
+
+### Reaction projectile
+
+A player (voter or spectator) arms one of the 12 reactions (`REACTION_ITEMS` in `party/types.ts`: 10 emojis, then a paper plane and a paper ball) in the reaction bar under the player list, then clicks any other online player's card, spectators included, to throw it; the choice stays armed (stored in the browser) until clicked again. The object enters from the left or right edge of the screen (side and small variations drawn per throw and per client, purely decorative), on every client of the room. It is animated with the Web Animations API (`element.animate`) on nodes created imperatively inside a `fixed` layer (`[data-projectile-layer]`, `z-30`, `pointer-events-none`, `aria-hidden`); the paper objects are SVG built with `createElementNS` and presentation attributes, so no inline `style` attribute reaches the HTML (CSP `style-src`) and the layout never moves.
+
+- Ground: the bottom edge of the target card. The throw aims at a first contact on the card (centre +/- 6 px), then drifts at most 40 px, split on both sides of the centre: contact and rest stay within 26 px of the centre of a 64 px card.
+- Emoji (40 px) and paper ball (28 px): parabola under a 3900 px/s² gravity, 770 ms to the first contact, starting 120 to 180 px above the ground (lowered if the apex would leave the screen). At each contact: 60 % horizontal loss, screen-aligned squash up to 0.05 with the base kept on the ground, real bounces (restitution 0.2 for the emoji, 0.25 for the ball, +/- 25 % per throw; bounces stop under 0.12 px/ms, +/- 50 % per throw). The emoji makes 2 full turns in flight, lands upright and slides (3100 px/s²); the ball spins and rolls (1100 px/s², rotation = distance / radius). 2 or 3 ground contacts for the emoji, 2 to 4 for the ball.
+- Paper plane (48 x 24 px, nose towards the walking direction): 950 ms glide from 170 to 210 px above the ground, smooth descent with a damped oscillation (1.25 waves, 27 px), pitch following the slope, touchdown without bounce, slight nose dip, then a slide (1800 px/s², shortened to stay within the drift cap).
+- Then hold (450 ms, plane 500 ms) and fade out (250 ms). Total about 1.65 to 2 s.
+- The target card trembles for 220 ms at the first contact (an inner element, `[data-card-shake]`), amplitude growing with the contact speed (up to 3 px and 1.8 deg, half for the plane).
+- Paper colours, identical in both themes (stone ramp): fills `#f5f5f4`, `#fafaf9`, `#d6d3d1`, folds `#a8a29e`, outline `#78716c`.
+- No sound, no particles, no trail. At most 12 sprites at once; an announcement through an `aria-live="polite"` region at most once every 2 s.
+- `prefers-reduced-motion: reduce`: no translation. The object fades in resting on the bottom edge of the target card, holds, fades out (1.3 s), no card shake. The media query is read at each shot because the Web Animations API ignores CSS media queries.
+- Reaction bar: 12 buttons of 36 px (the paper objects as SVG icons), 6 columns below 640 px and one row above, pressed state in indigo (`border-indigo-500 bg-indigo-500/20`, `aria-pressed`), a hint line always shown. Shown to voters and spectators. With nothing armed the cards are not buttons.
+- Cadence: at most one throw per second per player (server side, plus a 250 ms client margin).
+- The admin can switch the feature off for the room (checkbox "Reactions" in the admin bar).
 
 ### Principles
 
 - No entrance animations on page load
 - Hover states: `transition hover:bg-*` — instantaneous feel, 150ms default
-- `prefers-reduced-motion`: flip becomes instant; all transitions respected
+- `prefers-reduced-motion`: flip becomes instant, projectiles fade in place without travelling, no card shake; all transitions respected
 
 ---
 
@@ -157,6 +173,10 @@ The flip is the only bespoke animation. Everything else uses Tailwind's default 
   Label
 </button>
 ```
+
+### Reaction bar (toggle buttons)
+
+Twelve toggle buttons, `h-9 w-9` (36 px), `aria-pressed`: ten emojis (`text-xl`, named by the emoji itself) then the paper plane (30 x 15 px SVG) and the paper ball (22 x 22 px SVG), both with an `aria-label`. Rest: surface variant (`border border-token bg-surface hover:bg-surface-2`). Pressed: `border-indigo-500 bg-indigo-500/20`. Focus: `focus-visible:ring-2 focus-visible:ring-indigo-500`.
 
 ### Inline code / room ID
 

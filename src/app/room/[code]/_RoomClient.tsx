@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { useDict } from "@/i18n/DictContext";
 import ThemeToggle from "../../_ThemeToggle";
@@ -9,12 +9,16 @@ import LocaleToggle from "../../_LocaleToggle";
 import { usePokrrRoom } from "@/lib/usePokrrRoom";
 import { useRoomShortcuts } from "@/lib/useRoomShortcuts";
 import { getStoredName, storeName } from "@/lib/voterId";
-import { DEFAULT_DECK_ID } from "../../../../party/types";
+import { DEFAULT_DECK_ID, type ReactionItem } from "../../../../party/types";
+import { REACTION_CLIENT_COOLDOWN_MS } from "@/lib/projectiles";
+import { getArmedItem, storeArmedItem } from "@/lib/armedReaction";
 import AdminBar from "./_AdminBar";
 import CardDeck from "./_CardDeck";
 import HelpDialog from "./_HelpDialog";
 import JoinModal from "./_JoinModal";
 import PlayerList from "./_PlayerList";
+import ProjectileLayer from "./_ProjectileLayer";
+import ReactionBar from "./_ReactionBar";
 import ResultsPanel from "./_ResultsPanel";
 import ShareDialog from "./_ShareDialog";
 import StoryHeader from "./_StoryHeader";
@@ -28,6 +32,15 @@ export default function RoomClient({ roomId }: { roomId: string }) {
   const [shareOpen, setShareOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
+  const [reactionsCoolingDown, setReactionsCoolingDown] = useState(false);
+  const reactionCooldownTimerRef = useRef<number | null>(null);
+  // Élément armé : lu au montage (jamais au rendu, pour éviter un écart d'hydratation SSR).
+  const [armedItem, setArmedItem] = useState<ReactionItem | null>(null);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setArmedItem(getArmedItem());
+  }, []);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -49,6 +62,28 @@ export default function RoomClient({ roomId }: { roomId: string }) {
   const isAdmin = room.me?.isAdmin ?? false;
   const amIViewer = room.me?.isViewer ?? false;
   const { resetPending } = useRoomShortcuts({ state: room.state, isAdmin, sendAction: room.send });
+
+  useEffect(() => {
+    return () => {
+      if (reactionCooldownTimerRef.current !== null) clearTimeout(reactionCooldownTimerRef.current);
+    };
+  }, []);
+
+  // null : Worker antérieur à la fonction (champ absent), la fonction reste invisible.
+  const reactionsEnabled =
+    typeof room.state?.reactionsEnabled === "boolean" ? room.state.reactionsEnabled : null;
+  const reactionsAvailable =
+    reactionsEnabled === true && room.status === "joined" && room.me !== null;
+
+  const onReactAction = (targetVoterId: string, item: ReactionItem) => {
+    if (reactionsCoolingDown) return;
+    room.send({ type: "shoot_projectile", targetVoterId, item });
+    setReactionsCoolingDown(true);
+    reactionCooldownTimerRef.current = window.setTimeout(() => {
+      reactionCooldownTimerRef.current = null;
+      setReactionsCoolingDown(false);
+    }, REACTION_CLIENT_COOLDOWN_MS);
+  };
 
   const players = room.state?.players ?? [];
   const voters = players.filter((p) => !p.isViewer);
@@ -177,6 +212,9 @@ export default function RoomClient({ roomId }: { roomId: string }) {
             phase={phase}
             meVoterId={room.voterId}
             amIAdmin={isAdmin}
+            reactionsCoolingDown={reactionsCoolingDown}
+            armedItem={reactionsAvailable ? armedItem : null}
+            onReactAction={onReactAction}
             onKickAction={(voterId) => room.send({ type: "kick", voterId })}
             onGrantAdminAction={(voterId) => room.send({ type: "grant_admin", voterId })}
             onRevokeAdminAction={(voterId) => room.send({ type: "revoke_admin", voterId })}
@@ -186,6 +224,17 @@ export default function RoomClient({ roomId }: { roomId: string }) {
               setName(newName);
             }}
           />
+          {reactionsAvailable && (
+            <ReactionBar
+              armed={armedItem}
+              onArmAction={(item) => {
+                // Re-cliquer l'élément actif le désarme.
+                const next = armedItem === item ? null : item;
+                setArmedItem(next);
+                storeArmedItem(next);
+              }}
+            />
+          )}
         </section>
 
         {timer && <TimerDisplay timer={timer} />}
@@ -196,6 +245,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
           <AdminBar
             phase={room.state.phase}
             autoReveal={room.state.autoReveal}
+            reactionsEnabled={reactionsEnabled}
             deckId={deckId}
             timerActive={timer !== null}
             resetPending={resetPending}
@@ -203,6 +253,7 @@ export default function RoomClient({ roomId }: { roomId: string }) {
             onResetAction={() => room.send({ type: "reset" })}
             onNextStoryAction={(story) => room.send({ type: "next_story", story })}
             onToggleAutoRevealAction={(enabled) => room.send({ type: "set_auto_reveal", enabled })}
+            onToggleReactionsAction={(enabled) => room.send({ type: "set_reactions", enabled })}
             onSetDeckAction={(deckId) => room.send({ type: "set_deck", deckId })}
             onStartTimerAction={(durationSec) => room.send({ type: "start_timer", durationSec })}
             onStopTimerAction={() => room.send({ type: "stop_timer" })}
@@ -272,6 +323,9 @@ export default function RoomClient({ roomId }: { roomId: string }) {
         </div>
       )}
 
+      {room.state && (
+        <ProjectileLayer subscribe={room.subscribeProjectiles} players={players} meVoterId={room.voterId} />
+      )}
       <ShareDialog roomId={roomId} open={shareOpen} onCloseAction={() => setShareOpen(false)} />
       <HelpDialog open={helpOpen} deckId={deckId} onCloseAction={() => setHelpOpen(false)} />
     </div>

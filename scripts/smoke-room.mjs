@@ -30,13 +30,15 @@ const log = (label, payload) => {
 function connect(label) {
   return new Promise((resolve, reject) => {
     const ws = new WebSocket(URL);
+    ws.projectiles = [];
     ws.addEventListener("open", () => resolve(ws));
     ws.addEventListener("error", (e) => reject(e));
     ws.addEventListener("message", (event) => {
       try {
         const data = JSON.parse(String(event.data));
         log(label, data);
-        if (data.type === "room_state") ws.lastState = data;
+        if (data.type === "room_state") { ws.lastState = data; ws.stateCount = (ws.stateCount ?? 0) + 1; }
+        if (data.type === "projectile_thrown") ws.projectiles.push(data);
       } catch {
         console.log(`[${label}] raw`, event.data);
       }
@@ -95,6 +97,36 @@ expect(
   stateBeforeReveal.players.find((p) => p.voterId === "voter-carol")?.name === "Alice (2)",
   "carol renommée 'Alice (2)' (déduplication)",
 );
+
+console.log("\n→ Réactions : activées par défaut, Bob tire sur Carol");
+expect(alice.lastState.reactionsEnabled === true, "reactionsEnabled = true par défaut");
+const versionBeforeShot = lastVersion;
+const statesBeforeShot = [alice, bob, carol].map((ws) => ws.stateCount);
+send(bob, { type: "shoot_projectile", targetVoterId: "voter-carol", item: "👍" });
+await sleep(150);
+for (const [label, ws] of [["alice", alice], ["bob", bob], ["carol", carol]]) {
+  const shots = ws.projectiles;
+  expect(
+    shots.length === 1 &&
+      shots[0].fromVoterId === "voter-bob" &&
+      shots[0].toVoterId === "voter-carol" &&
+      shots[0].item === "👍",
+    `${label} reçoit exactement 1 projectile_thrown conforme`,
+  );
+}
+expect(
+  [alice, bob, carol].every((ws, i) => ws.stateCount === statesBeforeShot[i]),
+  "un tir ne diffuse aucun room_state (0 reçu par les 3 connexions)",
+);
+expect(lastVersion === versionBeforeShot, "un tir ne change pas la version de room_state");
+
+console.log("\n→ Alice coupe puis réactive les réactions");
+send(alice, { type: "set_reactions", enabled: false });
+await sleep(120);
+expect(alice.lastState.reactionsEnabled === false, "reactionsEnabled = false");
+send(alice, { type: "set_reactions", enabled: true });
+await sleep(120);
+expect(alice.lastState.reactionsEnabled === true, "reactionsEnabled = true");
 
 console.log("\n→ Alice active l'auto-reveal explicitement (le défaut est maintenant false)");
 send(alice, { type: "set_auto_reveal", enabled: true });

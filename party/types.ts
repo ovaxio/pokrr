@@ -68,6 +68,31 @@ export function cardToNumber(deck: Deck, card: string): number | null {
 
 export type Phase = "voting" | "revealed";
 
+// Liste blanche des réactions lançables, dans l'ordre de la barre. Emojis : un seul
+// code point chacun (pas de VS16, ZWJ ni teinte) pour une égalité de chaîne stricte
+// des deux côtés. Objets en papier : identifiant ASCII. Modifier la liste exige un
+// redéploiement du Worker.
+export const REACTION_ITEMS = [
+  "\u{1F44D}", // pouce haut
+  "\u{1F44E}", // pouce bas
+  "\u{1F44F}", // applaudissements
+  "\u{1F602}", // rire aux larmes
+  "\u{1F914}", // réflexion
+  "\u{1F62E}", // surprise
+  "\u{1F525}", // feu
+  "\u{1F3AF}", // cible
+  "\u2615", // café
+  "\u{1F680}", // fusée
+  "paper-plane", // avion en papier
+  "paper-ball", // boulette de papier
+] as const;
+
+export type ReactionItem = (typeof REACTION_ITEMS)[number];
+
+export function isReactionItem(v: unknown): v is ReactionItem {
+  return typeof v === "string" && (REACTION_ITEMS as readonly string[]).includes(v);
+}
+
 export const LIMITS = {
   maxNameLength: 24,
   maxStoryLength: 200,
@@ -75,6 +100,7 @@ export const LIMITS = {
   maxVoterIdLength: 64,
   minTimerSec: 30,
   maxTimerSec: 60 * 60, // 1h max
+  projectileCooldownMs: 1000, // 1 tir accepté par voterId par seconde
 } as const;
 
 // Code de fermeture WebSocket envoyé quand une salle expire faute d'activité.
@@ -106,6 +132,9 @@ export type RoomState = {
   story: string;
   phase: Phase;
   autoReveal: boolean;
+  // Absent sur un Worker antérieur à la fonction réactions : le client traite
+  // un champ non booléen comme "fonction indisponible".
+  reactionsEnabled?: boolean;
   players: PlayerView[];
   deckId: string;
   timer: TimerInfo | null;
@@ -130,7 +159,14 @@ type KickedMessage = {
   reason: string;
 };
 
-export type ServerMessage = RoomState | ErrorMessage | KickedMessage;
+export type ProjectileThrownMessage = {
+  type: "projectile_thrown";
+  fromVoterId: string;
+  toVoterId: string;
+  item: ReactionItem;
+};
+
+export type ServerMessage = RoomState | ErrorMessage | KickedMessage | ProjectileThrownMessage;
 
 // Messages client → serveur. Tous nécessitent que le client ait fait `join` au préalable
 // (sauf `join` lui-même).
@@ -144,6 +180,8 @@ export type ClientMessage =
   | { type: "next_story"; story: string } // admin — nouvelle story, votes effacés
   | { type: "set_story"; story: string } // admin — édition titre sans reset
   | { type: "set_auto_reveal"; enabled: boolean } // admin
+  | { type: "set_reactions"; enabled: boolean } // admin
+  | { type: "shoot_projectile"; targetVoterId: string; item: ReactionItem } // tireur = connexion (votant ou spectateur)
   | { type: "kick"; voterId: string } // admin
   | { type: "transfer_admin"; voterId: string } // admin — alias de grant_admin (compat)
   | { type: "grant_admin"; voterId: string } // admin — promouvoit un voter co-admin
