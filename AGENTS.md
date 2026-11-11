@@ -93,7 +93,8 @@ Node 24 (version de la CI ; aucun `.nvmrc` ni `engines` dans le repo). Sur ce po
 ## Front Next.js
 
 - **CSP** construite dans `src/proxy.ts` (nonce par requête). `connect-src` dérive de `NEXT_PUBLIC_PARTYKIT_HOST` (`wss://` et `https://`). Les autres en-têtes de sécurité sont dans `next.config.ts`.
-- **Dette connue** : la CSP `style-src` bloque les attributs `style="..."` (délais d'animation, largeurs de barres) depuis juin 2026. À traiter dans un chantier dédié, pas en passant.
+- **Dette connue** : la CSP `style-src` bloque les attributs `style="..."` (délais d'animation, largeurs de barres) depuis juin 2026. À traiter dans un chantier dédié, pas en passant. Ce qui reste permis : propriétés posées via CSSOM (`el.style.x = ...`, `style={{}}` sur un élément monté après hydratation) et Web Animations API (`element.animate`). En dev, `style-src` ajoute `'unsafe-inline'` : une violation CSP ne se constate que sur un build de prod.
+- **`anim-fade-up` laisse un transform permanent** : avec `animation-fill-mode: both`, les éléments animés (dont les cartes joueur du premier rendu) gardent un transform identité, donc un descendant en `position: fixed` se place par rapport à eux et non au viewport. Mesurer l'origine réelle du bloc conteneur, ou rendre l'élément hors de la carte.
 - **Edge Runtime déprécié** : les 5 `opengraph-image.tsx` déclarent `runtime = "edge"`. Suivi prévu : passer au runtime Node.js et vérifier les images de partage en preview.
 - **`NEXT_PUBLIC_*` est figé au build** : changer la variable sur Vercel exige un redeploy sans build cache. Sur Vercel, ces variables ne peuvent pas être en visibilité `secret` (utiliser `config`).
 - **SEO** : URL du site codée en dur `https://pokrr.app` pour le canonical, le sitemap et robots (jamais `VERCEL_URL`), `/<lang>/room/` et `/api/` exclus dans `src/app/robots.ts`, previews `*.vercel.app` en `noindex` (`src/proxy.ts`).
@@ -105,6 +106,24 @@ Node 24 (version de la CI ; aucun `.nvmrc` ni `engines` dans le repo). Sur ce po
 - Plan Workers **gratuit** : environ 13 000 GB-s de durée par jour pour les Durable Objects. Un dépassement fait tomber les salles jusqu'à 00:00 UTC.
 - Surveillance hors repo (VPS du mainteneur) : une sonde de bout en bout toutes les 10 min (salle `__probe__`, sans `join` pour ne pas déclencher la minuterie d'élection) et un relevé horaire du quota, alertes Telegram. Ne pas renommer la salle `__probe__`, ni changer la réponse `not_joined` à un `set_name` sans `join`, sans mettre la sonde à jour. La sonde ferme sa connexion en quelques secondes, donc la coupure d'inactivité de 2 h ne la concerne pas.
 - Vérifications rapides : `curl https://pokrr.app/api/health`, page `/fr/status`, `npx wrangler tail pokrr`.
+
+## Glossaire
+
+Termes de domaine, extraits du code réel (`party/types.ts`, `party/domain/GameRoom.ts`). Règle de croissance : un terme de domaine ambigu rencontré 2 fois est défini ici par la session qui le rencontre. Un terme qui disparaît du code est retiré.
+
+- **Salle (room)** : 1 Durable Object Cloudflare par salle, état en mémoire, route `/parties/main/<salle>`. Le code de salle est un nanoid sur alphabet sans 0/O/1/I/l (`src/app/_NewRoomButton.tsx`) pour rester dicible.
+- **Deck** : liste ordonnée de cartes (`DECKS`, 6 decks). La carte `?` ("je ne sais pas") est toujours présente, `☕` optionnel. Les stats numériques ne portent que sur `numericCards`.
+- **Carte (Card)** : une string. `cardToNumber` parse les cartes numériques (`½` → 0.5, `2h` → 2) et retourne null sinon.
+- **Vote** : la valeur d'un `voterId`. Jamais envoyée aux autres clients tant que `phase === "voting"` ; `PlayerView` la nulifie hors viewer.
+- **Phase** : `"voting" | "revealed"`. Passage en revealed par l'admin, ou automatique si `autoReveal` quand tous ont voté.
+- **Reveal** : la révélation des votes, par l'admin (`reveal`) ou automatique si `autoReveal`. Ne remet rien à zéro : les votes restent visibles jusqu'à `reset` ou `nextStory`.
+- **Reset** : vidage des votes de la story courante (`clearVotes`, phase → voting, timer annulé), sans toucher à la story. `nextStory` fait pareil en changeant la story.
+- **VoterId** : nanoid 16 généré côté client (`src/lib/voterId.ts`), stocké en localStorage. Identité sans compte, c'est la clé de tout message WS.
+- **Admin** : joueur élu (élection après déconnexion, minuterie `POKRR_ADMIN_GRACE_MS`, 15 min par défaut). Peut révéler et kicker.
+- **RoomState** : état complet de la salle, broadcast à chaque mutation, champ `version` incrémenté. Un champ optionnel absent = fonction antérieure au déploiement du Worker, le client le traite comme indisponible.
+- **LIMITS** : garde-fous partagés serveur et client (`party/types.ts`) : nom 24, story 200, 50 joueurs par salle, timer 30 s à 1 h, cooldown projectile 1 s.
+- **Projectile** : réaction éphémère lancée par un joueur (votant ou spectateur) vers un autre joueur en ligne, spectateurs compris, jamais vers soi. Liste blanche `REACTION_ITEMS` (`party/types.ts`, dans l'ordre de la barre) : 10 emojis d'un seul code point chacun (égalité de chaîne stricte des deux côtés), puis deux objets en papier d'identifiant ASCII (`paper-plane`, `paper-ball`). Champ `item` de `shoot_projectile` et `projectile_thrown`.
+- **not_joined** : code d'erreur renvoyé à toute action sans `join` préalable. La sonde VPS s'y appuie ; ne pas en changer la sémantique sans mettre la sonde à jour.
 
 ## Références
 

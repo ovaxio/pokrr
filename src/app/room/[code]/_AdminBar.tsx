@@ -14,6 +14,7 @@ const TIMER_PRESETS = [
 export default function AdminBar({
   phase,
   autoReveal,
+  reactionsEnabled,
   deckId,
   timerActive,
   resetPending,
@@ -21,12 +22,15 @@ export default function AdminBar({
   onResetAction,
   onNextStoryAction,
   onToggleAutoRevealAction,
+  onToggleReactionsAction,
   onSetDeckAction,
   onStartTimerAction,
   onStopTimerAction,
 }: {
   phase: Phase;
   autoReveal: boolean;
+  // null : Worker antérieur à la fonction réactions, ne rien afficher.
+  reactionsEnabled: boolean | null;
   deckId: string;
   timerActive: boolean;
   resetPending: boolean;
@@ -34,6 +38,7 @@ export default function AdminBar({
   onResetAction: () => void;
   onNextStoryAction: (story: string) => void;
   onToggleAutoRevealAction: (enabled: boolean) => void;
+  onToggleReactionsAction: (enabled: boolean) => void;
   onSetDeckAction: (deckId: string) => void;
   onStartTimerAction: (sec: number) => void;
   onStopTimerAction: () => void;
@@ -102,6 +107,18 @@ export default function AdminBar({
           />
           {d.autoReveal}
         </label>
+
+        {reactionsEnabled !== null && (
+          <label className="flex min-h-9 cursor-pointer items-center gap-2 text-muted">
+            <input
+              type="checkbox"
+              checked={reactionsEnabled}
+              onChange={(e) => onToggleReactionsAction(e.target.checked)}
+              className="accent-indigo-500"
+            />
+            {d.reactionsToggle}
+          </label>
+        )}
 
         <label className="flex items-center gap-2 text-muted">
           {d.deckLabel} :

@@ -14,7 +14,8 @@ type RoomShortcutsConfig = {
 // - ?    : sélectionne la carte "?" (si présente dans le deck)
 // - Space (admin, phase voting) : reveal
 // - R    (admin, phase revealed) : re-voter cette story — double presse requise (anti-reset accidentel)
-// Inactif si focus dans un input/textarea/contenteditable.
+// Inactif si focus dans un input/textarea/contenteditable, ou dans une zone marquée
+// data-room-shortcuts-off (barre de réactions et boutons de lancer).
 export function useRoomShortcuts({ state, isAdmin, sendAction }: RoomShortcutsConfig): { resetPending: boolean } {
   const [resetPending, setResetPending] = useState(false);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -27,7 +28,8 @@ export function useRoomShortcuts({ state, isAdmin, sendAction }: RoomShortcutsCo
       if (
         target instanceof HTMLInputElement ||
         target instanceof HTMLTextAreaElement ||
-        target?.isContentEditable
+        target?.isContentEditable ||
+        target?.closest?.("[data-room-shortcuts-off]")
       ) {
         return;
       }

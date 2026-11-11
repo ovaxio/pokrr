@@ -112,6 +112,18 @@ export type Dict = {
   kickConfirmAction: string;
   promoteConfirmAction: string;
   revokeConfirmAction: string;
+  reactionsToggle: string;
+  // "Lancer {{item}} à {{name}}"
+  reactionThrow: string;
+  reactionBarLabel: string;
+  reactionBarHint: string;
+  // Nom accessible d'un objet lançable (bouton de la barre, lancer, annonce)
+  reactionItemPlane: string;
+  reactionItemBall: string;
+  // "{{from}} a envoyé {{item}} à {{to}}"
+  reactionAnnounce: string;
+  // "{{from}} t'a envoyé {{item}}"
+  reactionAnnounceToYou: string;
   statusOnline: string;
   statusOffline: string;
 

@@ -1,11 +1,12 @@
 "use client";
 
 import PartySocket from "partysocket";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ROOM_EXPIRED_CLOSE_CODE,
   type Card,
   type ClientMessage,
+  type ProjectileThrownMessage,
   type RoomState,
   type ServerMessage,
 } from "../../party/types";
@@ -22,6 +23,8 @@ type UseRoom = {
   mySelectedVote: Card | null;
   dismissError: () => void;
   send: (msg: ClientMessage) => void;
+  // Abonnement aux tirs de réaction (événements éphémères, hors state React).
+  subscribeProjectiles: (listener: (shot: ProjectileThrownMessage) => void) => () => void;
 };
 
 export function usePokrrRoom(roomId: string, name: string | null, asViewer = false): UseRoom {
@@ -36,6 +39,9 @@ export function usePokrrRoom(roomId: string, name: string | null, asViewer = fal
   const asViewerRef = useRef(asViewer);
   // Évite le double-envoi de join sur la même connexion.
   const joinSentRef = useRef(false);
+  // Un abonnement plutôt qu'un state : le batching React ne peut pas fusionner deux
+  // tirs proches, et un tir ne re-rend pas la salle.
+  const listenersRef = useRef(new Set<(shot: ProjectileThrownMessage) => void>());
 
   useEffect(() => {
     nameRef.current = name;
@@ -94,6 +100,8 @@ export function usePokrrRoom(roomId: string, name: string | null, asViewer = fal
             setMySelectedVote(me.vote);
           }
         }
+      } else if (msg.type === "projectile_thrown") {
+        for (const listener of listenersRef.current) listener(msg);
       } else if (msg.type === "error") {
         setErrorMsg(msg.message);
       } else if (msg.type === "kicked") {
@@ -151,8 +159,19 @@ export function usePokrrRoom(roomId: string, name: string | null, asViewer = fal
     socket.send(JSON.stringify(msg));
   };
 
+  const subscribeProjectiles = useCallback(
+    (listener: (shot: ProjectileThrownMessage) => void) => {
+      const listeners = listenersRef.current;
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+    [],
+  );
+
   const dismissError = () => setErrorMsg(null);
   const me = state?.players.find((p) => p.voterId === voterId) ?? null;
 
-  return { state, status, errorMsg, voterId, me, mySelectedVote, dismissError, send };
+  return { state, status, errorMsg, voterId, me, mySelectedVote, dismissError, send, subscribeProjectiles };
 }

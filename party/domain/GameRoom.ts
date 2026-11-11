@@ -7,6 +7,8 @@ import {
   DECKS,
   DEFAULT_DECK_ID,
   LIMITS,
+  isReactionItem,
+  type ProjectileThrownMessage,
 } from "../types";
 import { GameError } from "./GameError";
 
@@ -22,6 +24,8 @@ export class GameRoom {
   private story = "";
   private phase: Phase = "voting";
   private autoReveal = false;
+  private reactionsEnabled = true;
+  private lastShotAt = new Map<string, number>();
   private version = 0;
   private adminVoterIds = new Set<string>();
   private players = new Map<string, ServerPlayer>();
@@ -181,6 +185,34 @@ export class GameRoom {
     this.version++;
   }
 
+  setReactionsEnabled(adminVoterId: string, enabled: boolean): void {
+    this.requireAdmin(adminVoterId);
+    if (this.reactionsEnabled === enabled) return;
+    this.reactionsEnabled = enabled;
+    this.version++;
+  }
+
+  // Tir de réaction éphémère : ne modifie ni l'état affiché ni `version`.
+  // Ne lève jamais : tout refus renvoie null (refus silencieux côté transport).
+  shootProjectile(
+    shooterVoterId: string,
+    targetVoterId: unknown,
+    item: unknown,
+    now: number,
+  ): Omit<ProjectileThrownMessage, "type"> | null {
+    if (!this.reactionsEnabled) return null;
+    const shooter = this.players.get(shooterVoterId);
+    if (!shooter) return null;
+    if (typeof targetVoterId !== "string" || targetVoterId === shooterVoterId) return null;
+    const target = this.players.get(targetVoterId);
+    if (!target || !this.isOnline(targetVoterId)) return null;
+    if (!isReactionItem(item)) return null;
+    const last = this.lastShotAt.get(shooterVoterId) ?? -Infinity;
+    if (now - last < LIMITS.projectileCooldownMs) return null;
+    this.lastShotAt.set(shooterVoterId, now);
+    return { fromVoterId: shooterVoterId, toVoterId: targetVoterId, item };
+  }
+
   kick(adminVoterId: string, targetVoterId: string): Set<string> {
     this.requireAdmin(adminVoterId);
     if (targetVoterId === adminVoterId) {
@@ -190,6 +222,7 @@ export class GameRoom {
 
     this.adminVoterIds.delete(targetVoterId);
     this.players.delete(targetVoterId);
+    this.lastShotAt.delete(targetVoterId);
     const conns = new Set(this.connsByVoter.get(targetVoterId) ?? []);
     this.connsByVoter.delete(targetVoterId);
     this.version++;
@@ -313,6 +346,7 @@ export class GameRoom {
       story: this.story,
       phase: this.phase,
       autoReveal: this.autoReveal,
+      reactionsEnabled: this.reactionsEnabled,
       players,
       deckId: this.deckId,
       timer: this.timer,

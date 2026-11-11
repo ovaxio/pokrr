@@ -39,6 +39,11 @@ export class PokrrRoom extends Server<Env> {
     const voterId = sender.state?.voterId ?? null;
 
     try {
+      // Tir éphémère : hors dispatch, ne diffuse jamais de room_state.
+      if (msg?.type === "shoot_projectile") {
+        this.handleShot(msg, voterId);
+        return;
+      }
       this.dispatch(msg, sender, voterId);
       this.broadcastWithAutoReveal(msg.type);
     } catch (e) {
@@ -69,6 +74,13 @@ export class PokrrRoom extends Server<Env> {
   }
 
   // --- Message dispatch ---
+
+  private handleShot(msg: Extract<ClientMessage, { type: "shoot_projectile" }>, voterId: string | null): void {
+    if (!voterId) return;
+    const shot = this.game.shootProjectile(voterId, msg.targetVoterId, msg.item, Date.now());
+    if (!shot) return;
+    this.broadcast(JSON.stringify({ type: "projectile_thrown", ...shot } satisfies ServerMessage));
+  }
 
   private dispatch(msg: ClientMessage, conn: Connection<ConnState>, voterId: string | null): void {
     switch (msg.type) {
@@ -127,6 +139,12 @@ export class PokrrRoom extends Server<Env> {
       case "set_auto_reveal": {
         if (typeof msg.enabled !== "boolean") throw new GameError("invalid", "Valeur booléenne attendue");
         this.game.setAutoReveal(this.joined(voterId), msg.enabled);
+        break;
+      }
+      case "set_reactions": {
+        if (typeof msg.enabled !== "boolean") throw new GameError("invalid", "Valeur booléenne attendue");
+        this.game.setReactionsEnabled(this.joined(voterId), msg.enabled);
+        log("reactions_toggled", { room: this.name, enabled: msg.enabled });
         break;
       }
       case "kick": {

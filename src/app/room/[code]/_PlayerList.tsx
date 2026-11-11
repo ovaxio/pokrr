@@ -3,9 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { Check, Eye, Minus, Pencil, Star, X } from "lucide-react";
-import type { Phase, PlayerView } from "../../../../party/types";
+import type { Phase, PlayerView, ReactionItem } from "../../../../party/types";
 import { useDict } from "@/i18n/DictContext";
 import { interpolate } from "@/i18n/shared";
+import { reactionItemLabel } from "@/lib/projectiles";
+import ReactionGlyph from "./_ReactionGlyph";
 
 export default function PlayerList({
   players,
@@ -16,11 +18,18 @@ export default function PlayerList({
   onGrantAdminAction,
   onRevokeAdminAction,
   onRenameAction,
+  reactionsCoolingDown,
+  armedItem,
+  onReactAction,
 }: {
   players: PlayerView[];
   phase: Phase;
   meVoterId: string;
   amIAdmin: boolean;
+  reactionsCoolingDown: boolean;
+  // null : rien d'armé, ou réactions indisponibles pour moi.
+  armedItem: ReactionItem | null;
+  onReactAction: (targetVoterId: string, item: ReactionItem) => void;
   onKickAction: (voterId: string) => void;
   onGrantAdminAction: (voterId: string) => void;
   onRevokeAdminAction: (voterId: string) => void;
@@ -57,6 +66,9 @@ export default function PlayerList({
           onGrantAdmin={() => onGrantAdminAction(p.voterId)}
           onRevokeAdmin={() => onRevokeAdminAction(p.voterId)}
           onRename={onRenameAction}
+          reactionsCoolingDown={reactionsCoolingDown}
+          armedItem={armedItem}
+          onReact={(item) => onReactAction(p.voterId, item)}
         />
       ))}
     </div>
@@ -73,6 +85,9 @@ function PlayerCard({
   onGrantAdmin,
   onRevokeAdmin,
   onRename,
+  reactionsCoolingDown,
+  armedItem,
+  onReact,
 }: {
   player: PlayerView;
   phase: Phase;
@@ -83,8 +98,12 @@ function PlayerCard({
   onGrantAdmin: () => void;
   onRevokeAdmin: () => void;
   onRename: (name: string) => void;
+  reactionsCoolingDown: boolean;
+  armedItem: ReactionItem | null;
+  onReact: (item: ReactionItem) => void;
 }) {
   const d = useDict();
+  const canReact = !isMe && player.online;
   const revealed = phase === "revealed";
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(player.name);
@@ -141,43 +160,63 @@ function PlayerCard({
 
   return (
     <div className={isInitialPlayer ? "anim-fade-up flex w-20 flex-col items-center gap-1.5" : "flex w-20 flex-col items-center gap-1.5"} style={{ '--dur': '320ms' } as CSSProperties}>
-      <div className="relative h-24 w-16">
-        {player.isViewer ? (
-          <div className="h-24 w-16 flex items-center justify-center rounded-xl border-2 border-dashed border-token-strong bg-surface/20">
-            <Eye size={24} className="text-faint" aria-label={d.viewerBadge} />
-          </div>
-        ) : (
-          <div className={`flip-card ${revealed && player.vote ? "flipped" : ""}`}>
-            {/* Front : dos de carte */}
-            <div
-              className={
-                "flip-face border-2 " +
-                (player.hasVoted
-                  ? "border-indigo-500 bg-indigo-600/20"
-                  : "border-dashed border-token-strong bg-surface/40")
-              }
+      <div className="relative h-24 w-16" data-voter-card={player.voterId}>
+        {/* Seule la carte tremble à l'impact, pas le bouton de lancer posé dessus */}
+        <div className="relative h-24 w-16" data-card-shake>
+          {player.isViewer ? (
+            <div className="h-24 w-16 flex items-center justify-center rounded-xl border-2 border-dashed border-token-strong bg-surface/20">
+              <Eye size={24} className="text-faint" aria-label={d.viewerBadge} />
+            </div>
+          ) : (
+            <div className={`flip-card ${revealed && player.vote ? "flipped" : ""}`}>
+              {/* Front : dos de carte */}
+              <div
+                className={
+                  "flip-face border-2 " +
+                  (player.hasVoted
+                    ? "border-indigo-500 bg-indigo-600/20"
+                    : "border-dashed border-token-strong bg-surface/40")
+                }
+              >
+                {player.hasVoted ? (
+                  <Check size={20} className="text-indigo-500" />
+                ) : (
+                  <Minus size={16} className="text-faint" />
+                )}
+              </div>
+              {/* Back : face de carte révélée */}
+              <div className="flip-face flip-face-back border-2 border-indigo-500 bg-neutral-50 dark:bg-neutral-100 text-neutral-900">
+                <span className="text-2xl font-bold">{player.vote ?? "—"}</span>
+              </div>
+            </div>
+          )}
+          {/* Online dot */}
+          <span
+            role="img"
+            className={
+              "absolute top-1 right-1 h-2.5 w-2.5 rounded-full ring-[1.5px] ring-bg " +
+              (player.online ? "bg-emerald-500" : "bg-neutral-400 dark:bg-neutral-600")
+            }
+            aria-label={player.online ? d.statusOnline : d.statusOffline}
+          />
+        </div>
+        {canReact && armedItem !== null && (
+          <button
+            type="button"
+            data-room-shortcuts-off
+            aria-disabled={reactionsCoolingDown ? "true" : undefined}
+            aria-label={interpolate(d.reactionThrow, { item: reactionItemLabel(armedItem, d), name: player.name })}
+            onClick={() => onReact(armedItem)}
+            className="group/react absolute inset-0 cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-bg [@media(hover:hover)]:hover:ring-1 [@media(hover:hover)]:hover:ring-indigo-500/60 aria-disabled:cursor-default aria-disabled:[@media(hover:hover)]:hover:ring-0"
+          >
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute bottom-1 right-1 text-xs leading-none opacity-0 transition-opacity group-focus-visible/react:opacity-60 [@media(hover:hover)]:group-hover/react:opacity-60 [@media(hover:none)]:opacity-50 group-aria-disabled/react:opacity-20 group-aria-disabled/react:[@media(hover:hover)]:group-hover/react:opacity-20 group-aria-disabled/react:[@media(hover:none)]:opacity-20"
             >
-              {player.hasVoted ? (
-                <Check size={20} className="text-indigo-500" />
-              ) : (
-                <Minus size={16} className="text-faint" />
-              )}
-            </div>
-            {/* Back : face de carte révélée */}
-            <div className="flip-face flip-face-back border-2 border-indigo-500 bg-neutral-50 dark:bg-neutral-100 text-neutral-900">
-              <span className="text-2xl font-bold">{player.vote ?? "—"}</span>
-            </div>
-          </div>
+              <ReactionGlyph item={armedItem} size="hint" />
+            </span>
+          </button>
         )}
-        {/* Online dot */}
-        <span
-          role="img"
-          className={
-            "absolute top-1 right-1 h-2.5 w-2.5 rounded-full ring-[1.5px] ring-bg " +
-            (player.online ? "bg-emerald-500" : "bg-neutral-400 dark:bg-neutral-600")
-          }
-          aria-label={player.online ? d.statusOnline : d.statusOffline}
-        />
       </div>
 
       <div className="flex w-full flex-col items-center gap-0.5 text-center">

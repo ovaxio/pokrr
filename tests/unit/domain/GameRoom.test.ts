@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { GameRoom } from "../../../party/domain/GameRoom";
 import { GameError } from "../../../party/domain/GameError";
+import { REACTION_ITEMS } from "../../../party/types";
 
 // trackConnection + join in one call. Omit asViewer to use the game's default.
 function join(room: GameRoom, connId: string, voterId: string, name: string, asViewer?: boolean) {
@@ -553,5 +554,183 @@ describe("GameRoom — snapshot", () => {
     join(room, "c2", "bob", "Bob");
     const vIds = room.snapshot("r").players.map((p) => p.voterId);
     expect(vIds).toEqual(["alice", "bob"]);
+  });
+});
+
+describe("GameRoom: reactions", () => {
+  const T0 = 1_000_000;
+
+  function reactionRoom(): GameRoom {
+    const room = new GameRoom();
+    join(room, "c1", "alice", "Alice", false);
+    join(room, "c2", "bob", "Bob");
+    join(room, "c3", "carol", "Carol");
+    join(room, "c4", "dave", "Dave", true);
+    return room;
+  }
+
+  it("reactionsEnabled is true by default in the snapshot", () => {
+    expect(reactionRoom().snapshot("r").reactionsEnabled).toBe(true);
+  });
+
+  it("setReactionsEnabled flips the flag, bumps version, and is idempotent", () => {
+    const room = reactionRoom();
+    const v0 = room.snapshot("r").version;
+    room.setReactionsEnabled("alice", false);
+    const s1 = room.snapshot("r");
+    expect(s1.reactionsEnabled).toBe(false);
+    expect(s1.version).toBe(v0 + 1);
+    room.setReactionsEnabled("alice", false);
+    expect(room.snapshot("r").version).toBe(v0 + 1);
+  });
+
+  it("setReactionsEnabled is admin only", () => {
+    const room = reactionRoom();
+    expect(() => room.setReactionsEnabled("bob", false)).toThrowError(GameError);
+    try {
+      room.setReactionsEnabled("bob", false);
+    } catch (e) {
+      expect((e as GameError).code).toBe("forbidden");
+    }
+    try {
+      room.setReactionsEnabled("ghost", false);
+    } catch (e) {
+      expect((e as GameError).code).toBe("not_joined");
+    }
+    expect(room.snapshot("r").reactionsEnabled).toBe(true);
+  });
+
+  it("a valid shot returns the relayed fields", () => {
+    const room = reactionRoom();
+    expect(room.shootProjectile("bob", "carol", "👍", T0)).toEqual({
+      fromVoterId: "bob",
+      toVoterId: "carol",
+      item: "👍",
+    });
+  });
+
+  it("a shot does not change the version", () => {
+    const room = reactionRoom();
+    const v0 = room.snapshot("r").version;
+    room.shootProjectile("bob", "carol", "👍", T0);
+    expect(room.snapshot("r").version).toBe(v0);
+  });
+
+  describe("refusals return null and never throw", () => {
+    const cases: Array<[string, (room: GameRoom) => unknown]> = [
+      ["item outside the list", (r) => r.shootProjectile("bob", "carol", "💩", T0)],
+      ["html item", (r) => r.shootProjectile("bob", "carol", "<b>", T0)],
+      ["item with VS16", (r) => r.shootProjectile("bob", "carol", "\u{1F44D}\uFE0F", T0)],
+      ["ZWJ sequence", (r) => r.shootProjectile("bob", "carol", "\u{1F468}\u200D\u{1F469}\u200D\u{1F467}", T0)],
+      ["numeric item", (r) => r.shootProjectile("bob", "carol", 42, T0)],
+      ["undefined item", (r) => r.shootProjectile("bob", "carol", undefined, T0)],
+      ["unknown target", (r) => r.shootProjectile("bob", "ghost", "👍", T0)],
+      ["numeric target", (r) => r.shootProjectile("bob", 42, "👍", T0)],
+      ["null target", (r) => r.shootProjectile("bob", null, "👍", T0)],
+      ["self target", (r) => r.shootProjectile("bob", "bob", "👍", T0)],
+      ["unknown object id", (r) => r.shootProjectile("bob", "carol", "paper-boat", T0)],
+      ["incomplete object id", (r) => r.shootProjectile("bob", "carol", "plane", T0)],
+      ["uppercase object id", (r) => r.shootProjectile("bob", "carol", "PAPER-PLANE", T0)],
+      ["object id with a space", (r) => r.shootProjectile("bob", "carol", " paper-ball", T0)],
+      ["viewer targeting itself", (r) => r.shootProjectile("dave", "dave", "👍", T0)],
+      [
+        "offline viewer target",
+        (r) => {
+          r.untrackConnection("c4", "dave");
+          return r.shootProjectile("bob", "dave", "👍", T0);
+        },
+      ],
+      ["unknown shooter", (r) => r.shootProjectile("ghost", "bob", "👍", T0)],
+      [
+        "offline target",
+        (r) => {
+          r.untrackConnection("c3", "carol");
+          return r.shootProjectile("bob", "carol", "👍", T0);
+        },
+      ],
+      [
+        "reactions disabled",
+        (r) => {
+          r.setReactionsEnabled("alice", false);
+          return r.shootProjectile("bob", "carol", "👍", T0);
+        },
+      ],
+    ];
+    it.each(cases)("%s", (_label, run) => {
+      expect(run(reactionRoom())).toBeNull();
+    });
+  });
+
+  it("rate limit: refused at +999 ms, accepted at +1000 ms", () => {
+    const room = reactionRoom();
+    expect(room.shootProjectile("bob", "carol", "👍", T0)).not.toBeNull();
+    expect(room.shootProjectile("bob", "carol", "👍", T0 + 999)).toBeNull();
+    expect(room.shootProjectile("bob", "carol", "👍", T0 + 1000)).not.toBeNull();
+  });
+
+  it("refusals do not consume the cooldown", () => {
+    const room = reactionRoom();
+    expect(room.shootProjectile("bob", "carol", "💩", T0)).toBeNull();
+    expect(room.shootProjectile("bob", "carol", "👍", T0 + 10)).not.toBeNull();
+  });
+
+  it("cooldown is per shooter, not global", () => {
+    const room = reactionRoom();
+    expect(room.shootProjectile("bob", "alice", "👍", T0)).not.toBeNull();
+    expect(room.shootProjectile("carol", "alice", "👍", T0 + 1)).not.toBeNull();
+  });
+
+  it("kick clears the cooldown of the kicked player", () => {
+    const room = reactionRoom();
+    expect(room.shootProjectile("bob", "carol", "👍", T0)).not.toBeNull();
+    room.kick("alice", "bob");
+    join(room, "c5", "bob", "Bob");
+    expect(room.shootProjectile("bob", "carol", "👍", T0 + 10)).not.toBeNull();
+  });
+
+  describe("viewers and paper objects", () => {
+    it("a viewer can shoot", () => {
+      const room = reactionRoom();
+      expect(room.shootProjectile("dave", "bob", "👍", T0)).toEqual({
+        fromVoterId: "dave",
+        toVoterId: "bob",
+        item: "👍",
+      });
+    });
+
+    it("a viewer can be targeted", () => {
+      const room = reactionRoom();
+      expect(room.shootProjectile("bob", "dave", "paper-plane", T0)).not.toBeNull();
+    });
+
+    it("a viewer can target another viewer", () => {
+      const room = reactionRoom();
+      join(room, "c5", "eve", "Eve", true);
+      expect(room.shootProjectile("dave", "eve", "paper-ball", T0)).not.toBeNull();
+    });
+
+    it("all 12 items are accepted", () => {
+      const room = reactionRoom();
+      expect(REACTION_ITEMS).toHaveLength(12);
+      REACTION_ITEMS.forEach((item, i) => {
+        const shot = room.shootProjectile("bob", "carol", item, T0 + i * 1000);
+        expect(shot?.item).toBe(item);
+      });
+    });
+
+    it("a viewer has its own cooldown", () => {
+      const room = reactionRoom();
+      expect(room.shootProjectile("dave", "bob", "👍", T0)).not.toBeNull();
+      expect(room.shootProjectile("dave", "bob", "👍", T0 + 999)).toBeNull();
+      expect(room.shootProjectile("dave", "bob", "👍", T0 + 1000)).not.toBeNull();
+    });
+
+    it("the cooldown follows the voterId across a viewer switch", () => {
+      const room = reactionRoom();
+      expect(room.shootProjectile("bob", "carol", "👍", T0)).not.toBeNull();
+      room.setViewer("bob", true);
+      expect(room.shootProjectile("bob", "carol", "👍", T0 + 10)).toBeNull();
+      expect(room.shootProjectile("bob", "carol", "👍", T0 + 1000)).not.toBeNull();
+    });
   });
 });
