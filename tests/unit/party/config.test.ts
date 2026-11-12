@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { readPositiveMs, DEFAULT_ADMIN_GRACE_MS, DEFAULT_IDLE_TIMEOUT_MS } from "../../../party/config";
+import { readPositiveMs, DEFAULT_ADMIN_GRACE_MS, DEFAULT_IDLE_TIMEOUT_MS, DEFAULT_JOIN_TIMEOUT_MS } from "../../../party/config";
 
 const K = "POKRR_TEST_MS";
 const FALLBACK = 12345;
@@ -46,5 +46,9 @@ describe("default durations", () => {
   it("keeps the decided values (1 min grace, 2 h idle timeout)", () => {
     expect(DEFAULT_ADMIN_GRACE_MS).toBe(60_000);
     expect(DEFAULT_IDLE_TIMEOUT_MS).toBe(7_200_000);
+  });
+
+  it("closes a connection without join after 5 min", () => {
+    expect(DEFAULT_JOIN_TIMEOUT_MS).toBe(300_000);
   });
 });

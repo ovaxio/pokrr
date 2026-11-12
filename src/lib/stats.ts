@@ -1,7 +1,7 @@
 import {
   cardToNumber,
-  DECKS,
   DEFAULT_DECK_ID,
+  getDeck,
   type Card,
   type PlayerView,
 } from "../../party/types";
@@ -23,7 +23,7 @@ type Stats = {
 };
 
 export function computeStats(players: PlayerView[], deckId: string = DEFAULT_DECK_ID): Stats {
-  const deck = DECKS[deckId] ?? DECKS[DEFAULT_DECK_ID];
+  const deck = getDeck(deckId);
   const numericDeck = deck.numericCards.length > 0;
 
   const numericPlayers: Array<{ p: PlayerView; v: number }> = [];
@@ -118,7 +118,7 @@ export function isWideSpread(
   highest: number,
   deckId: string = DEFAULT_DECK_ID,
 ): boolean {
-  const deck = DECKS[deckId] ?? DECKS[DEFAULT_DECK_ID];
+  const deck = getDeck(deckId);
   const values = deck.numericCards
     .map((c) => cardToNumber(deck, c))
     .filter((n): n is number => n !== null);

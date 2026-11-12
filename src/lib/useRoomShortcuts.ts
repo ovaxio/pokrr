@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { DECKS, DEFAULT_DECK_ID, type ClientMessage, type RoomState } from "../../party/types";
+import { getDeck, type ClientMessage, type RoomState } from "../../party/types";
 
 type RoomShortcutsConfig = {
   state: RoomState | null;
@@ -14,6 +14,7 @@ type RoomShortcutsConfig = {
 // - ?    : sélectionne la carte "?" (si présente dans le deck)
 // - Space (admin, phase voting) : reveal
 // - R    (admin, phase revealed) : re-voter cette story — double presse requise (anti-reset accidentel)
+// Une touche maintenue ne déclenche qu'une action (e.repeat ignoré).
 // Inactif si focus dans un input/textarea/contenteditable, ou dans une zone marquée
 // data-room-shortcuts-off (barre de réactions et boutons de lancer).
 export function useRoomShortcuts({ state, isAdmin, sendAction }: RoomShortcutsConfig): { resetPending: boolean } {
@@ -24,6 +25,7 @@ export function useRoomShortcuts({ state, isAdmin, sendAction }: RoomShortcutsCo
     if (!state) return;
 
     const onKey = (e: KeyboardEvent) => {
+      if (e.repeat) return;
       const target = e.target as HTMLElement | null;
       if (
         target instanceof HTMLInputElement ||
@@ -35,7 +37,7 @@ export function useRoomShortcuts({ state, isAdmin, sendAction }: RoomShortcutsCo
       }
       if (e.altKey || e.ctrlKey || e.metaKey) return;
 
-      const deck = DECKS[state.deckId] ?? DECKS[DEFAULT_DECK_ID];
+      const deck = getDeck(state.deckId);
 
       // 0..9 → carte à la position correspondante du deck courant.
       if (/^\d$/.test(e.key) && state.phase === "voting") {

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { X } from "lucide-react";
-import { DECKS, DEFAULT_DECK_ID } from "../../../../party/types";
+import { getDeck } from "../../../../party/types";
 import { useDict } from "@/i18n/DictContext";
 import { interpolate } from "@/i18n/shared";
 
@@ -28,7 +28,7 @@ export default function HelpDialog({
 
   if (!open) return null;
 
-  const deck = DECKS[deckId] ?? DECKS[DEFAULT_DECK_ID];
+  const deck = getDeck(deckId);
   const reachableByKey = deck.cards.slice(0, 10);
   const clickOnly = deck.cards.slice(10).filter((c) => c !== "?");
   const hasQuestion = (deck.cards as readonly string[]).includes("?");

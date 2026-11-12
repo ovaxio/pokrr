@@ -61,9 +61,9 @@ jobs:
 
       - run: npm ci
 
-      # 8000 ms : aucun smoke ne doit rester silencieux plus de ~5 s dans une même salle.
-      - name: Setup wrangler dev env (short admin grace, short idle timeout)
-        run: printf 'POKRR_ADMIN_GRACE_MS=2000\nPOKRR_IDLE_TIMEOUT_MS=8000\n' > .env
+      # 8000 ms : aucun smoke ne doit rester sans action acceptée plus de ~5 s dans une même salle.
+      - name: Setup wrangler dev env (short admin grace, idle and join timeouts)
+        run: printf 'POKRR_ADMIN_GRACE_MS=2000\nPOKRR_IDLE_TIMEOUT_MS=8000\nPOKRR_JOIN_TIMEOUT_MS=5000\n' > .env
 
       - name: Start wrangler dev in background
         run: |
@@ -83,6 +83,11 @@ jobs:
 
       - name: Smoke — security
         run: npm run smoke:security
+
+      # La limite par IP (30 connexions par minute, mémoire de l'isolate) s'applique aussi à wrangler dev :
+      # le smoke de sécurité en ouvre jusqu'à 25, la fenêtre doit se vider avant les suivants.
+      - name: Wait for the per-IP connection window
+        run: sleep 60
 
       - name: Smoke — admin election
         run: npm run smoke:election
