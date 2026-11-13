@@ -53,6 +53,11 @@ export const DECKS: Record<string, Deck> = {
 
 export const DEFAULT_DECK_ID = "fibonacci";
 
+// Object.hasOwn : un id comme "constructor" ou "__proto__" ne doit pas résoudre un membre hérité.
+export function getDeck(id: string): Deck {
+  return Object.hasOwn(DECKS, id) ? DECKS[id] : DECKS[DEFAULT_DECK_ID];
+}
+
 export type Card = string;
 
 // Parse une carte d'un deck "hours" ou "powers-of-2" en nombre. Retourne null si non parseable.
@@ -101,11 +106,18 @@ export const LIMITS = {
   minTimerSec: 30,
   maxTimerSec: 60 * 60, // 1h max
   projectileCooldownMs: 1000, // 1 tir accepté par voterId par seconde
+  maxFrameLength: 4096, // unités UTF-16 (raw.length) ; la plus grosse trame légitime en fait environ 1250
+  framesPerSecond: 40, // marge pour les onglets d'avant le filtre e.repeat, qui envoient encore la répétition clavier
+  frameBurst: 100,
 } as const;
 
 // Code de fermeture WebSocket envoyé quand une salle expire faute d'activité.
 // Le client ne se reconnecte pas sur ce code (src/lib/usePokrrRoom.ts).
 export const ROOM_EXPIRED_CLOSE_CODE = 4001;
+
+// Connexion restée sans `join` trop longtemps. Le client se reconnecte sur ce code,
+// comme sur tout code autre que 4001.
+export const JOIN_TIMEOUT_CLOSE_CODE = 4002;
 
 // --- Timer ---
 export type TimerInfo = {

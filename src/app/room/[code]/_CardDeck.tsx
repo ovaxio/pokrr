@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { DECKS, DEFAULT_DECK_ID, type Card, type Phase } from "../../../../party/types";
+import { getDeck, type Card, type Phase } from "../../../../party/types";
 import { useDict } from "@/i18n/DictContext";
 
 export default function CardDeck({
@@ -19,7 +19,7 @@ export default function CardDeck({
 }) {
   const d = useDict();
   const disabled = phase === "revealed";
-  const deck = DECKS[deckId] ?? DECKS[DEFAULT_DECK_ID];
+  const deck = getDeck(deckId);
 
   return (
     <div className="space-y-2">

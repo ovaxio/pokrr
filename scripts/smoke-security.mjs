@@ -8,7 +8,16 @@
 // - Carte hors whitelist refusée
 // - Réactions projectiles : anti-usurpation, refus silencieux, rate limit 1 s, interrupteur admin, spectateurs tireurs et cibles, objets en papier
 // - HTTP non WebSocket sur /parties/ : 404 "Not Found" sans solliciter de Durable Object
+// - Origines : previews du projet Vercel acceptées, projets Vercel tiers refusés, localhost seulement si le Worker est local
+// - Trames JSON valides mais pas des messages (null, [], "abc", {"type":5}) : error invalid
+// - Deux sockets avec le même ?_pk= : fermer l'une ne rend pas l'autre sourde
+// - Second join d'un autre voterId sur la même connexion : forbidden
+// - set_deck avec une clé héritée du prototype ou un type non chaîne : invalid
+// - Trame de plus de 4096 unités : fermeture 1009 ; trame de 4000 unités : traitée
+// - Débit : 300 trames d'un coup, fermeture 1008 ; 33 trames/s tolérées
 //
+// Jouable contre la prod (aucune dépendance aux minuteries) : 25 connexions acceptées par exécution
+// au plus, la limite par IP étant de 30 par minute.
 // Prérequis : `npm run dev:party` (wrangler dev) sur localhost:1999 (.env: POKRR_ADMIN_GRACE_MS=2000 ou défaut).
 
 import { setTimeout as sleep } from "node:timers/promises";
@@ -29,9 +38,9 @@ function expect(cond, label) {
   }
 }
 
-function connect(roomId) {
+function connect(roomId, query = "") {
   return new Promise((resolve, reject) => {
-    const ws = new WebSocket(`${PROTO}://${HOST}/parties/main/${roomId}`);
+    const ws = new WebSocket(`${PROTO}://${HOST}/parties/main/${roomId}${query}`);
     ws.projectiles = [];
     ws.addEventListener("open", () => resolve(ws));
     ws.addEventListener("error", (e) => reject(e));
@@ -180,16 +189,23 @@ console.log("\n→ Test 6 : Origin browser non-autorisé");
   });
   expect(rejected, "Origin attacker.example.com refusé (CSWSH protection)");
 
-  // Origin browser autorisé : localhost passe
-  const allowed = await new Promise((resolve) => {
-    const ws = new WebSocket(`${PROTO}://${HOST}/parties/main/${room}`, {
-      headers: { Origin: "http://localhost:3000" },
+  const accepts = (origin, to = room) =>
+    new Promise((resolve) => {
+      const ws = new WebSocket(`${PROTO}://${HOST}/parties/main/${to}`, { headers: { Origin: origin } });
+      ws.addEventListener("open", () => { ws.close(); resolve(true); });
+      ws.addEventListener("error", () => resolve(false));
+      setTimeout(() => resolve(false), 2000);
     });
-    ws.addEventListener("open", () => { ws.close(); resolve(true); });
-    ws.addEventListener("error", () => resolve(false));
-    setTimeout(() => resolve(false), 2000);
-  });
-  expect(allowed, "Origin localhost:3000 autorisé");
+
+  expect(!(await accepts("https://evil-attacker.vercel.app")), "Origin d'un projet Vercel tiers refusée");
+  expect(await accepts("https://pokrr-f0xzgyce0-ovaxios-projects.vercel.app"), "Origin d'une preview du projet pokrr acceptée");
+  expect(await accepts("https://pokrr-ovaxios-projects.vercel.app"), "Origin de l'alias d'équipe acceptée");
+  expect(await accepts("https://pokrr.vercel.app"), "Origin pokrr.vercel.app acceptée");
+  const workerIsLocal = HOST.startsWith("localhost") || HOST.startsWith("127.");
+  expect(
+    (await accepts("http://localhost:3000")) === workerIsLocal,
+    workerIsLocal ? "Origin localhost:3000 acceptée (Worker local)" : "Origin localhost:3000 refusée (Worker distant)",
+  );
 }
 
 // 7. HTTP non WebSocket sur /parties/ : 404 sans DO
@@ -291,11 +307,15 @@ console.log("\n→ Test 8 : réactions projectiles");
   expect(bob.projectiles.length === beforeG + 1, "8g tir accepté après réactivation (le refus venait de l'interrupteur)");
 
   // 8h JSON null : la connexion reste fonctionnelle
-  alice.send("null");
-  await sleep(100);
+  for (const frame of ["null", "[]", '"abc"', '{"type":5}']) {
+    alice.lastError = null;
+    alice.send(frame);
+    await sleep(100);
+    expect(alice.lastError?.code === "invalid", `8h trame ${frame} : error invalid`);
+  }
   send(alice, { type: "set_story", story: "apres-null" });
   await sleep(150);
-  expect(alice.lastState.story === "apres-null", "8h JSON null : connexion toujours fonctionnelle");
+  expect(alice.lastState.story === "apres-null", "8h trames non-message : connexion toujours fonctionnelle");
 
   // 8i spectateurs tireurs et cibles, objets en papier (cooldown du spectateur appliqué)
   const beforeI1 = bob.projectiles.length;
@@ -319,6 +339,109 @@ console.log("\n→ Test 8 : réactions projectiles");
 
   for (const ws of all) ws.close();
   await sleep(80);
+}
+
+// 9. Même ?_pk= sur deux sockets : l'id de connexion vient du serveur
+console.log("\n→ Test 9 : ?_pk= dupliqué");
+{
+  const room = `sec-pk-${Date.now()}`;
+  const ghost = await connect(room, "?_pk=dup");
+  const twin = await connect(room, "?_pk=dup");
+  send(ghost, { type: "join", voterId: "v-ghost", name: "Ghost" });
+  await sleep(120);
+  send(twin, { type: "join", voterId: "v-twin", name: "Twin" });
+  await sleep(150);
+  twin.close();
+  await sleep(200);
+  send(ghost, { type: "set_story", story: "apres-twin" });
+  await sleep(200);
+  expect(ghost.lastState?.story === "apres-twin", "la première socket reçoit encore les broadcasts");
+  ghost.close();
+}
+
+// 10. Second join d'un autre voterId sur une connexion déjà jointe
+console.log("\n→ Test 10 : multi-join");
+{
+  const room = `sec-multijoin-${Date.now()}`;
+  const observer = await connect(room);
+  const conn = await connect(room);
+  send(observer, { type: "join", voterId: "v-obs", name: "Obs" });
+  await sleep(120);
+  send(conn, { type: "join", voterId: "v-a", name: "A" });
+  await sleep(150);
+  conn.lastError = null;
+  send(conn, { type: "join", voterId: "v-b", name: "B" });
+  await sleep(150);
+  expect(conn.lastError?.code === "forbidden", "second join d'un autre voterId : forbidden");
+  expect(!observer.lastState?.players.some((p) => p.voterId === "v-b"), "v-b n'existe pas dans l'état");
+  conn.close();
+  await sleep(200);
+  expect(observer.lastState?.players.find((p) => p.voterId === "v-a")?.online === false, "v-a passe hors ligne à la fermeture");
+  observer.close();
+}
+
+// 11. set_deck avec une clé héritée du prototype
+console.log("\n→ Test 11 : set_deck invalide");
+{
+  const room = `sec-deck-${Date.now()}`;
+  const alice = await connect(room);
+  send(alice, { type: "join", voterId: "v-alice", name: "Alice", asViewer: false });
+  await sleep(150);
+  for (const deckId of ["constructor", "__proto__", "toString", 42]) {
+    alice.lastError = null;
+    send(alice, { type: "set_deck", deckId });
+    await sleep(100);
+    expect(alice.lastError?.code === "invalid", `set_deck ${JSON.stringify(deckId)} : invalid`);
+  }
+  expect(alice.lastState?.deckId === "fibonacci", "deckId reste fibonacci");
+  send(alice, { type: "vote", value: "5" });
+  await sleep(150);
+  expect(alice.lastState?.players.find((p) => p.voterId === "v-alice")?.hasVoted === true, "un vote valide passe ensuite");
+  alice.close();
+}
+
+// 12. Taille des trames
+console.log("\n→ Test 12 : taille des trames");
+{
+  const room = `sec-size-${Date.now()}`;
+  const big = await connect(room);
+  big.send("x".repeat(4097));
+  await sleep(500);
+  expect(big.closedCode === 1009, "trame de 4097 unités : fermeture 1009");
+  expect(!big.lastError, "aucune réponse invalid avant la fermeture");
+
+  const admin = await connect(room);
+  send(admin, { type: "join", voterId: "v-admin", name: "Admin" });
+  await sleep(150);
+  const frame = JSON.stringify({ type: "set_story", story: "y".repeat(3950) });
+  expect(frame.length > 3900 && frame.length <= 4096, `trame valide de ${frame.length} unités`);
+  admin.send(frame);
+  await sleep(200);
+  expect(admin.closedCode === undefined, "trame de ~4000 unités : connexion ouverte");
+  expect(admin.lastState?.story.length === 200, "story tronquée à 200 caractères");
+  admin.close();
+}
+
+// 13. Débit
+console.log("\n→ Test 13 : débit des trames");
+{
+  const room = `sec-rate-${Date.now()}`;
+  const flood = await connect(room);
+  const typer = await connect(room);
+  send(flood, { type: "join", voterId: "v-flood", name: "Flood" });
+  send(typer, { type: "join", voterId: "v-typer", name: "Typer", asViewer: false });
+  await sleep(200);
+  const t0 = Date.now();
+  for (let i = 0; i < 300; i++) send(flood, { type: "unvote" });
+  while (flood.closedCode === undefined && Date.now() - t0 < 1000) await sleep(20);
+  expect(flood.closedCode === 1008, "300 trames d'un coup : fermeture 1008");
+
+  for (let i = 0; i < 100; i++) {
+    send(typer, { type: "vote", value: "5" });
+    await sleep(30);
+  }
+  expect(typer.closedCode === undefined && !typer.lastError, "environ 33 trames/s pendant 3 s : connexion ouverte, aucun refus");
+  typer.close();
 }
 
 console.log(`\n${fail === 0 ? "✅ OK" : "❌ FAIL"} — ${pass} passed, ${fail} failed`);

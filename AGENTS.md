@@ -69,9 +69,9 @@ npm run build
 npm test                  # vitest
 npm run knip              # aussi lancé par le hook pre-commit husky
 npm run smoke             # nécessite npm run dev (ou POKRR_HOST=<hôte>)
-npm run smoke:security
+npm run smoke:security    # jusqu'à 25 connexions
 npm run smoke:election    # local uniquement (POKRR_ADMIN_GRACE_MS=2000)
-npm run smoke:idle        # local uniquement (POKRR_IDLE_TIMEOUT_MS=8000)
+npm run smoke:idle        # local uniquement (POKRR_IDLE_TIMEOUT_MS=8000, POKRR_JOIN_TIMEOUT_MS=5000)
 npm run test:e2e          # Playwright, nécessite npm run dev
 ```
 
@@ -82,9 +82,11 @@ Node 24 (version de la CI ; aucun `.nvmrc` ni `engines` dans le repo). Sur ce po
 ## Worker PartyServer : pièges connus
 
 - **Binding `Main`** dans `wrangler.jsonc` : il produit la route `/parties/main/<salle>` attendue par `partysocket`. Tout autre nom casse le client (400).
-- **Garde d'accès** : origine autorisée, IP (`CF-Connecting-IP`) et rate limit (30 connexions par minute et par IP, mémoire par isolate) passent par l'option `onBeforeConnect` de `routePartykitRequest`. Une requête sans en-tête `Origin` est acceptée (nécessaire aux smokes Node).
+- **Garde d'accès** : origine autorisée, IP (`CF-Connecting-IP`) et rate limit (30 connexions par minute et par IP, mémoire par isolate) passent par l'option `onBeforeConnect` de `routePartykitRequest`. Origines acceptées : `pokrr.app` (et `www`), `pokrr.vercel.app`, les previews du projet (`pokrr-*-ovaxios-projects.vercel.app`), et localhost seulement quand le Worker est lui-même joint en localhost (`wrangler dev`). Une requête sans en-tête `Origin` est acceptée (nécessaire aux smokes Node). `onBeforeConnect` retire aussi `?_pk=` de l'URL : l'id de connexion doit être généré par le serveur, sinon deux sockets au même `_pk` partagent une entrée de la table des connexions.
 - **`onBeforeRequest` répond toujours `404 Not Found`** : aucun client légitime ne fait de HTTP sur `/parties/`, et sans ce garde chaque GET créerait un Durable Object facturé. Le corps `Not Found` le distingue du 404 du DO (`Not implemented`), le smoke de sécurité s'en sert.
-- **Pas d'hibernation** (`hibernate: false`) : l'état est en mémoire, l'hibernation l'effacerait. Conséquence : une salle connectée consomme du quota en continu, plafonné par la coupure d'inactivité (`POKRR_IDLE_TIMEOUT_MS`, 2 h par défaut, remise à zéro à chaque trame client, minuterie `setTimeout` annulée à la dernière déconnexion).
+- **Pas d'hibernation** (`hibernate: false`) : l'état est en mémoire, l'hibernation l'effacerait. Conséquence : une salle connectée consomme du quota en continu, plafonné par la coupure d'inactivité (`POKRR_IDLE_TIMEOUT_MS`, 2 h par défaut, repoussée seulement par une action acceptée d'un joueur joint ; une reconnexion ne la repousse pas, l'échéance est calculée depuis la dernière action ; minuterie `setTimeout` annulée à la dernière déconnexion).
+- **Budget de connexions des smokes** : la limite de 30 connexions par minute et par IP s'applique aussi à `wrangler dev` ; `smoke:security` en ouvre jusqu'à 25, d'où le `sleep 60` avant l'élection en CI et la pause d'environ 1 min à respecter entre smokes en local (sinon 429).
+- **Trames et connexions sans `join`** : trame de plus de `LIMITS.maxFrameLength` unités fermée en 1009 avant `JSON.parse` ; seau par connexion (`LIMITS.framesPerSecond`, `LIMITS.frameBurst`) fermé en 1008 ; connexion sans `join` fermée en 4002 après `POKRR_JOIN_TIMEOUT_MS` (5 min par défaut, le client se reconnecte, invisible). Le seau borne chaque connexion, pas le total. Toute minuterie par connexion est annulée à la fermeture, sinon elle retient le DO.
 - **Minuterie d'élection d'admin** (`POKRR_ADMIN_GRACE_MS`, 1 min par défaut) : à la déconnexion de l'admin, elle garde le DO actif 1 min (environ 8 GB-s par salle). Le smoke d'élection reste prévu pour le local ; contre la prod il faut passer `POKRR_ADMIN_GRACE_MS=60000` au script.
 - **Variables du Worker** : en local via `.env` (ne pas créer de `.dev.vars`, wrangler ignorerait alors `.env`) ; `process.env` fonctionne grâce à `nodejs_compat`. En prod, aucune `vars` n'est définie : défauts du code.
 - **Types** : `party/worker-configuration.d.ts` est généré par `npm run party:types` et hors git. Ne jamais remettre `party/index.ts` dans le `tsconfig.json` racine (les types Workers casseraient `next build`).
@@ -104,7 +106,7 @@ Node 24 (version de la CI ; aucun `.nvmrc` ni `engines` dans le repo). Sur ce po
 
 - Front : Vercel (déploiement automatique au merge sur `main`). Worker : `npm run party:deploy` (`wrangler deploy`) sur le compte Cloudflare du mainteneur, hôte `pokrr.codeblend.workers.dev`.
 - Plan Workers **gratuit** : environ 13 000 GB-s de durée par jour pour les Durable Objects. Un dépassement fait tomber les salles jusqu'à 00:00 UTC.
-- Surveillance hors repo (VPS du mainteneur) : une sonde de bout en bout toutes les 10 min (salle `__probe__`, sans `join` pour ne pas déclencher la minuterie d'élection) et un relevé horaire du quota, alertes Telegram. Ne pas renommer la salle `__probe__`, ni changer la réponse `not_joined` à un `set_name` sans `join`, sans mettre la sonde à jour. La sonde ferme sa connexion en quelques secondes, donc la coupure d'inactivité de 2 h ne la concerne pas.
+- Surveillance hors repo (VPS du mainteneur) : une sonde de bout en bout toutes les 10 min (salle `__probe__`, sans `join` pour ne pas déclencher la minuterie d'élection) et un relevé horaire du quota, alertes Telegram. Ne pas renommer la salle `__probe__`, ni changer la réponse `not_joined` à un `set_name` sans `join`, sans mettre la sonde à jour. La sonde ferme sa connexion en quelques secondes et n'envoie qu'une trame, donc ni la coupure d'inactivité de 2 h ni la fermeture à 5 min sans `join` ne la concernent.
 - Vérifications rapides : `curl https://pokrr.app/api/health`, page `/fr/status`, `npx wrangler tail pokrr`.
 
 ## Glossaire
@@ -119,9 +121,9 @@ Termes de domaine, extraits du code réel (`party/types.ts`, `party/domain/GameR
 - **Reveal** : la révélation des votes, par l'admin (`reveal`) ou automatique si `autoReveal`. Ne remet rien à zéro : les votes restent visibles jusqu'à `reset` ou `nextStory`.
 - **Reset** : vidage des votes de la story courante (`clearVotes`, phase → voting, timer annulé), sans toucher à la story. `nextStory` fait pareil en changeant la story.
 - **VoterId** : nanoid 16 généré côté client (`src/lib/voterId.ts`), stocké en localStorage. Identité sans compte, c'est la clé de tout message WS.
-- **Admin** : joueur élu (élection après déconnexion, minuterie `POKRR_ADMIN_GRACE_MS`, 15 min par défaut). Peut révéler et kicker.
+- **Admin** : joueur élu (élection après déconnexion, minuterie `POKRR_ADMIN_GRACE_MS`, 1 min par défaut). Peut révéler et kicker.
 - **RoomState** : état complet de la salle, broadcast à chaque mutation, champ `version` incrémenté. Un champ optionnel absent = fonction antérieure au déploiement du Worker, le client le traite comme indisponible.
-- **LIMITS** : garde-fous partagés serveur et client (`party/types.ts`) : nom 24, story 200, 50 joueurs par salle, timer 30 s à 1 h, cooldown projectile 1 s.
+- **LIMITS** : garde-fous partagés serveur et client (`party/types.ts`) : nom 24, story 200, 50 joueurs par salle, timer 30 s à 1 h, cooldown projectile 1 s, trame 4 096 unités, 40 trames par seconde (rafale 100).
 - **Projectile** : réaction éphémère lancée par un joueur (votant ou spectateur) vers un autre joueur en ligne, spectateurs compris, jamais vers soi. Liste blanche `REACTION_ITEMS` (`party/types.ts`, dans l'ordre de la barre) : 10 emojis d'un seul code point chacun (égalité de chaîne stricte des deux côtés), puis deux objets en papier d'identifiant ASCII (`paper-plane`, `paper-ball`). Champ `item` de `shoot_projectile` et `projectile_thrown`.
 - **not_joined** : code d'erreur renvoyé à toute action sans `join` préalable. La sonde VPS s'y appuie ; ne pas en changer la sémantique sans mettre la sonde à jour.
 

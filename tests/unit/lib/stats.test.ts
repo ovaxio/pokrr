@@ -224,3 +224,16 @@ describe("isWideSpread", () => {
     expect(isWideSpread(1, 16, "powers-of-2")).toBe(true);
   });
 });
+
+describe("deck id hérité du prototype", () => {
+  const players = [player("a", "3"), player("b", "5")];
+
+  it.each(["constructor", "__proto__", "toString"])("computeStats(%s) retombe sur le deck par défaut", (key) => {
+    expect(() => computeStats(players, key)).not.toThrow();
+    expect(computeStats(players, key)).toEqual(computeStats(players, "fibonacci"));
+  });
+
+  it("isWideSpread retombe sur le deck par défaut", () => {
+    expect(isWideSpread(1, 8, "toString")).toBe(isWideSpread(1, 8, "fibonacci"));
+  });
+});

@@ -6,6 +6,7 @@ import {
   type TimerInfo,
   DECKS,
   DEFAULT_DECK_ID,
+  getDeck,
   LIMITS,
   isReactionItem,
   type ProjectileThrownMessage,
@@ -237,9 +238,9 @@ export class GameRoom {
     this.version++;
   }
 
-  setDeck(adminVoterId: string, deckId: string): void {
+  setDeck(adminVoterId: string, deckId: unknown): void {
     this.requireAdmin(adminVoterId);
-    if (!(deckId in DECKS)) throw new GameError("invalid", "deckId inconnu");
+    if (typeof deckId !== "string" || !Object.hasOwn(DECKS, deckId)) throw new GameError("invalid", "deckId inconnu");
     if (deckId === this.deckId) return;
     if (Array.from(this.players.values()).some((p) => p.vote !== null)) {
       throw new GameError(
@@ -387,7 +388,7 @@ export class GameRoom {
   }
 
   private isCardInCurrentDeck(value: string): value is Card {
-    const deck = DECKS[this.deckId] ?? DECKS[DEFAULT_DECK_ID];
+    const deck = getDeck(this.deckId);
     return (deck.cards as readonly string[]).includes(value);
   }
 }

@@ -47,14 +47,14 @@ Prérequis : `npm run dev` doit tourner dans un autre terminal (port 3000 + 1999
 ```bash
 npm run smoke           # 23 assertions backend (happy path)
 npm run smoke:election  # 7 assertions élection admin auto (POKRR_ADMIN_GRACE_MS=2000)
-npm run smoke:security  # 20 assertions sécurité (CSWSH, XSS, admin usurp, voterId, JSON, HTTP sur /parties/)
-npm run smoke:idle      # coupure d'inactivité (POKRR_IDLE_TIMEOUT_MS=8000, local uniquement)
+npm run smoke:security  # sécurité (CSWSH et origines, XSS, admin usurp, voterId, JSON, `?_pk=`, multi-join, deck, taille et débit des trames, HTTP sur /parties/)
+npm run smoke:idle      # coupure d'inactivité et fermeture sans join (POKRR_IDLE_TIMEOUT_MS=8000, POKRR_JOIN_TIMEOUT_MS=5000, local uniquement)
 npm run test:e2e        # 1 test Playwright (3 voters, happy path complet)
 ```
 
 Tests unitaires (vitest, sans serveur) : `npm test` (`tests/unit/` : logique de jeu `GameRoom`, stats, sanitisation).
 
-Total : **50 assertions backend + tests unitaires + 1 E2E**. CI GitHub Actions (`.github/workflows/ci.yml`) sur chaque push vers `main` et sur chaque pull request : lint, typecheck (front et Worker), build, audit, tests unitaires, knip, puis les 3 smokes contre `wrangler dev`.
+Total : **smokes backend + tests unitaires + 1 E2E**. CI GitHub Actions (`.github/workflows/ci.yml`) sur chaque push vers `main` et sur chaque pull request : lint, typecheck (front et Worker), build, audit, tests unitaires, knip, puis les 4 smokes contre `wrangler dev`.
 
 ## Déploiement
 
@@ -105,6 +105,8 @@ Voir `.env.example`. Récap :
 | `NEXT_PUBLIC_SITE_URL` | Next | URL canonique pour `metadataBase` OG/Twitter (optionnel) |
 | `POKRR_ADMIN_GRACE_MS` | Worker (`.env` en local ; en prod, aucune `vars` n'est définie dans `wrangler.jsonc`, donc défaut du code) | Fenêtre grâce avant élection admin auto (défaut 1 min) |
 | `POKRR_IDLE_TIMEOUT_MS` | Worker (`.env` en local ; en prod, aucune `vars` n'est définie dans `wrangler.jsonc`, donc défaut du code) | Fermeture d'une salle sans action (défaut 2 h) |
+| `POKRR_JOIN_TIMEOUT_MS` | Worker (idem) | Fermeture (4002) d'une connexion restée sans `join` (défaut 5 min) |
+| `POKRR_ALLOWED_ORIGINS` | Worker (idem) | Origines supplémentaires acceptées, séparées par des virgules (optionnel) |
 
 ## Structure
 
@@ -153,7 +155,7 @@ party/                  # Worker PartyServer (tsconfig dédié)
   log.ts                # Logs JSON structurés
 scripts/
   smoke-room.mjs        # Test bout-en-bout (23 assertions)
-  smoke-security.mjs    # Test sécurité (20 assertions)
+  smoke-security.mjs    # Test sécurité
   smoke-admin-election.mjs # Test élection admin (7 assertions)
   smoke-idle-expiry.mjs # Test coupure d'inactivité
 tests/unit/             # vitest (domain, lib, party)

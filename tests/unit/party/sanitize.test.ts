@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { sanitizeName, sanitizeStory, sanitizeVoterId } from "../../../party/sanitize";
+import { parseClientFrame, sanitizeName, sanitizeStory, sanitizeVoterId } from "../../../party/sanitize";
+import { LIMITS } from "../../../party/types";
 
 describe("sanitizeName", () => {
   it("accepts a valid name", () => {
@@ -97,5 +98,34 @@ describe("sanitizeVoterId", () => {
   it("rejects ids with special characters", () => {
     expect(sanitizeVoterId("voter@domain.com")).toBeNull();
     expect(sanitizeVoterId("voter id")).toBeNull();
+  });
+});
+
+describe("parseClientFrame", () => {
+  it("returns the parsed message", () => {
+    expect(parseClientFrame('{"type":"vote","value":"5"}')).toEqual({ type: "vote", value: "5" });
+  });
+
+  it.each(["null", "[]", '"abc"', "5", "{}", '{"type":5}', '{"type":null}', "{pas du json"])(
+    "returns null for %s",
+    (raw) => {
+      expect(parseClientFrame(raw)).toBeNull();
+    },
+  );
+
+  it("returns null for a non-string frame", () => {
+    expect(parseClientFrame(new ArrayBuffer(8))).toBeNull();
+  });
+
+  it("returns too_big before any JSON.parse", () => {
+    expect(parseClientFrame("{".repeat(LIMITS.maxFrameLength + 1))).toBe("too_big");
+  });
+
+  it("accepts a frame of exactly maxFrameLength", () => {
+    const prefix = '{"type":"set_story","story":"';
+    const suffix = '"}';
+    const raw = prefix + "x".repeat(LIMITS.maxFrameLength - prefix.length - suffix.length) + suffix;
+    expect(raw).toHaveLength(LIMITS.maxFrameLength);
+    expect(parseClientFrame(raw)).toMatchObject({ type: "set_story" });
   });
 });

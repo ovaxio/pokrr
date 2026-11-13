@@ -1,4 +1,18 @@
-import { LIMITS } from "./types";
+import { LIMITS, type ClientMessage } from "./types";
+
+// "too_big" est contrôlé avant JSON.parse ; null = trame illisible ou sans `type` chaîne.
+export function parseClientFrame(raw: unknown): ClientMessage | "too_big" | null {
+  if (typeof raw !== "string") return null;
+  if (raw.length > LIMITS.maxFrameLength) return "too_big";
+  let msg: unknown;
+  try {
+    msg = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  if (typeof msg !== "object" || msg === null || typeof (msg as { type?: unknown }).type !== "string") return null;
+  return msg as ClientMessage;
+}
 
 export function sanitizeName(raw: unknown): string | null {
   if (typeof raw !== "string") return null;

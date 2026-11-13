@@ -17,7 +17,7 @@
     "smoke": "node scripts/smoke-room.mjs",
     "smoke:election": "POKRR_ADMIN_GRACE_MS=2000 node scripts/smoke-admin-election.mjs",
     "smoke:security": "node scripts/smoke-security.mjs",
-    "smoke:idle": "POKRR_IDLE_TIMEOUT_MS=8000 node scripts/smoke-idle-expiry.mjs",
+    "smoke:idle": "POKRR_IDLE_TIMEOUT_MS=8000 POKRR_JOIN_TIMEOUT_MS=5000 node scripts/smoke-idle-expiry.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",

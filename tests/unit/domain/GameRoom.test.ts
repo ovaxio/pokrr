@@ -411,6 +411,23 @@ describe("GameRoom — deck", () => {
     expect(() => room.setDeck("alice", "magic-wand")).toThrow("deckId inconnu");
   });
 
+  it.each(["constructor", "__proto__", "toString", "hasOwnProperty", "valueOf"])(
+    "rejects inherited key %s and keeps votes working",
+    (key) => {
+      const room = new GameRoom();
+      join(room, "c1", "alice", "Alice", false);
+      expect(() => room.setDeck("alice", key)).toThrow(GameError);
+      expect(room.snapshot("test").deckId).toBe("fibonacci");
+      expect(() => room.vote("alice", "5")).not.toThrow();
+    },
+  );
+
+  it.each([42, undefined])("rejects non-string deck id %s", (value) => {
+    const room = new GameRoom();
+    join(room, "c1", "alice", "Alice", false);
+    expect(() => room.setDeck("alice", value as unknown as string)).toThrow(GameError);
+  });
+
    it("is a no-op if deck unchanged", () => {
      const room = new GameRoom();
      join(room, "c1", "alice", "Alice", false);
