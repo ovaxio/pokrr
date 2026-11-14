@@ -208,4 +208,9 @@ export const en: Dict = {
   blogBackLink: "All articles",
   blogCta: "Try pokrr with your team: free, no account needed.",
   blogCtaButton: "Create a room →",
+
+  // Changelog
+  changelogTitle: "Changelog",
+  changelogIntro: "Features added to pokrr since its launch in May 2026, newest first.",
+  changelogMetaDescription: "What's new in pokrr, the free planning poker with no sign-up: reactions, decks, timer, multiple admins, English version.",
 };

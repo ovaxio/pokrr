@@ -101,6 +101,7 @@ Node 24 (version de la CI ; aucun `.nvmrc` ni `engines` dans le repo). Sur ce po
 - **`NEXT_PUBLIC_*` est figé au build** : changer la variable sur Vercel exige un redeploy sans build cache. Sur Vercel, ces variables ne peuvent pas être en visibilité `secret` (utiliser `config`).
 - **SEO** : URL du site codée en dur `https://pokrr.app` pour le canonical, le sitemap et robots (jamais `VERCEL_URL`), `/<lang>/room/` et `/api/` exclus dans `src/app/robots.ts`, previews `*.vercel.app` en `noindex` (`src/proxy.ts`).
 - **i18n** : tout texte visible passe par `src/i18n/fr.ts` et `en.ts`, les deux à jour ensemble.
+- **Changelog** : toute nouvelle fonctionnalité visible par les utilisateurs ajoute une entrée en tête de `src/content/changelog.ts` (date ISO, texte fr et en), affichée sur `/[lang]/changelog`. Correctifs, sécurité, dépendances et SEO technique n'y vont pas. Contenu éditorial bilingue hors de `fr.ts`/`en.ts` : `DictProvider` sérialise tout le dictionnaire dans chaque page, salles comprises.
 
 ## Production et surveillance
 
