@@ -48,6 +48,18 @@ function connect(label) {
 
 const send = (ws, msg) => ws.send(JSON.stringify(msg));
 
+// La diffusion peut dépasser une attente fixe sur un runner CI lent : on attend la condition, pas une durée.
+// `check` ne doit jamais lever sur un état pas encore reçu : optional chaining, false = on réessaie.
+async function waitFor(check, timeoutMs = 2000) {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    if (check()) return true;
+    if (Date.now() >= deadline) return false;
+    await sleep(20);
+  }
+}
+const player = (ws, voterId) => ws.lastState?.players.find((p) => p.voterId === voterId);
+
 function expect(condition, label) {
   if (condition) {
     console.log(`  ✓ ${label}`);
@@ -86,7 +98,14 @@ console.log("\n→ Bob vote 5, Carol vote 8 (pas encore de reveal : auto-reveal 
 send(bob, { type: "vote", value: "5" });
 await sleep(80);
 send(carol, { type: "vote", value: "8" });
-await sleep(150);
+expect(
+  await waitFor(
+    () =>
+      alice.lastState?.players.filter((p) => p.hasVoted).length === 2 &&
+      [bob, carol].every((ws) => ws.lastState?.version === alice.lastState?.version),
+  ),
+  "3 clients synchronisés avant le tir",
+);
 
 console.log("\n→ État courant : devrait être phase=voting, hasVoted=2/3");
 const stateBeforeReveal = alice.lastState;
@@ -103,17 +122,18 @@ expect(alice.lastState.reactionsEnabled === true, "reactionsEnabled = true par d
 const versionBeforeShot = lastVersion;
 const statesBeforeShot = [alice, bob, carol].map((ws) => ws.stateCount);
 send(bob, { type: "shoot_projectile", targetVoterId: "voter-carol", item: "👍" });
-await sleep(150);
 for (const [label, ws] of [["alice", alice], ["bob", bob], ["carol", carol]]) {
   const shots = ws.projectiles;
   expect(
-    shots.length === 1 &&
+    (await waitFor(() => shots.length >= 1)) &&
+      shots.length === 1 &&
       shots[0].fromVoterId === "voter-bob" &&
       shots[0].toVoterId === "voter-carol" &&
       shots[0].item === "👍",
     `${label} reçoit exactement 1 projectile_thrown conforme`,
   );
 }
+await sleep(150); // stabilité : laisse un éventuel room_state parasite arriver avant de vérifier son absence
 expect(
   [alice, bob, carol].every((ws, i) => ws.stateCount === statesBeforeShot[i]),
   "un tir ne diffuse aucun room_state (0 reçu par les 3 connexions)",
@@ -122,23 +142,18 @@ expect(lastVersion === versionBeforeShot, "un tir ne change pas la version de ro
 
 console.log("\n→ Alice coupe puis réactive les réactions");
 send(alice, { type: "set_reactions", enabled: false });
-await sleep(120);
-expect(alice.lastState.reactionsEnabled === false, "reactionsEnabled = false");
+expect(await waitFor(() => alice.lastState?.reactionsEnabled === false), "reactionsEnabled = false");
 send(alice, { type: "set_reactions", enabled: true });
-await sleep(120);
-expect(alice.lastState.reactionsEnabled === true, "reactionsEnabled = true");
+expect(await waitFor(() => alice.lastState?.reactionsEnabled === true), "reactionsEnabled = true");
 
 console.log("\n→ Alice active l'auto-reveal explicitement (le défaut est maintenant false)");
 send(alice, { type: "set_auto_reveal", enabled: true });
-await sleep(120);
-expect(alice.lastState.autoReveal === true, "auto-reveal activé explicitement");
+expect(await waitFor(() => alice.lastState?.autoReveal === true), "auto-reveal activé explicitement");
 
 console.log("\n→ Alice vote 13 (auto-reveal devrait déclencher)");
 send(alice, { type: "vote", value: "13" });
-await sleep(200);
-
+expect(await waitFor(() => alice.lastState?.phase === "revealed"), "phase = revealed (auto-reveal)");
 const stateAfter = alice.lastState;
-expect(stateAfter.phase === "revealed", "phase = revealed (auto-reveal)");
 expect(
   stateAfter.players.find((p) => p.voterId === "voter-alice")?.vote === "13",
   "vote alice révélé = 13",
@@ -158,15 +173,14 @@ expect(
 
 console.log("\n→ Alice next_story → nouveau round, votes effacés");
 send(alice, { type: "next_story", story: "Migration DB" });
-await sleep(120);
+expect(await waitFor(() => alice.lastState?.story === "Migration DB"), "story reçue après next_story");
 expect(alice.lastState.phase === "voting", "phase = voting (nouveau round)");
 expect(alice.lastState.story === "Migration DB", "story mise à jour");
 expect(alice.lastState.players.every((p) => !p.hasVoted), "tous les votes effacés");
 
 console.log("\n→ Alice désactive l'auto-reveal (mode manuel)");
 send(alice, { type: "set_auto_reveal", enabled: false });
-await sleep(120);
-expect(alice.lastState.autoReveal === false, "auto-reveal désactivé");
+expect(await waitFor(() => alice.lastState?.autoReveal === false), "auto-reveal désactivé");
 
 console.log("\n→ Les 3 votent (pas de reveal auto quand désactivé)");
 send(bob, { type: "vote", value: "5" });
@@ -179,8 +193,7 @@ expect(alice.lastState.phase === "voting", "phase = voting (auto-reveal désacti
 
 console.log("\n→ Alice révèle manuellement");
 send(alice, { type: "reveal" });
-await sleep(120);
-expect(alice.lastState.phase === "revealed", "phase = revealed (reveal manuel admin)");
+expect(await waitFor(() => alice.lastState?.phase === "revealed"), "phase = revealed (reveal manuel admin)");
 expect(
   alice.lastState.players.find((p) => p.voterId === "voter-alice")?.vote === "13",
   "vote alice visible = 13 (reveal manuel)",
@@ -188,16 +201,11 @@ expect(
 
 console.log("\n→ Alice reset (retour en voting pour la suite du scénario)");
 send(alice, { type: "reset" });
-await sleep(120);
-expect(alice.lastState.phase === "voting", "phase = voting (après reset)");
+expect(await waitFor(() => alice.lastState?.phase === "voting"), "phase = voting (après reset)");
 
 console.log("\n→ Alice transfert admin à Bob");
 send(alice, { type: "transfer_admin", voterId: "voter-bob" });
-await sleep(120);
-expect(
-  alice.lastState.players.find((p) => p.voterId === "voter-bob")?.isAdmin === true,
-  "bob est admin",
-);
+expect(await waitFor(() => player(alice, "voter-bob")?.isAdmin === true), "bob est admin");
 expect(
   alice.lastState.players.find((p) => p.voterId === "voter-alice")?.isAdmin === false,
   "alice n'est plus admin",
@@ -210,11 +218,7 @@ expect(alice.lastState.phase === "voting", "phase inchangée (alice n'est plus a
 
 console.log("\n→ Bob kick Carol");
 send(bob, { type: "kick", voterId: "voter-carol" });
-await sleep(200);
-expect(
-  !alice.lastState.players.some((p) => p.voterId === "voter-carol"),
-  "carol retirée de la salle",
-);
+expect(await waitFor(() => alice.lastState?.players.some((p) => p.voterId === "voter-carol") === false), "carol retirée de la salle");
 
 console.log("\n→ Bob envoie une carte hors deck (doit être refusé)");
 send(bob, { type: "vote", value: "999" });
@@ -226,11 +230,7 @@ expect(
 
 console.log("\n→ Disconnect alice → state broadcast doit refléter online=false");
 alice.close();
-await sleep(200);
-expect(
-  bob.lastState.players.find((p) => p.voterId === "voter-alice")?.online === false,
-  "alice marquée offline",
-);
+expect(await waitFor(() => player(bob, "voter-alice")?.online === false), "alice marquée offline");
 
 console.log(`\n${process.exitCode === 1 ? "❌ FAIL" : "✅ OK"} — version finale ${lastVersion}`);
 

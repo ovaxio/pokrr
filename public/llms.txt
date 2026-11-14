@@ -10,6 +10,7 @@
 - [FAQ](https://pokrr.app/en#faq): Common questions about planning poker and pokrr
 - [Remote planning poker](https://pokrr.app/en/planning-poker-remote): Running planning poker with a distributed team
 - [Scrum planning poker](https://pokrr.app/en/planning-poker-scrum): Estimating a sprint backlog with Scrum
+- [Changelog](https://pokrr.app/en/changelog): Features added since the May 2026 launch, newest first
 
 ## Guides
 
@@ -22,7 +23,7 @@
 
 ## About
 
-pokrr is a minimalist planning poker tool built for Scrum and agile teams. Card decks: Fibonacci, Fibonacci + ½, modified Fibonacci, T-shirt sizing, powers of 2 and hours. Sessions are room-based with shareable links. No data is stored server-side: room state lives in memory only and is deleted a few minutes after the last participant leaves. Built with Next.js and PartyKit (Cloudflare Durable Objects) for real-time WebSocket sessions.
+pokrr is a minimalist planning poker tool built for Scrum and agile teams. Card decks: Fibonacci, Fibonacci + ½, modified Fibonacci, T-shirt sizing, powers of 2 and hours. Sessions are room-based with shareable links. No data is stored server-side: room state lives in memory only and is deleted a few minutes after the last participant leaves. Built with Next.js and PartyServer (Cloudflare Durable Objects) for real-time WebSocket sessions.
 
 ## Key features
 
@@ -32,5 +33,7 @@ pokrr is a minimalist planning poker tool built for Scrum and agile teams. Card 
 - Built-in story timer
 - QR code room sharing
 - Markdown export
-- Multi-admin support with admin transfer
+- Multiple admins: an admin can make other players admins
 - GDPR-friendly: no personal data stored server-side
+- Spectator mode: follow the vote without voting
+- Reactions: throw an emoji or a paper plane at another player's card

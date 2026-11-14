@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { CSSProperties } from "react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import JoinRoomForm from "../_JoinRoomForm";
 import NewRoomButton from "../_NewRoomButton";
@@ -69,7 +70,7 @@ export default async function LangHome({ params }: { params: Promise<Record<stri
     "@type": "HowTo",
     name: d.howToTitle,
     description: d.tagline,
-    inLanguage: locale === "fr" ? "fr-FR" : "en",
+    inLanguage: locale === "fr" ? "fr-FR" : "en-US",
     step: d.howToSteps.map((s, i) => ({
       "@type": "HowToStep",
       position: i + 1,
@@ -81,7 +82,7 @@ export default async function LangHome({ params }: { params: Promise<Record<stri
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    inLanguage: locale === "fr" ? "fr-FR" : "en",
+    inLanguage: locale === "fr" ? "fr-FR" : "en-US",
     mainEntity: d.faq.map((item) => ({
       "@type": "Question",
       name: item.q,
@@ -126,7 +127,12 @@ export default async function LangHome({ params }: { params: Promise<Record<stri
               {d.trustLine}
             </p>
           </section>
-          <footer className="anim-fade-up text-xs text-muted" style={{ '--delay': '240ms' } as CSSProperties}>{d.pageFooter}</footer>
+          <footer className="anim-fade-up space-y-2 text-xs text-muted" style={{ '--delay': '240ms' } as CSSProperties}>
+            <p>{d.pageFooter}</p>
+            <p>
+              <Link href={`/${locale}/changelog`} className="underline underline-offset-2 hover:text-fg">{d.changelogTitle}</Link>
+            </p>
+          </footer>
         </main>
       </div>
 
@@ -168,7 +174,7 @@ export default async function LangHome({ params }: { params: Promise<Record<stri
       <section className="border-t border-token bg-surface px-6 py-16">
         <div className="mx-auto max-w-2xl space-y-6">
           <h2 className="text-lg font-semibold tracking-tight">
-            {locale === "fr" ? "Guides" : "Guides"}
+            Guides
           </h2>
           <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 text-sm">
             <li>
