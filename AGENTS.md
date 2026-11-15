@@ -77,6 +77,8 @@ npm run test:e2e          # Playwright, nécessite npm run dev
 
 **Avant de proposer un commit**, rejouer ce que fait la CI (`.github/workflows/ci.yml`) : lint, `tsc --noEmit`, `typecheck:party`, build, `npm audit --omit=dev --audit-level=high`, tests unitaires, knip, puis les quatre smokes contre `wrangler dev`. Le critère est « 0 échec », pas un nombre d'assertions figé.
 
+**Tests unitaires lents** : pas d'`expect` dans une boucle sur une grille de cas (`tests/unit/lib/projectiles.test.ts` parcourt 2 160 lancers) : accumuler les violations et faire un seul `expect`. Viser moins de 2 s par test en local : le runner CI est environ 2,4 fois plus lent et le timeout vitest est de 5 s (un test à 2,4 s en local a atteint 5,9 s en CI le 2026-11-14).
+
 Node 24 (version de la CI ; aucun `.nvmrc` ni `engines` dans le repo). Sur ce poste, vérifier `node -v` : un `node` du PATH peut être une autre version.
 
 ## Worker PartyServer : pièges connus
