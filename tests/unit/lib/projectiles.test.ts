@@ -10,7 +10,7 @@ import {
   shouldAnnounce,
   simulateFlight,
   type ProjectileKind,
-} from "../../../src/lib/projectiles";
+} from "@/lib/projectiles";
 import { REACTION_ITEMS } from "../../../party/types";
 
 const KINDS: ProjectileKind[] = ["emoji", "ball", "plane"];
@@ -130,14 +130,23 @@ describe("start and frame list", () => {
   });
 
   it("has sorted frames, a final fade and finite values", () => {
-    each((_k, _c, f) => {
-      for (let i = 1; i < f.frames.length; i++) expect(f.frames[i].t).toBeGreaterThanOrEqual(f.frames[i - 1].t);
-      expect(f.frames.at(-1)!.opacity).toBe(0);
-      for (const fr of f.frames.slice(0, -1)) expect(fr.opacity).toBe(1);
-      for (const fr of f.frames) {
-        for (const v of Object.values(fr)) expect(Number.isFinite(v)).toBe(true);
+    // Violations accumulées en JS simple : un expect par valeur sur 2 160 lancers dépasse le timeout en CI.
+    const violations: string[] = [];
+    each((kind, c, f) => {
+      const id = `${kind} ${c.vw}x${c.vh} top=${c.top} left=${c.left} dir=${c.dir} seed=${c.seed}`;
+      for (let i = 1; i < f.frames.length; i++) {
+        if (!(f.frames[i].t >= f.frames[i - 1].t)) violations.push(`${id} frame ${i}: t not sorted`);
+      }
+      const last = f.frames.length - 1;
+      for (let i = 0; i <= last; i++) {
+        const expected = i === last ? 0 : 1;
+        if (f.frames[i].opacity !== expected) violations.push(`${id} frame ${i}: opacity ${f.frames[i].opacity}, expected ${expected}`);
+        for (const [key, v] of Object.entries(f.frames[i])) {
+          if (!Number.isFinite(v)) violations.push(`${id} frame ${i}: ${key} not finite (${v})`);
+        }
       }
     });
+    expect(violations.slice(0, 20)).toEqual([]);
   });
 
   it("has the documented sprite sizes", () => {

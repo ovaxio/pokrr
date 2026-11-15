@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { locales } from "@/i18n/shared";
 import { registry } from "@/content/blog/registry";
+import { changelog } from "@/content/changelog";
 
 const SITE_URL = "https://pokrr.app";
 
@@ -42,5 +43,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   );
 
-  return [...homePages, ...landingPages, ...blogIndexPages, ...blogPostPages];
+  const changelogAlternates = Object.fromEntries(
+    locales.map((l) => [l, `${SITE_URL}/${l}/changelog`]),
+  );
+  const changelogPages: MetadataRoute.Sitemap = locales.map((lang) => ({
+    url: `${SITE_URL}/${lang}/changelog`,
+    lastModified: new Date(changelog[0].date),
+    changeFrequency: "monthly" as const,
+    priority: 0.5,
+    alternates: { languages: changelogAlternates },
+  }));
+
+  return [...homePages, ...landingPages, ...blogIndexPages, ...blogPostPages, ...changelogPages];
 }

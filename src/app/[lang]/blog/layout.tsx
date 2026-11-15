@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import ThemeToggle from "../../_ThemeToggle";
 import LocaleToggle from "../../_LocaleToggle";
+import { getDict } from "@/i18n/shared";
+import type { Locale } from "@/i18n/types";
 
 export default async function BlogLayout({
   children,
@@ -11,6 +13,7 @@ export default async function BlogLayout({
   params: Promise<Record<string, string>>;
 }) {
   const { lang } = await params;
+  const d = getDict(lang as Locale);
 
   return (
     <div className="min-h-screen bg-bg text-fg">
@@ -30,6 +33,8 @@ export default async function BlogLayout({
       </main>
       <footer className="border-t border-token py-8 text-center text-xs text-muted">
         <Link href={`/${lang}`} className="hover:text-fg">← pokrr</Link>
+        <span aria-hidden="true" className="mx-2">·</span>
+        <Link href={`/${lang}/changelog`} className="hover:text-fg">{d.changelogTitle}</Link>
       </footer>
     </div>
   );

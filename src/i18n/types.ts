@@ -160,4 +160,9 @@ export type Dict = {
   blogBackLink: string;
   blogCta: string;
   blogCtaButton: string;
+
+  // Changelog
+  changelogTitle: string;
+  changelogIntro: string;
+  changelogMetaDescription: string;
 };

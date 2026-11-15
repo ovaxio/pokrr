@@ -208,4 +208,9 @@ export const fr: Dict = {
   blogBackLink: "Tous les articles",
   blogCta: "Essaie pokrr avec ton équipe. Gratuit, sans inscription.",
   blogCtaButton: "Créer une salle →",
+
+  // Changelog
+  changelogTitle: "Nouveautés",
+  changelogIntro: "Les fonctionnalités ajoutées à pokrr depuis son lancement en mai 2026, de la plus récente à la plus ancienne.",
+  changelogMetaDescription: "Les nouveautés de pokrr, le planning poker gratuit et sans inscription : réactions, decks, minuteur, plusieurs admins, version anglaise.",
 };
