@@ -16,6 +16,7 @@ describe("isOriginAllowed", () => {
     "https://pokrr.app",
     "https://www.pokrr.app",
     "https://pokrr.vercel.app",
+    "https://scrum-vote.vercel.app",
     "https://pokrr-ovaxios-projects.vercel.app",
     "https://pokrr-f0xzgyce0-ovaxios-projects.vercel.app",
     "https://pokrr-git-fix-securite-lot1-ovaxios-projects.vercel.app",
@@ -27,6 +28,8 @@ describe("isOriginAllowed", () => {
     "https://evil.vercel.app",
     "https://nimporte-qui.vercel.app",
     "https://pokrr-evil.vercel.app",
+    "https://scrum-vote-evil.vercel.app",
+    "https://scrum-vote.vercel.app.evil.example",
     "https://pokrr.app.evil.example",
     "http://pokrr.app",
   ])("rejects %s", (origin) => {

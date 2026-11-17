@@ -50,6 +50,8 @@ export function isOriginAllowed(req: Request): boolean {
   }
   // Projet Vercel pokrr : domaine de prod, previews, alias de branche et d'équipe.
   if (/^https:\/\/pokrr\.vercel\.app$/.test(origin)) return true;
+  // Domaine historique utilisé par l'équipe Boiron (alias du même projet Vercel).
+  if (origin === "https://scrum-vote.vercel.app") return true;
   if (/^https:\/\/pokrr(-[a-z0-9-]+)?-ovaxios-projects\.vercel\.app$/.test(origin)) return true;
   if (/^https:\/\/(www\.)?pokrr\.app$/.test(origin)) return true;
   if (process.env.POKRR_ALLOWED_ORIGINS) {

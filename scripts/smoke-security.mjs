@@ -201,6 +201,7 @@ console.log("\n→ Test 6 : Origin browser non-autorisé");
   expect(await accepts("https://pokrr-f0xzgyce0-ovaxios-projects.vercel.app"), "Origin d'une preview du projet pokrr acceptée");
   expect(await accepts("https://pokrr-ovaxios-projects.vercel.app"), "Origin de l'alias d'équipe acceptée");
   expect(await accepts("https://pokrr.vercel.app"), "Origin pokrr.vercel.app acceptée");
+  expect(await accepts("https://scrum-vote.vercel.app"), "Origin scrum-vote.vercel.app (Boiron) acceptée");
   const workerIsLocal = HOST.startsWith("localhost") || HOST.startsWith("127.");
   expect(
     (await accepts("http://localhost:3000")) === workerIsLocal,
